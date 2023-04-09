@@ -1,10 +1,29 @@
-<script setup lang="ts">
-import { RouterView } from 'vue-router'
-</script>
-
 <template>
+  <navbar />
   <RouterView />
 </template>
 
+<script setup lang="ts">
+import { RouterView } from 'vue-router'
+import Navbar from './components/Navbar/Navbar.vue'
+</script>
+
 <style>
+*,
+*::before,
+*::after {
+  @apply box-border p-0 m-0;
+}
+
+html {
+  @apply bg-light-grey text-black;
+}
+
+html.dark {
+  @apply bg-very-dark-grey text-white;
+}
+
+body {
+  @apply min-h-screen text-base font-bold;
+}
 </style>
