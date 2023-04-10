@@ -16,7 +16,9 @@
                 <div class="flex items-center gap-2">
                     <h2
                         class="font-bold min-[330px]:text-lg"
-                        :class="{ 'pl-6': !sidebar }">Platform Launch
+                        :class="{ 'pl-6': isLogo && width >= 640 }"
+                    >
+                        Platform Launch
                     </h2>
                     <img src="/img/icon-chevron-down.svg" alt="click here to see more options">
                 </div>
@@ -53,6 +55,7 @@ defineProps<{
     isLogo: boolean,
     theme: boolean,
     dashboard: boolean,
+    width: number,
     callback: () => void
 }>()
 </script>

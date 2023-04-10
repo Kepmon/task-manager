@@ -18,6 +18,7 @@
             :isLogo="isLogoShown"
             :theme="isDark"
             :dashboard="isDashboardEmpty"
+            :width="width"
             :callback="toggleMobileSubnav"
         />
         
