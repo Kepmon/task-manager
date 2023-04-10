@@ -25,21 +25,16 @@
             </div>
 
             <div class="flex items-center gap-3 min-[350px]:gap-4">
-                <button
+                <the-button
                     @click="callback"
-                    class="main-nav__button"
+                    :default-class="true" 
                     :class="{
                         'opacity-25 cursor-not-allowed': dashboard,
                         'cursor-pointer': !dashboard
-                    }"
-                >
-                    <img
-                        src="/img/icon-add-task-mobile.svg"
-                        alt="add new task"
-                        class="sm:h-3"
-                    >
-                    <span class="hidden sm:inline text-white">Add New Task</span>
-                </button>
+                    }">
+                    <img src="/img/icon-add-task-mobile.svg" alt="" class="h-3">
+                    <span v-show="width >= 640" class="text-white">Add New Column</span>
+                </the-button>
                 <img
                     src="/img/icon-vertical-ellipsis.svg"
                     alt="click here to see more options"
@@ -50,6 +45,8 @@
 </template>
 
 <script setup lang="ts">
+import TheButton from '../shared/TheButton.vue';
+
 defineProps<{
     sidebar: boolean,
     isLogo: boolean,
@@ -62,7 +59,7 @@ defineProps<{
 
 <style scoped>
 .main-nav {
-    @apply flex items-center justify-between basis-full h-[max(12vh,12vw)] px-3;
+    @apply flex items-center justify-between basis-full px-3;
     @apply min-[350px]:px-6 shadow-xs bg-white dark:bg-dark-grey sm:h-[12vh];
 }
 

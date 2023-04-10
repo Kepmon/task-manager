@@ -1,11 +1,9 @@
 <template>
-  <navbar />
   <RouterView />
 </template>
 
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
-import Navbar from './components/Navbar/Navbar.vue'
 </script>
 
 <style>
@@ -24,6 +22,6 @@ html.dark {
 }
 
 body {
-  @apply min-h-screen text-base font-bold;
+  @apply min-h-screen text-base font-semibold;
 }
 </style>

@@ -117,8 +117,7 @@ const boards = ref([
 }
 
 .desktop-boards {
-    @apply flex flex-col pt-4 w-1/3 rounded-none shadow-xs;
-    @apply min-[896px]:w-1/4 xl:w-1/5;
+    @apply row-span-2 flex flex-col pt-4 rounded-none shadow-xs;
 }
 
 .boards-heading {
