@@ -6,11 +6,11 @@
                     alt="app logo"
                     class="sm:hidden h-5 min-[350px]:h-auto"
                 >
-                <div v-show="isLogo" class="main-nav__logo">
+                <div v-show="isLogo && width >= 640" class="main-nav__logo">
                     <img
                         :src="theme ? '/img/logo-light.svg' : '/img/logo-dark.svg'"
                         alt="app logo"
-                        class="hidden sm:block h-[26px] w-[153px] pr-6"
+                        class="h-[26px] w-[153px] pr-6"
                     >
                 </div>
                 <div class="flex items-center gap-2">

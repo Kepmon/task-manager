@@ -21,7 +21,7 @@
             :width="width"
             :callback="toggleMobileSubnav"
         />
-        
+    
         <div
             @click="toggleSidebar"
             v-show="isLogoShown && width >= 640"
@@ -40,7 +40,7 @@ import { useDark } from '@vueuse/core'
 const isDark = useDark()
 
 const isNavOpen = ref(false)
-const isDashboardEmpty = ref(false)
+const isDashboardEmpty = ref(true)
 const toggleMobileSubnav = () => {
     if (!isDashboardEmpty.value) {
         isNavOpen.value = !isNavOpen.value

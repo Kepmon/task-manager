@@ -9,14 +9,7 @@
         >
             <div v-show="width >= 640" class="px-[10%] mt-4 mb-[54px]">
                 <img
-                    v-show="theme"
-                    src="/img/logo-light.svg"
-                    alt="app logo"
-                    class="h-[26px] w-[153px]"
-                >
-                <img
-                    v-show="!theme"
-                    src="/img/logo-dark.svg"
+                    :src="theme ? '/img/logo-light.svg' : '/img/logo-dark.svg'"
                     alt="app logo"
                     class="h-[26px] w-[153px]"
                 >
@@ -49,7 +42,7 @@
                         >
                         <img
                             src="/img/icon-add-purple.svg"
-                            alt="board icon"
+                            alt=""
                             class="mr-1 h-[10px]"
                         >
                         <span class="whitespace-nowrap text-[14px] min-[350px]:text-base overflow-hidden">
