@@ -84,12 +84,6 @@ defineProps<{
     callback?: () => void
 }>()
 
-const width = ref(window.innerWidth)
-const resizeObserwer = new ResizeObserver((entries) => {
-    width.value = entries[0].contentRect.width
-})
-resizeObserwer.observe(document.body)
-
 const boards = ref([
     {
         name: 'Platform Launch',
@@ -124,20 +118,16 @@ const boards = ref([
     @apply transition-all duration-500;
 }
 
-.nav-mobile-leave-active, 
-.nav-desktop-leave-active {
-    @apply absolute;
-}
-
 .mobile-boards {
     @apply absolute top-[calc(12vh+1rem)] left-1/2 -translate-x-1/2;
     @apply w-[70vw] rounded-lg shadow-sm;
 }
 
 .desktop-boards {
-    @apply flex flex-col pt-4 w-1/3 static rounded-none shadow-xs;
+    @apply flex flex-col pt-4 w-1/3 rounded-none shadow-xs;
     @apply min-[896px]:w-1/4 xl:w-1/5;
 }
+
 .boards-heading {
     @apply ml-6 mb-[20px] text-sm text-medium-grey uppercase tracking-[2.4px] font-normal;
 }
@@ -145,5 +135,4 @@ const boards = ref([
 .boards-name {
     @apply whitespace-nowrap text-[14px] min-[350px]:text-base overflow-hidden;
 }
-
 </style>

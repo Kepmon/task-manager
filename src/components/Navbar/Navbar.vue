@@ -1,15 +1,17 @@
 <template>
-    <div key="nav-container" class="flex h-screen overflow-hidden">
+    <div class="flex h-screen overflow-hidden">
         <boards-navbar
-            v-show="width < 640 && isNavOpen"
+            v-show="isNavOpen"
             :width="width"
             :theme="isDark"
+            class="absolute sm:scale-0"
         />
         <boards-navbar
-            v-show="width >= 640 && isSidebarShown"
+            v-show="isSidebarShown"
             :width="width"
             :theme="isDark"
             :callback="toggleSidebar"
+            class="scale-0 sm:scale-100"
         />
         <main-navbar
             :sidebar="isSidebarShown"
@@ -31,13 +33,13 @@
 <script setup lang="ts">
 import MainNavbar from './MainNavbar.vue'
 import BoardsNavbar from './BoardsNavbar.vue'
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useDark } from '@vueuse/core'
 
 const isDark = useDark()
 
 const isNavOpen = ref(false)
-const isDashboardEmpty = ref(true)
+const isDashboardEmpty = ref(false)
 const toggleMobileSubnav = () => {
     if (!isDashboardEmpty.value) {
         isNavOpen.value = !isNavOpen.value
@@ -46,12 +48,14 @@ const toggleMobileSubnav = () => {
 
 const isSidebarShown = ref(true)
 const isLogoShown = ref(false)
-const time = computed(() => !isSidebarShown.value ? 500 : 0)
 const toggleSidebar = () => {
     isSidebarShown.value = !isSidebarShown.value
+    isLogoShown.value = false
     setTimeout(() => {
-        isLogoShown.value = !isLogoShown.value
-    }, time.value)
+        if (!isSidebarShown.value) {
+            isLogoShown.value = true
+        }
+    }, 500)
 }
 
 const width = ref(window.innerWidth)
