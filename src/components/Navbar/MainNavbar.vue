@@ -26,19 +26,18 @@
 
             <div class="flex items-center gap-3 min-[350px]:gap-4">
                 <the-button
-                    @click="callback"
-                    :default-class="true" 
-                    :class="{
-                        'opacity-25 cursor-not-allowed': dashboard,
-                        'cursor-pointer': !dashboard
-                    }">
+                :default-class="true" 
+                :class="{
+                    'opacity-25 cursor-not-allowed': dashboard,
+                    'cursor-pointer': !dashboard
+                }">
                     <img src="/img/icon-add-task-mobile.svg" alt="" class="h-3">
                     <span v-show="width >= 640" class="text-white">Add New Column</span>
                 </the-button>
                 <img
                     src="/img/icon-vertical-ellipsis.svg"
                     alt="click here to see more options"
-                    class="h-[18px] min-[350px]:h-auto"
+                    class="px-1 h-[18px] cursor-pointer min-[350px]:h-auto"
                 >
             </div>
         </nav>
@@ -52,8 +51,7 @@ defineProps<{
     isLogo: boolean,
     theme: boolean,
     dashboard: boolean,
-    width: number,
-    callback: () => void
+    width: number
 }>()
 </script>
 

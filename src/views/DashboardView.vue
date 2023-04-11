@@ -14,12 +14,12 @@
         class="scale-0 sm:scale-100"
       />
       <main-navbar
+        @click="isNavOpen = !isNavOpen"
         :sidebar="isSidebarShown"
         :isLogo="isLogoShown"
         :theme="isDark"
         :dashboard="isDashboardEmpty"
         :width="width"
-        :callback="toggleMobileSubnav"
         :class="{ 'col-span-2': isLogoShown }"
       />
   
@@ -30,34 +30,38 @@
         <img src="/img/icon-show-sidebar.svg" alt="show sidebar">
       </div>
 
-      <div
-        class="sm:col-start-2 flex flex-col items-center justify-center text-center p-8"
-        :class="{ 'sm:col-start-1 sm:col-span-2': isLogoShown }">
-        <p class="mb-[25px] text-lg text-medium-grey">This board is empty. Create a new column to get started.</p>
-        <the-button :defaultClass="true">
-          <img src="/img/icon-add-task-mobile.svg" alt="" class="h-3">
-          <span class="text-white">Add New Column</span>
-        </the-button>
-      </div>
+      <empty-info
+        v-show="activeBoard.columns.length === 0"
+        whatIsEmpty="This board"
+        createNew="column"
+        :logo="isLogoShown"
+        buttonText="Add New Column"
+      />
+      
+      <empty-info
+        v-show="boards.length === 0"
+        whatIsEmpty="Your dashboard"
+        createNew="board"
+        :logo="isLogoShown"
+        buttonText="Add New Board"
+      />
   </div>
 </template>
 
 <script setup lang="ts">
 import MainNavbar from '../components/Navbar/MainNavbar.vue'
 import BoardsNavbar from '../components/Navbar/BoardsNavbar.vue'
-import TheButton from '../components/shared/TheButton.vue'
+import EmptyInfo from '../components/EmptyInfo.vue'
+import { useBoardsStore } from '../stores/boards.ts'
 import { ref } from 'vue'
 import { useDark } from '@vueuse/core'
 
 const isDark = useDark()
 const isDashboardEmpty = ref(true)
-
 const isNavOpen = ref(false)
-const toggleMobileSubnav = () => {
-  if (!isDashboardEmpty.value) {
-    isNavOpen.value = !isNavOpen.value
-  }
-}
+
+const { boards } = useBoardsStore()
+const activeBoard = boards[0]
 
 const isSidebarShown = ref(true)
 const isLogoShown = ref(false)
