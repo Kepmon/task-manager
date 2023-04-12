@@ -4,12 +4,16 @@
         v-show="isNavOpen"
         :width="width"
         :theme="isDark"
+        :boards="boards"
+        :boardName="activeBoard.name"
         class="absolute sm:scale-0"
       />
       <boards-navbar
         v-show="isSidebarShown"
         :width="width"
         :theme="isDark"
+        :boards="boards"
+        :boardName="activeBoard.name"
         :callback="toggleSidebar"
         class="scale-0 sm:scale-100"
       />
@@ -20,6 +24,7 @@
         :theme="isDark"
         :dashboard="isDashboardEmpty"
         :width="width"
+        :boardName="activeBoard.name"
         :class="{ 'col-span-2': isLogoShown }"
       />
   

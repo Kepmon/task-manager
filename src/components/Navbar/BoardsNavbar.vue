@@ -15,19 +15,19 @@
                 >
             </div>
 
-            <h3 class="boards-heading">all boards (3)</h3>
+            <h3 class="boards-heading">all boards ({{ boards.length }})</h3>
             <div :class="{ 'flex flex-col justify-between grow': width >= 640 }">
                 <div>
                     <div
-                        v-for="{ name, isActive } in boards"
+                        v-for="{ name } in boards"
                         :key="name"
                         class="flex items-center h-12 w-[90%] pl-6 pr-6 rounded-r-[100px] sm:pr-11 sm:w-[max-content]"
                         :class="{ 
-                            'bg-main-purple': isActive, 'text-white': isActive, 
-                            'text-medium-grey': !isActive
+                            'bg-main-purple': name === boardName, 'text-white': name === boardName, 
+                            'text-medium-grey': name !== boardName
                         }">
                         <img
-                            :src="isActive ? '/img/icon-board-white.svg' : '/img/icon-board.svg'"
+                            :src="name === boardName ? '/img/icon-board-white.svg' : '/img/icon-board.svg'"
                             alt="board icon"
                             class="mr-3"
                         >
@@ -68,29 +68,20 @@
 </template>
 
 <script setup lang="ts">
-import ThemeToggle from './ThemeToggle.vue';
-import { ref } from 'vue'
+import ThemeToggle from './ThemeToggle.vue'
+import Board from '../components/Board.vue'
+// import { useBoardsStore } from '../../stores/boards.ts'
 
 defineProps<{
     width: number,
     theme: boolean,
+    boards: Board[],
+    boardName: string
     callback?: () => void
 }>()
 
-const boards = ref([
-    {
-        name: 'Platform Launch',
-        isActive: true
-    },
-    {
-        name: 'Marketing Plan',
-        isActive: false
-    },
-    {
-        name: 'Roadmap',
-        isActive: false
-    }
-])
+// const { boards } = useBoardsStore()
+// const activeBoard = boards[0]
 </script>
 
 <style scoped>

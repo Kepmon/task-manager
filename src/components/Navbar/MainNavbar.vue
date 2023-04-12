@@ -18,7 +18,7 @@
                         class="font-bold min-[330px]:text-lg"
                         :class="{ 'pl-6': isLogo && width >= 640 }"
                     >
-                        Platform Launch
+                        {{ boardName }}
                     </h2>
                     <img src="/img/icon-chevron-down.svg" alt="click here to see more options">
                 </div>
@@ -44,14 +44,15 @@
 </template>
 
 <script setup lang="ts">
-import TheButton from '../shared/TheButton.vue';
+import TheButton from '../shared/TheButton.vue'
 
 defineProps<{
     sidebar: boolean,
     isLogo: boolean,
     theme: boolean,
     dashboard: boolean,
-    width: number
+    width: number,
+    boardName: string
 }>()
 </script>
 
