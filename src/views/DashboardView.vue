@@ -1,5 +1,5 @@
 <template>
-  <div class="nav-container">
+  <div class="main-container">
       <boards-navbar
         v-show="isNavOpen"
         :width="width"
@@ -30,21 +30,26 @@
         <img src="/img/icon-show-sidebar.svg" alt="show sidebar">
       </div>
 
-      <empty-info
-        v-show="activeBoard.columns.length === 0"
-        whatIsEmpty="This board"
-        createNew="column"
-        :logo="isLogoShown"
-        buttonText="Add New Column"
-      />
-      
-      <empty-info
-        v-show="boards.length === 0"
-        whatIsEmpty="Your dashboard"
-        createNew="board"
-        :logo="isLogoShown"
-        buttonText="Add New Board"
-      />
+      <main
+        class="sm:col-start-2 flex flex-col items-center justify-center p-6"
+        :class="{ 'sm:col-start-1 sm:col-span-2': isLogoShown }"
+      >
+        <empty-info
+          v-show="activeBoard.columns.length === 0"
+          whatIsEmpty="This board"
+          createNew="column"
+          buttonText="Add New Column"
+        />
+        
+        <empty-info
+          v-show="boards.length === 0"
+          whatIsEmpty="Your dashboard"
+          createNew="board"
+          buttonText="Add New Board"
+        />
+
+        <boards-column :columns="activeBoard.columns" />
+      </main>
   </div>
 </template>
 
@@ -52,6 +57,7 @@
 import MainNavbar from '../components/Navbar/MainNavbar.vue'
 import BoardsNavbar from '../components/Navbar/BoardsNavbar.vue'
 import EmptyInfo from '../components/EmptyInfo.vue'
+import BoardsColumn from '../components/BoardsColumn.vue'
 import { useBoardsStore } from '../stores/boards.ts'
 import { ref } from 'vue'
 import { useDark } from '@vueuse/core'
@@ -83,8 +89,8 @@ resizeObserwer.observe(document.body)
 </script>
 
 <style scoped>
-.nav-container {
-  @apply grid grid-rows-[12vh_1fr] h-screen overflow-hidden;
+.main-container {
+  @apply grid grid-rows-[12vh_1fr] h-screen;
   @apply sm:grid-cols-[1fr_2fr] min-[896px]:grid-cols-[1fr_3fr] xl:grid-cols-[1fr_4fr];
 }
 

@@ -21,7 +21,14 @@ module.exports = {
         'lines-light': '#E4EBFA',
         'light-grey': '#F4F7FD',
         'regular-red': '#EA5555',
-        'red-hover': '#FF9898'
+        'red-hover': '#FF9898',
+        'first-column': '#49C4E5',
+        'second-column': '#8471F2',
+        'third-column': '#67E2AE',
+        'light-column-start': 'rgba(233, 239, 250, 1)',
+        'light-column-end': 'rgba(233, 239, 250, .5)',
+        'dark-column-start': 'rgba(43, 44, 55, 1)',
+        'dark-column-end': 'rgba(43, 44, 55, .5)'
       },
       fontSize: {
         sm: ['12px', '15px'],
@@ -30,8 +37,9 @@ module.exports = {
         xl: ['24px', '30px'],
       },
       boxShadow: {
-        'xs': '0 0 1px 0 #979797',
-        'sm': '0 0 8px -4px #979797'
+        xs: '0 0 1px 0 #979797',
+        sm: '0 0 8px -4px #979797',
+        column: '1px 1px 10px -8px #AFB6B9'
       }
     }
   }

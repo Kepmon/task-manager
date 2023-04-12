@@ -3,7 +3,7 @@ export interface Board {
     columns: [] | BoardColumn[]
 }
 
-interface BoardColumn {
+export interface BoardColumn {
     name: string,
     tasks: [] | Task[]
 }
@@ -15,7 +15,7 @@ interface Task {
     subtasks: [] | Subtask[]
 }
 
-interface Subtask {
+export interface Subtask {
     title: string,
     isCompleted: boolean
 }
