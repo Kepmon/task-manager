@@ -2,7 +2,7 @@
   <div class="main-container">
       <boards-navbar
         v-show="isNavOpen"
-        :width="width"
+        :width="windowWidth"
         :theme="isDark"
         :boards="boards"
         :boardName="activeBoard.name"
@@ -10,7 +10,7 @@
       />
       <boards-navbar
         v-show="isSidebarShown"
-        :width="width"
+        :width="windowWidth"
         :theme="isDark"
         :boards="boards"
         :boardName="activeBoard.name"
@@ -23,20 +23,20 @@
         :isLogo="isLogoShown"
         :theme="isDark"
         :dashboard="isDashboardEmpty"
-        :width="width"
+        :width="windowWidth"
         :boardName="activeBoard.name"
         :class="{ 'col-span-2': isLogoShown }"
       />
   
       <div
         @click="toggleSidebar"
-        v-show="isLogoShown && width >= 640"
+        v-show="isLogoShown && windowWidth >= 640"
         class="show-sidebar">
         <img src="/img/icon-show-sidebar.svg" alt="show sidebar">
       </div>
 
       <main
-        class="sm:col-start-2 flex flex-col items-center justify-center p-6"
+        class="sm:col-start-2 flex flex-col justify-center p-4 sm:p-6"
         :class="{ 'sm:col-start-1 sm:col-span-2': isLogoShown }"
       >
         <empty-info
@@ -86,17 +86,17 @@ const toggleSidebar = () => {
   }, 500)
 }
 
-const width = ref(window.innerWidth)
+const windowWidth = ref(window.innerWidth)
 const resizeObserwer = new ResizeObserver((entries) => {
-  width.value = entries[0].contentRect.width
+  windowWidth.value = entries[0].contentRect.width
 })
 resizeObserwer.observe(document.body)
 </script>
 
 <style scoped>
 .main-container {
-  @apply grid grid-rows-[12vh_1fr] h-screen;
-  @apply sm:grid-cols-[1fr_2fr] min-[896px]:grid-cols-[1fr_3fr] xl:grid-cols-[1fr_4fr];
+  @apply grid grid-rows-[12vh_88vh] min-h-screen;
+  @apply sm:grid-cols-[33%_67%] min-[896px]:grid-cols-[25%_75%] xl:grid-cols-[20%_80%]
 }
 
 .show-sidebar {

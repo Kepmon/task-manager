@@ -59,7 +59,7 @@ defineProps<{
 <style scoped>
 .main-nav {
     @apply flex items-center justify-between basis-full px-3;
-    @apply min-[350px]:px-6 shadow-xs bg-white dark:bg-dark-grey sm:h-[12vh];
+    @apply min-[350px]:px-6 shadow-xs bg-white dark:bg-dark-grey;
 }
 
 .main-nav__logo {

@@ -1,5 +1,5 @@
 <template>
-<div class="flex gap-6 w-full">
+<div class="columns-container">
     <div v-for="column in columns" :key="column.name" class="flex flex-col">
         <div class="flex items-center gap-2 mb-8">
             <div class="h-[15px] w-[15px] rounded-full" :class="circleColor(column)"></div>
@@ -12,7 +12,6 @@
             :howManySubtasks="subtasks.length"
             :title="title"
         />
-        
     </div>
     <div class="new-column">    
         <div class="flex gap-2 items-center justify-center h-full text-medium-grey shadow-column">
@@ -27,8 +26,11 @@
 import type { BoardColumn } from '../api/boardsTypes'
 import type { Subtask } from '../api/boardsTypes'
 import TaskCard from './TaskCard.vue'
-
 import { computed } from 'vue'
+
+const props = defineProps<{
+    columns: BoardColumn[]
+}>()
 
 const circleColor = computed(() => {
     return (column: BoardColumn) => ({
@@ -40,13 +42,14 @@ const circleColor = computed(() => {
 
 const returnNumberOfCompletedSubtasks = (arr: Subtask[]) =>
 arr.filter((subtask) => subtask.isCompleted === true).length
-
-const props = defineProps<{
-    columns: BoardColumn[]
-}>()
 </script>
 
 <style scoped>
+.columns-container {
+    @apply flex gap-6 overflow-scroll w-[calc(100vw-32px)];
+    @apply sm:w-[calc(67vw-48px)] min-[896px]:w-[calc(75vw-48px)] xl:w-[calc(80vw-48px)];
+}
+
 .new-column {
     @apply mt-[44px] w-[280px] bg-gradient-to-b from-light-column-start to-light-column-end;
     @apply dark:from-dark-column-start dark:to-dark-column-end;

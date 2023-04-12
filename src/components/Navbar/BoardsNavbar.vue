@@ -69,8 +69,7 @@
 
 <script setup lang="ts">
 import ThemeToggle from './ThemeToggle.vue'
-import Board from '../components/Board.vue'
-// import { useBoardsStore } from '../../stores/boards.ts'
+import type { Board } from '../../api/boardsTypes'
 
 defineProps<{
     width: number,
@@ -79,9 +78,6 @@ defineProps<{
     boardName: string
     callback?: () => void
 }>()
-
-// const { boards } = useBoardsStore()
-// const activeBoard = boards[0]
 </script>
 
 <style scoped>
