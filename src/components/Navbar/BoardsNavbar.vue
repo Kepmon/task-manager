@@ -17,11 +17,11 @@
 
             <h3 class="boards-heading">all boards ({{ boards.length }})</h3>
             <div :class="{ 'flex flex-col justify-between grow': width >= 640 }">
-                <div>
+                <div class="w-full">
                     <div
                         v-for="{ name } in boards"
                         :key="name"
-                        class="flex items-center h-12 w-[90%] pl-6 pr-6 rounded-r-[100px] sm:pr-11 sm:w-[max-content]"
+                        class="flex items-center h-12 w-[90%] pl-6 pr-6 rounded-r-[100px] sm:pr-11"
                         :class="{ 
                             'bg-main-purple': name === boardName, 'text-white': name === boardName, 
                             'text-medium-grey': name !== boardName

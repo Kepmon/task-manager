@@ -24,4 +24,8 @@ html.dark {
 body {
   @apply min-h-screen text-base font-semibold;
 }
+
+::-webkit-scrollbar-corner {
+  @apply bg-transparent
+}
 </style>

@@ -46,7 +46,8 @@ arr.filter((subtask) => subtask.isCompleted === true).length
 
 <style scoped>
 .columns-container {
-    @apply flex gap-6 overflow-scroll w-[calc(100vw-32px)];
+    @apply flex gap-6 w-[calc(100vw-32px)] overflow-scroll;
+    @apply scrollbar-invisible hover:scrollbar-visibleLight dark:hover:scrollbar-visibleDark;
     @apply sm:w-[calc(67vw-48px)] min-[896px]:w-[calc(75vw-48px)] xl:w-[calc(80vw-48px)];
 }
 

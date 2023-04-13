@@ -5,6 +5,9 @@ const defaultTheme = require('tailwindcss/defaultTheme')
 module.exports = {
   darkMode: 'class',
   content: ['./index.html', './src/**/*.{vue, js, ts}'],
+  plugins: [
+    require('@gradin/tailwindcss-scrollbar')
+  ],
   theme: {
     extend: {
       fontFamily: {
@@ -40,6 +43,26 @@ module.exports = {
         xs: '0 0 1px 0 #979797',
         sm: '0 0 8px -4px #979797',
         column: '1px 1px 10px -8px #AFB6B9'
+      }
+    },
+    scrollbar: {
+      visibleDark: {
+        size: '8px',
+        track: { background: 'transparent' },
+        thumb: { background: '#00011255', borderRadius: '40px' },
+        hover: { background: '#000112' }
+      },
+      visibleLight: {
+        size: '8px',
+        track: { background: 'transparent' },
+        thumb: { background: '#D5D5D5', borderRadius: '40px' },
+        hover: { background: '#A5A5A5' }
+      },
+      invisible: {
+        size: '8px',
+        track: { background: 'transparent' },
+        thumb: { background: 'transparent' },
+        hover: { background: 'transparent' }
       }
     }
   }
