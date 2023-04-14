@@ -1,23 +1,28 @@
 <template>
-<div class="columns-container">
-    <div v-for="column in columns" :key="column.name" class="flex flex-col">
-        <div class="flex items-center gap-2 mb-8">
-            <div class="h-[15px] w-[15px] rounded-full" :class="circleColor(column)"></div>
-            <p class="text-sm text-medium-grey uppercase" >{{ column.name }} ({{ column.tasks.length }})</p>
+<div
+    class="columns-container"
+    :class="{ 'w-full': logo, 'columns-container--sizes': !logo }"
+>
+    <div class="flex gap-6 h-[max-content]">
+        <div v-for="column in columns" :key="column.name" class="flex flex-col">
+            <div class="flex items-center gap-2 mb-8">
+                <div class="h-[15px] w-[15px] rounded-full" :class="circleColor(column)"></div>
+                <p class="text-sm text-medium-grey uppercase" >{{ column.name }} ({{ column.tasks.length }})</p>
+            </div>
+            <task-card
+                v-for="{ title, subtasks } in column.tasks"
+                :key="title"
+                :howManyCompleted="returnNumberOfCompletedSubtasks(subtasks)"
+                :howManySubtasks="subtasks.length"
+                :title="title"
+            />
         </div>
-        <task-card
-            v-for="{ title, subtasks } in column.tasks"
-            :key="title"
-            :howManyCompleted="returnNumberOfCompletedSubtasks(subtasks)"
-            :howManySubtasks="subtasks.length"
-            :title="title"
-        />
-    </div>
-    <div class="new-column">    
-        <div class="flex gap-2 items-center justify-center h-full text-medium-grey shadow-column">
-            <img src="/img/icon-add-gray.svg" alt="">
-            <span class="text-xl">New Column</span>
-        </div>        
+        <div class="new-column">
+            <div class="flex gap-2 items-center justify-center text-medium-grey cursor-pointer p-2">
+                <img src="/img/icon-add-gray.svg" alt="">
+                <span class="text-xl">New Column</span>
+            </div>
+        </div>
     </div>
 </div>
 </template>
@@ -29,7 +34,8 @@ import TaskCard from './TaskCard.vue'
 import { computed } from 'vue'
 
 const props = defineProps<{
-    columns: BoardColumn[]
+    columns: BoardColumn[],
+    logo: boolean
 }>()
 
 const circleColor = computed(() => {
@@ -46,13 +52,18 @@ arr.filter((subtask) => subtask.isCompleted === true).length
 
 <style scoped>
 .columns-container {
-    @apply flex gap-6 w-[calc(100vw-32px)] overflow-scroll;
+    @apply overflow-scroll;
     @apply scrollbar-invisible hover:scrollbar-visibleLight dark:hover:scrollbar-visibleDark;
-    @apply sm:w-[calc(67vw-48px)] min-[896px]:w-[calc(75vw-48px)] xl:w-[calc(80vw-48px)];
+}
+
+.columns-container--sizes {
+    @apply w-[calc(100vw-32px)] sm:w-[calc(67vw-48px)];
+    @apply min-[896px]:w-[calc(75vw-48px)] xl:w-[calc(80vw-48px)];
 }
 
 .new-column {
-    @apply mt-[44px] w-[280px] bg-gradient-to-b from-light-column-start to-light-column-end;
+    @apply flex items-center justify-center mt-[44px]  min-w-[280px] shadow-column;
+    @apply bg-gradient-to-b from-light-column-start to-light-column-end;
     @apply dark:from-dark-column-start dark:to-dark-column-end;
 }
 </style>

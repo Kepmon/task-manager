@@ -36,8 +36,8 @@
       </div>
 
       <main
-        class="sm:col-start-2 flex flex-col justify-center p-4 sm:p-6"
-        :class="{ 'sm:col-start-1 sm:col-span-2': isLogoShown }"
+        class="flex flex-col justify-center p-4 sm:p-6"
+        :class="{ 'sm:col-start-2': !isLogoShown, 'sm:col-start-1 sm:col-span-2': isLogoShown }"
       >
         <empty-info
           v-show="activeBoard.columns.length === 0"
@@ -53,7 +53,7 @@
           buttonText="Add New Board"
         />
 
-        <boards-column :columns="activeBoard.columns" />
+        <boards-column :columns="activeBoard.columns" :logo="isLogoShown" />
       </main>
   </div>
 </template>
