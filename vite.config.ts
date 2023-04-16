@@ -9,6 +9,9 @@ import vue from '@vitejs/plugin-vue'
 export default defineConfig({
   plugins: [vue()],
   base: '/task-manager/',
+  build: {
+    sourcemap: true,
+  },
   test: {
     globals: true,
     setupFiles: ['./tests/setup.ts']
