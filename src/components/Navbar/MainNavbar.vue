@@ -24,17 +24,24 @@
                 </div>
             </div>
 
-            <div class="flex items-center gap-3 min-[350px]:gap-4">
+            <div class="flex items-center gap-3 min-[350px]:gap-4 relative">
+                <more-options
+                    v-show="areOptionsShown && width > 640"
+                    element="Board"
+                    class="top-16 right-0"
+                />
                 <the-button
-                :default-class="true" 
-                :class="{
-                    'opacity-25 cursor-not-allowed': dashboard,
-                    'cursor-pointer': !dashboard
-                }">
+                    :default-class="true" 
+                    :class="{
+                        'opacity-25 cursor-not-allowed': dashboard,
+                        'cursor-pointer': !dashboard
+                    }"
+                >
                     <img src="/img/icon-add-task-mobile.svg" alt="" class="h-3">
                     <span v-show="width >= 640" class="text-white">Add New Column</span>
                 </the-button>
                 <img
+                    @click="areOptionsShown = !areOptionsShown"
                     src="/img/icon-vertical-ellipsis.svg"
                     alt="click here to see more options"
                     class="px-1 h-[18px] cursor-pointer min-[350px]:h-auto"
@@ -45,6 +52,8 @@
 
 <script setup lang="ts">
 import TheButton from '../shared/TheButton.vue'
+import MoreOptions from '../shared/MoreOptions.vue'
+import { ref } from 'vue'
 
 defineProps<{
     sidebar: boolean,
@@ -54,6 +63,8 @@ defineProps<{
     width: number,
     boardName: string
 }>()
+
+const areOptionsShown = ref(false)
 </script>
 
 <style scoped>

@@ -15,6 +15,7 @@
                 :howManyCompleted="returnNumberOfCompletedSubtasks(subtasks)"
                 :howManySubtasks="subtasks.length"
                 :title="title"
+                :callback="callback"
             />
         </div>
         <div class="new-column">
@@ -29,13 +30,14 @@
 
 <script setup lang="ts">
 import type { BoardColumn } from '../api/boardsTypes'
-import type { Subtask } from '../api/boardsTypes'
 import TaskCard from './TaskCard.vue'
+import { returnNumberOfCompletedSubtasks } from '../composables/completedTasks'
 import { computed } from 'vue'
 
 const props = defineProps<{
     columns: BoardColumn[],
-    logo: boolean
+    logo: boolean,
+    callback: () => void
 }>()
 
 const circleColor = computed(() => {
@@ -45,9 +47,6 @@ const circleColor = computed(() => {
         'bg-third-column': props.columns.indexOf(column) % 3 === 2
     })
 })
-
-const returnNumberOfCompletedSubtasks = (arr: Subtask[]) =>
-arr.filter((subtask) => subtask.isCompleted === true).length
 </script>
 
 <style scoped>

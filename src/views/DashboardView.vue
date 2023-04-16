@@ -53,16 +53,35 @@
           buttonText="Add New Board"
         />
 
-        <boards-column :columns="activeBoard.columns" :logo="isLogoShown" />
+        <boards-column
+          :columns="activeBoard.columns"
+          :logo="isLogoShown"
+          :callback="toggleSeeTask"
+        />
       </main>
+
+      <see-task
+        @click="toggleSeeTask"
+        v-show="isSeeTaskOpen"
+        :title="activeBoard.columns[1].tasks[5].title"
+        :description="activeBoard.columns[1].tasks[5].description"
+        :howManyCompleted="returnNumberOfCompletedSubtasks(activeBoard.columns[1].tasks[5].subtasks)"
+        :howManySubtasks="activeBoard.columns[1].tasks[5].subtasks.length"
+        :subtasks="activeBoard.columns[1].tasks[5].subtasks"
+        :columns="activeBoard.columns"
+        :status="activeBoard.columns[1].tasks[5].status"
+      />
   </div>
 </template>
 
 <script setup lang="ts">
+import type { Board } from '../api/boardsTypes'
 import MainNavbar from '../components/Navbar/MainNavbar.vue'
 import BoardsNavbar from '../components/Navbar/BoardsNavbar.vue'
 import EmptyInfo from '../components/EmptyInfo.vue'
 import BoardsColumn from '../components/BoardsColumn.vue'
+import SeeTask from '../components/Dialogs/SeeTask.vue'
+import { returnNumberOfCompletedSubtasks } from '../composables/completedTasks'
 import { useBoardsStore } from '../stores/boards.ts'
 import { ref } from 'vue'
 import { useDark } from '@vueuse/core'
@@ -71,7 +90,12 @@ const isDark = useDark()
 const isDashboardEmpty = ref(true)
 const isNavOpen = ref(false)
 
-const { boards } = useBoardsStore()
+const isSeeTaskOpen = ref(false)
+const toggleSeeTask = () => {
+  isSeeTaskOpen.value = !isSeeTaskOpen.value
+}
+
+const { boards }: { boards: Board[] } = useBoardsStore()
 const activeBoard = boards[0]
 
 const isSidebarShown = ref(true)
