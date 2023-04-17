@@ -1,6 +1,6 @@
 <template>
 <div class="semitransparent-bg">
-    <form class="relative rounded-md bg-white dark:bg-dark-grey">
+    <form class="relative p-6 rounded-md bg-white dark:bg-dark-grey">
         <more-options
             v-show="areOptionsShown"
             element="Task"
@@ -46,23 +46,12 @@
                     </label>
                 </div>
             </div>
-            
-            <label>
-                <p class="mb-2 text-sm text-medium-grey dark:text-white">Current Status</p>
-                <div class="select-container">
-                    <select class="select">
-                        <option
-                            v-for="{ name } in columns"
-                            :key="name"
-                            :value="name"
-                            :selected="name === status"
-                        >
-                            {{ name }}
-                        </option>
-                    </select>
-                </div>
-            </label>
         </div>
+        
+        <p class="mb-2 mt-6 text-sm text-medium-grey dark:text-white">
+            Current Status
+        </p>
+        <custom-select :columns="columns" :status="status" />
     </form>
 </div>
 </template>
@@ -70,6 +59,7 @@
 <script setup lang="ts">
 import type { BoardColumn, Subtask } from '../../api/boardsTypes'
 import MoreOptions from '../shared/MoreOptions.vue'
+import CustomSelect from '../CustomSelect.vue'
 import { ref } from 'vue'
 
 defineProps<{
@@ -91,22 +81,12 @@ const areOptionsShown = ref(false)
 }
 
 .form-content {
-    @apply flex flex-col gap-6 p-6 max-h-[90%] max-w-[480px] overflow-y-scroll scrollbar-invisible;
+    @apply flex flex-col gap-6 max-h-[90%] max-w-[480px] overflow-y-scroll scrollbar-invisible;
 }
 
 .checkbox {
     @apply appearance-none after:flex after:items-center after:justify-center;
     @apply after:h-3 after:w-3 after:bg-white after:shadow-option after:rounded-[2px];
     @apply checked:after:bg-main-purple checked:after:content-checked;
-}
-
-.select-container {
-    @apply relative after:content-down-arrow;
-    @apply after:absolute after:right-4 after:top-1 after:h-[max-content];
-}
-
-.select {
-    @apply py-2 px-4 w-full text-s dark:bg-dark-grey shadow-option rounded-[4px];
-    @apply outline-none cursor-pointer appearance-none focus:outline focus:outline-main-purple;
 }
 </style>
