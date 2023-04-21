@@ -1,18 +1,18 @@
 export interface Board {
     name: string,
-    columns: [] | BoardColumn[]
+    columns: BoardColumn[]
 }
 
 export interface BoardColumn {
     name: string,
-    tasks: [] | Task[]
+    tasks: Task[]
 }
 
 interface Task {
     title: string,
     description: string,
     status: string,
-    subtasks: [] | Subtask[]
+    subtasks: Subtask[]
 }
 
 export interface Subtask {

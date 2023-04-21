@@ -25,6 +25,7 @@
       :dashboard="isDashboardEmpty"
       :width="windowWidth"
       :boardName="activeBoard.name"
+      :callback="toggleAddNewTask"
       :class="{ 'col-span-2': isLogoShown }"
     />
   
@@ -73,6 +74,16 @@
       :columns="activeBoard.columns"
       :status="activeBoard.columns[1].tasks[5].status"
     />
+
+    <add-edit-form
+      @click.prevent.self="toggleAddNewTask" 
+      v-show="isAddNewTaskOpen"
+      title="Add New Task"
+      action="add"
+      :isDark="isDark"
+      :columns="activeBoard.columns"
+      text="Create Task"
+    />
   </div>
 </template>
 
@@ -83,18 +94,24 @@ import BoardsNavbar from '../components/Navbar/BoardsNavbar.vue'
 import EmptyInfo from '../components/EmptyInfo.vue'
 import BoardsColumn from '../components/BoardsColumn.vue'
 import SeeTask from '../components/Dialogs/SeeTask.vue'
+import AddEditForm from '../components/Dialogs/AddEditForm.vue'
 import { returnNumberOfCompletedSubtasks } from '../composables/completedTasks'
 import { useBoardsStore } from '../stores/boards'
 import { ref } from 'vue'
 import { useDark } from '@vueuse/core'
 
 const isDark = useDark()
-const isDashboardEmpty = ref(true)
+const isDashboardEmpty = ref(false)
 const isNavOpen = ref(false)
 
 const isSeeTaskOpen = ref(false)
 const toggleSeeTask = () => {
   isSeeTaskOpen.value = !isSeeTaskOpen.value
+}
+
+const isAddNewTaskOpen = ref(false)
+const toggleAddNewTask = () => {
+  isAddNewTaskOpen.value = !isAddNewTaskOpen.value
 }
 
 const { boards }: { boards: Board[] } = useBoardsStore()

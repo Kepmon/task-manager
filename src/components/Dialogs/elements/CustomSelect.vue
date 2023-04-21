@@ -1,6 +1,10 @@
 <template>
-<div class="select-container">
-    <button @click="isDropdownShown = !isDropdownShown" class="select-btn">
+<div
+    class="select-container" 
+    role="combobox"
+    :aria-expanded="isDropdownShown ? true : false"
+>
+    <button @click.prevent="isDropdownShown = !isDropdownShown" class="select-btn">
         {{ currentStatus }}
     </button>
     <transition name="dropdown">
@@ -8,7 +12,7 @@
             v-show="isDropdownShown"
             class="absolute p-4 w-full bg-white dark:bg-very-dark-grey rounded-lg"
         >
-            <div class="flex flex-col gap-1">
+            <div class="flex flex-col gap-1" role="option">
                 <label
                     @click="changeCurrentStatus($event)"
                     v-for="{ name } in columns"

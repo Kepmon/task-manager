@@ -1,15 +1,19 @@
 <template>
-<button :class="{ 'flex items-center gap-2 rounded-3xl bg-main-purple py-[10px] px-4 shadow-sm': defaultClass }">
+<button
+    :class="{
+        'flex items-center justify-center gap-2 py-[10px] px-4 rounded-3xl shadow-sm': regularButton,
+        'bg-main-purple': background === 'purple',
+        'bg-white-purple': background === 'whitePurple',
+        'bg-white': background === 'white',
+        'bg-regular-red': background === 'red'
+    }">
     <slot></slot>
 </button>
 </template>
 
 <script setup lang="ts">
 defineProps<{
-    defaultClass: boolean
+    regularButton: boolean,
+    background: 'purple' | 'whitePurple' | 'white' | 'red'
 }>()
 </script>
-
-<style scoped>
-
-</style>

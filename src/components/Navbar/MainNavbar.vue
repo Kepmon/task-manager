@@ -31,14 +31,16 @@
                     class="top-16 right-0"
                 />
                 <the-button
-                    :default-class="true" 
+                    @click.prevent="callback"
+                    :regularButton="true"
+                    background="purple" 
                     :class="{
                         'opacity-25 cursor-not-allowed': dashboard,
                         'cursor-pointer': !dashboard
                     }"
                 >
                     <img src="/img/icon-add-task-mobile.svg" alt="" class="h-3">
-                    <span v-show="width >= 640" class="text-white">Add New Column</span>
+                    <span v-show="width >= 640" class="text-white">Add New Task</span>
                 </the-button>
                 <img
                     @click="areOptionsShown = !areOptionsShown"
@@ -62,6 +64,7 @@ defineProps<{
     dashboard: boolean,
     width: number,
     boardName: string
+    callback: () => void
 }>()
 
 const areOptionsShown = ref(false)

@@ -3,8 +3,9 @@
         <img src="/img/icon-light-theme.svg" alt="">
         <the-button
             @click="toggleDark()"
-            :default-class="false"
-            class="flex items-center px-1 w-[40px] h-[20px] bg-main-purple rounded-xl"
+            :regularButton="false"
+            background="purple"
+            class="flex items-center px-1 w-[40px] h-[20px] rounded-xl"
         >
             <transition-group name="theme-toggle">
                 <div class="w-[14px] h-[14px] bg-white rounded-full" :class="{ 'ml-auto': isDark }" key="theme-toggle"></div>

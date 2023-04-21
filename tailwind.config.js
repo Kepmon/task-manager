@@ -16,6 +16,7 @@ module.exports = {
       colors: {
         'main-purple': '#635FC7',
         'semitransparent-purple': '#635FC740',
+        'white-purple': '#635FC71A',
         'main-purple-hover': '#A8A4FF',
         'regular-black': '#000112',
         'very-dark-grey': '#20212C',
@@ -33,7 +34,9 @@ module.exports = {
         'light-column-end': '#E9EFFA80',
         'dark-column-start': '#2B2C37',
         'dark-column-end': '#2B2C3780',
-        'semitransparent-black': '#00000077'
+        'semitransparent-black': '#00000077',
+        'input-border': '#828FA340',
+        'input-border-focus': '#828FA380'
       },
       fontSize: {
         sm: ['12px', '15px'],
@@ -67,7 +70,7 @@ module.exports = {
         hover: { background: '#A5A5A5' }
       },
       invisible: {
-        size: '8px',
+        size: '0px',
         track: { background: 'transparent' },
         thumb: { background: 'transparent' },
         hover: { background: 'transparent' }
