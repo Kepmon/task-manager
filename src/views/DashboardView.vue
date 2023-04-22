@@ -84,6 +84,13 @@
       :columns="activeBoard.columns"
       text="Create Task"
     />
+
+    <delete
+      @click.prevent.self="toggleDeleteDialog" 
+      v-show="isDeleteDialogOpen"
+      elementToDelete="board"
+      :elementName="boards[0].name"
+    />
   </div>
 </template>
 
@@ -95,6 +102,7 @@ import EmptyInfo from '../components/EmptyInfo.vue'
 import BoardsColumn from '../components/BoardsColumn.vue'
 import SeeTask from '../components/Dialogs/SeeTask.vue'
 import AddEditForm from '../components/Dialogs/AddEditForm.vue'
+import Delete from '../components/Dialogs/Delete.vue'
 import { returnNumberOfCompletedSubtasks } from '../composables/completedTasks'
 import { useBoardsStore } from '../stores/boards'
 import { ref } from 'vue'
@@ -112,6 +120,11 @@ const toggleSeeTask = () => {
 const isAddNewTaskOpen = ref(false)
 const toggleAddNewTask = () => {
   isAddNewTaskOpen.value = !isAddNewTaskOpen.value
+}
+
+const isDeleteDialogOpen = ref(false)
+const toggleDeleteDialog = () => {
+  isDeleteDialogOpen.value = !isDeleteDialogOpen.value
 }
 
 const { boards }: { boards: Board[] } = useBoardsStore()
