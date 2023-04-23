@@ -1,13 +1,7 @@
 <template>
-<div class="semitransparent-bg">
-    <form class="form">
-        <more-options
-            v-show="areOptionsShown"
-            element="Task"
-            class="top-24 sm:top-20 right-12 sm:translate-x-1/2"
-        />
-
-        <div class="form-content">
+<dialog-backdrop>
+    <dialog-form :options="true" :condition="areOptionsShown">
+        <template v-slot:mainContent>
             <div class="flex items-center justify-between gap-4">
                 <p class="min-[350px]:text-lg">{{ title }}</p>
                 <img
@@ -17,7 +11,6 @@
                     class="px-2 cursor-pointer"
                 >
             </div>
-
             <p class="text-medium-grey text-sm min-[350px]:text-s">
                 {{ description }}
             </p>
@@ -29,7 +22,7 @@
                 <div
                     v-for="subtask in subtasks"
                     :key="subtask.title"
-                    class="[&:not(:last-of-type)]mb-2 p-2 rounded"
+                    class="[&:not(:last-of-type)]:mb-2 p-2 rounded"
                     :class="{
                         'bg-light-grey dark:bg-very-dark-grey': subtask.isCompleted,
                         'bg-semitransparent-purple': !subtask.isCompleted
@@ -46,19 +39,22 @@
                     </label>
                 </div>
             </div>
-        </div>
+        </template>
         
-        <p class="mb-2 mt-6 text-sm text-medium-grey dark:text-white">
-            Current Status
-        </p>
-        <custom-select :columns="columns" :status="status" />
-    </form>
-</div>
+        <template v-slot:select>
+            <p class="mb-2 mt-6 text-sm text-medium-grey dark:text-white">
+                Current Status
+            </p>
+            <custom-select :columns="columns" :status="status" />
+        </template>
+    </dialog-form>
+</dialog-backdrop>
 </template>
 
 <script setup lang="ts">
 import type { BoardColumn, Subtask } from '../../api/boardsTypes'
-import MoreOptions from '../shared/MoreOptions.vue'
+import DialogBackdrop from './elements/DialogBackdrop.vue'
+import DialogForm from './elements/DialogForm.vue'
 import CustomSelect from '../Dialogs/elements/CustomSelect.vue'
 import { ref } from 'vue'
 
@@ -76,10 +72,6 @@ const areOptionsShown = ref(false)
 </script>
 
 <style scoped>
-.semitransparent-bg {
-    @apply flex items-center justify-center absolute p-4 inset-0 bg-semitransparent-black;
-}
-
 form {
     @apply relative p-6 sm:w-[480px] rounded-md bg-white dark:bg-dark-grey;
 }

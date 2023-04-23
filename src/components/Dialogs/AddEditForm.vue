@@ -1,9 +1,8 @@
 <template>
-<div class="semitransparent-bg">
-    <form class="form">
-        <div class="form-content">
+<dialog-backdrop>
+    <dialog-form :options="false">
+        <template v-slot:mainContent>
             <p class="min-[350px]:text-lg">{{ title }}</p>
-
             <input-text
                 :label="inputOptions.taskTitle.label"
                 :placeholder="inputOptions.taskTitle.placeholder"
@@ -16,34 +15,36 @@
                 action="add"
                 type="textarea"
             />
-
             <multi-option
                 title="Subtasks"
                 element="subtask"
                 :items="inputOptions.exemplarySubtasksPlaceholders"
                 :isDark="isDark"
             />
-
-            <div>
+        </template>
+        
+        <template v-slot:select>
+            <div class="flex flex-col mt-6">
                 <p class="mb-2 text-sm text-medium-grey dark:text-white">
                     Status
                 </p>
-                <custom-select status="Todo" :columns="columns" />
+                <custom-select status="Todo" :columns="columns" class="mb-6" />
+                <the-button
+                    :regularButton="true"
+                    background="purple"
+                    class="text-s">
+                    {{ text }}
+                </the-button>
             </div>
-            
-            <the-button
-                :regularButton="true"
-                background="purple"
-                class="text-s">
-                {{ text }}
-            </the-button>
-        </div>
-    </form>
-</div>
+        </template>
+    </dialog-form>
+</dialog-backdrop>
 </template>
 
 <script setup lang="ts">
 import type { BoardColumn } from '../../api/boardsTypes'
+import DialogBackdrop from './elements/DialogBackdrop.vue'
+import DialogForm from './elements/DialogForm.vue'
 import InputText from './elements/InputText.vue'
 import MultiOption from './elements/MultiOption.vue'
 import TheButton from '../shared/TheButton.vue'
@@ -73,10 +74,6 @@ const inputOptions = {
 </script>
 
 <style scoped>
-.semitransparent-bg {
-    @apply flex items-center justify-center absolute p-4 inset-0 bg-semitransparent-black;
-}
-
 .form {
     @apply relative p-6 w-[90%] sm:w-[480px] rounded-md bg-white dark:bg-dark-grey;
 }
