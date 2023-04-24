@@ -12,12 +12,12 @@
             v-show="isDropdownShown"
             class="absolute p-4 w-full bg-white dark:bg-very-dark-grey rounded-lg"
         >
-            <div class="flex flex-col gap-1" role="option">
+            <div class="flex flex-col gap-2" role="option">
                 <label
                     @click="changeCurrentStatus($event)"
                     v-for="{ name } in columns"
                     :key="name"
-                    class="min-h-[24px] text-s text-medium-grey"
+                    class="text-s text-medium-grey cursor-pointer"
                 >
                     <input type="radio" :name="name" class="appearance-none">
                     {{ name }}

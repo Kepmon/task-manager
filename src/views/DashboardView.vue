@@ -1,109 +1,92 @@
 <template>
-  <div class="main-container">
-    <boards-navbar
-      v-show="isNavOpen"
-      :width="windowWidth"
-      :theme="isDark"
-      :boards="boards"
-      :boardName="activeBoard.name"
-      class="absolute sm:scale-0"
-    />
-    <boards-navbar
-      v-show="isSidebarShown"
-      :width="windowWidth"
-      :theme="isDark"
-      :boards="boards"
-      :boardName="activeBoard.name"
-      :callback="toggleSidebar"
-      class="scale-0 sm:scale-100"
-    />
-    <main-navbar
-      @click="isNavOpen = !isNavOpen"
-      :sidebar="isSidebarShown"
-      :isLogo="isLogoShown"
-      :theme="isDark"
-      :dashboard="isDashboardEmpty"
-      :width="windowWidth"
-      :boardName="activeBoard.name"
-      :callback="toggleAddNewTask"
-      :class="{ 'col-span-2': isLogoShown }"
-    />
-  
-    <div
-      @click="toggleSidebar"
-      v-show="isLogoShown && windowWidth >= 640"
-      class="show-sidebar">
-      <img src="/img/icon-show-sidebar.svg" alt="show sidebar">
-    </div>
+<div class="main-container">
+  <boards-navbar
+    v-show="isNavOpen"
+    :width="windowWidth"
+    :theme="isDark"
+    :boards="boards"
+    :boardName="boardName"
+    class="absolute sm:scale-0"
+  />
+  <boards-navbar
+    v-show="isSidebarShown"
+    :width="windowWidth"
+    :theme="isDark"
+    :boards="boards"
+    :boardName="boardName"
+    :callback="toggleSidebar"
+    class="scale-0 sm:scale-100"
+  />
+  <main-navbar
+    @click="isNavOpen = !isNavOpen"
+    :sidebar="isSidebarShown"
+    :isLogo="isLogoShown"
+    :theme="isDark"
+    :dashboard="isDashboardEmpty"
+    :width="windowWidth"
+    :boardName="boardName"
+    :callback="() => toggleDialog(dialogsToToggle, 'addEditDialog')"
+    :class="{ 'col-span-2': isLogoShown }"
+  />
 
-    <main
-      class="flex flex-col justify-center p-4 sm:p-6"
-      :class="{ 'sm:col-start-2': !isLogoShown, 'sm:col-start-1 sm:col-span-2': isLogoShown }"
-    >
-      <empty-info
-        v-show="activeBoard.columns.length === 0"
-        whatIsEmpty="This board"
-        createNew="column"
-        buttonText="Add New Column"
-      />
-      
-      <empty-info
-        v-show="boards.length === 0"
-        whatIsEmpty="Your dashboard"
-        createNew="board"
-        buttonText="Add New Board"
-      />
-
-      <boards-column
-        :columns="activeBoard.columns"
-        :logo="isLogoShown"
-        :callback="toggleSeeTask"
-      />
-    </main>
-
-    <see-task
-      @click.prevent.self="toggleSeeTask"
-      v-show="isSeeTaskOpen"
-      :title="activeBoard.columns[1].tasks[5].title"
-      :description="activeBoard.columns[1].tasks[5].description"
-      :howManyCompleted="
-        returnNumberOfCompletedSubtasks(activeBoard.columns[1].tasks[5].subtasks)
-      "
-      :howManySubtasks="activeBoard.columns[1].tasks[5].subtasks.length"
-      :subtasks="activeBoard.columns[1].tasks[5].subtasks"
-      :columns="activeBoard.columns"
-      :status="activeBoard.columns[1].tasks[5].status"
-    />
-
-    <add-edit-form
-      @click.prevent.self="toggleAddNewTask" 
-      v-show="isAddNewTaskOpen"
-      title="Add New Task"
-      action="add"
-      :isDark="isDark"
-      :columns="activeBoard.columns"
-      text="Create Task"
-    />
-
-    <delete
-      @click.prevent.self="toggleDeleteDialog" 
-      v-show="isDeleteDialogOpen"
-      elementToDelete="board"
-      :elementName="boards[0].name"
-    />
+  <div
+    @click="toggleSidebar"
+    v-show="isLogoShown && windowWidth >= 640"
+    class="show-sidebar">
+    <img src="/img/icon-show-sidebar.svg" alt="show sidebar">
   </div>
+
+  <main
+    class="flex flex-col justify-center p-4 sm:p-6"
+    :class="{ 'sm:col-start-2': !isLogoShown, 'sm:col-start-1 sm:col-span-2': isLogoShown }"
+  >
+    <empty-info
+      v-show="columns.length === 0"
+      whatIsEmpty="This board"
+      createNew="column"
+      buttonText="Add New Column"
+    />
+    
+    <empty-info
+      v-show="boards.length === 0"
+      whatIsEmpty="Your dashboard"
+      createNew="board"
+      buttonText="Add New Board"
+    />
+
+    <boards-column
+      :columns="columns"
+      :logo="isLogoShown"
+      :callback="() => toggleDialog(dialogsToToggle, 'seeTask')"
+    />
+  </main>
+
+  <all-dialogs
+    :isDark="isDark"
+    :isSeeTaskOpen="dialogsToToggle.seeTask.isOpen"
+    :toggleSeeTask="() => toggleDialog(dialogsToToggle, 'seeTask')"
+    :isAddEditDialogOpen="dialogsToToggle.addEditDialog.isOpen"
+    :toggleAddNewTask="() => toggleDialog(dialogsToToggle, 'addEditDialog')"
+    :isDeleteDialogOpen="dialogsToToggle.deleteDialog.isOpen"
+    :toggleDeleteDialog="() => toggleDialog(dialogsToToggle, 'deleteDialog')"
+    :name="boardName"
+    :columns="columns"
+    :title="title"
+    :description="description"
+    :status="status"
+    :subtasks="subtasks"
+  />
+</div>
 </template>
 
 <script setup lang="ts">
 import type { Board } from '../api/boardsTypes'
+import type { DialogCondition } from '../api/dialogsTypes'
 import MainNavbar from '../components/Navbar/MainNavbar.vue'
 import BoardsNavbar from '../components/Navbar/BoardsNavbar.vue'
 import EmptyInfo from '../components/EmptyInfo.vue'
 import BoardsColumn from '../components/BoardsColumn.vue'
-import SeeTask from '../components/Dialogs/SeeTask.vue'
-import AddEditForm from '../components/Dialogs/AddEditForm.vue'
-import Delete from '../components/Dialogs/Delete.vue'
-import { returnNumberOfCompletedSubtasks } from '../composables/completedTasks'
+import AllDialogs from '../components/Dialogs/AllDialogs.vue'
 import { useBoardsStore } from '../stores/boards'
 import { ref } from 'vue'
 import { useDark } from '@vueuse/core'
@@ -112,23 +95,27 @@ const isDark = useDark()
 const isDashboardEmpty = ref(false)
 const isNavOpen = ref(false)
 
-const isSeeTaskOpen = ref(false)
-const toggleSeeTask = () => {
-  isSeeTaskOpen.value = !isSeeTaskOpen.value
-}
+const dialogsToToggle = ref({
+  seeTask: {
+    isOpen: false
+  },
+  addEditDialog: {
+    isOpen: false
+  },
+  deleteDialog: {
+    isOpen: false
+  }
+})
 
-const isAddNewTaskOpen = ref(false)
-const toggleAddNewTask = () => {
-  isAddNewTaskOpen.value = !isAddNewTaskOpen.value
-}
-
-const isDeleteDialogOpen = ref(false)
-const toggleDeleteDialog = () => {
-  isDeleteDialogOpen.value = !isDeleteDialogOpen.value
+const toggleDialog = (itemToOpen: DialogCondition, key: string) => {
+  const property = key as keyof DialogCondition
+  itemToOpen[property].isOpen = !itemToOpen[property].isOpen
 }
 
 const { boards }: { boards: Board[] } = useBoardsStore()
-const activeBoard = boards[0]
+const { name: boardName, columns } = boards[0]
+const { tasks } = columns[1]
+const { title, description, status, subtasks } = tasks[5]
 
 const isSidebarShown = ref(true)
 const isLogoShown = ref(false)

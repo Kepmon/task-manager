@@ -8,7 +8,7 @@ export interface BoardColumn {
     tasks: Task[]
 }
 
-interface Task {
+export interface Task {
     title: string,
     description: string,
     status: string,
