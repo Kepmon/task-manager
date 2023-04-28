@@ -33,12 +33,12 @@ import type { BoardColumn } from '../../api/boardsTypes'
 import { ref } from 'vue'
 
 const props = defineProps<{
-    status: string,
-    columns: BoardColumn[]
+    selectedStatus?: string,
+    columns?: BoardColumn[]
 }>()
 
 const isDropdownShown = ref(false)
-const currentStatus = ref(props.status)
+const currentStatus = ref(props.selectedStatus)
 const changeCurrentStatus = (e: Event) => {
     const label = e.target as HTMLLabelElement
     const radio = label.querySelector('input') as HTMLInputElement
@@ -54,7 +54,7 @@ const changeCurrentStatus = (e: Event) => {
 }
 
 .select-btn {
-    @apply py-2 px-4 mb-2 w-full text-s bg-white dark:bg-dark-grey shadow-option rounded-[4px];
+    @apply py-2 px-4 w-full text-s bg-white dark:bg-dark-grey shadow-option rounded-[4px];
     @apply text-left cursor-pointer appearance-none focus:outline focus:outline-main-purple;
 }
 

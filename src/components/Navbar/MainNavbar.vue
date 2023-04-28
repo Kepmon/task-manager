@@ -31,7 +31,7 @@
                     class="top-16 right-0"
                 />
                 <the-button
-                    @click.prevent="callback"
+                    @click.prevent="toggleDialog"
                     :regularButton="true"
                     background="purple" 
                     :class="{
@@ -43,7 +43,7 @@
                     <span v-show="width >= 640" class="text-white">Add New Task</span>
                 </the-button>
                 <img
-                    @click="areOptionsShown = !areOptionsShown"
+                    @click="callback"
                     src="/img/icon-vertical-ellipsis.svg"
                     alt="click here to see more options"
                     class="px-1 h-[18px] cursor-pointer min-[350px]:h-auto"
@@ -55,7 +55,6 @@
 <script setup lang="ts">
 import TheButton from '../shared/TheButton.vue'
 import MoreOptions from '../shared/MoreOptions.vue'
-import { ref } from 'vue'
 
 defineProps<{
     sidebar: boolean,
@@ -63,11 +62,11 @@ defineProps<{
     theme: boolean,
     dashboard: boolean,
     width: number,
-    boardName: string
+    boardName: string,
+    areOptionsShown: boolean
+    toggleDialog: () => void
     callback: () => void
 }>()
-
-const areOptionsShown = ref(false)
 </script>
 
 <style scoped>
