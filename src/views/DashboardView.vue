@@ -35,20 +35,8 @@
     <main
       class="flex flex-col justify-center p-4 sm:p-6"
       :class="{ 'sm:col-start-2': !isLogoShown, 'sm:col-start-1 sm:col-span-2': isLogoShown }"
-    >
-      <empty-info
-        v-show="boardProperties.columns.length === 0"
-        whatIsEmpty="This board"
-        createNew="column"
-        buttonText="Add New Column"
-      />
-      
-      <empty-info
-        v-show="boardProperties.boards.length === 0"
-        whatIsEmpty="Your dashboard"
-        createNew="board"
-        buttonText="Add New Board"
-      />
+    > 
+      <empty-info />
 
       <boards-column
         :columns="boardProperties.columns"
