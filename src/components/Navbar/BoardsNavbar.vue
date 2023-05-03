@@ -1,6 +1,7 @@
 <template>
     <transition :name="width < 640 ? 'nav-mobile' : 'nav-desktop'">
         <nav
+            v-show="condition"
             aria-label="boards navigation"
             class="py-4 bg-white dark:bg-dark-grey"
             :class="{
@@ -21,7 +22,7 @@
                     <div
                         v-for="{ name } in boards"
                         :key="name"
-                        class="flex items-center h-12 w-[90%] pl-6 pr-6 rounded-r-[100px] sm:pr-11"
+                        class="flex items-center h-12 w-[90%] pl-6 pr-6 rounded-r-[100px] sm:pr-11 cursor-pointer"
                         :class="{ 
                             'bg-main-purple': name === boardName, 'text-white': name === boardName, 
                             'text-medium-grey': name !== boardName
@@ -34,7 +35,10 @@
                         <span class="boards-name">{{ name }}</span>
                     </div>
                     
-                    <div class="flex items-center px-6 h-12 w-[90%] text-main-purple">
+                    <div
+                        @click="addNewBoard"
+                        class="flex items-center px-6 h-12 w-[90%] text-main-purple cursor-pointer"
+                    >
                         <img
                             src="/img/icon-board-purple.svg"
                             alt="board icon"
@@ -55,7 +59,7 @@
                     <theme-toggle />
                     <div
                         v-show="width >= 640"
-                        @click="callback"
+                        @click="toggleSidebar"
                         class="flex items-center gap-x-[10px] pt-4 pb-3 px-4 mt-2 cursor-pointer"
                     >
                         <img src="/img/icon-hide-sidebar.svg" alt="hide sidebar">
@@ -72,11 +76,13 @@ import ThemeToggle from './ThemeToggle.vue'
 import type { Board } from '../../api/boardsTypes'
 
 defineProps<{
+    condition: boolean,
     width: number,
     theme: boolean,
     boards: Board[],
-    boardName: string
-    callback?: () => void
+    boardName: Board['name'],
+    toggleSidebar: () => void,
+    addNewBoard: () => void
 }>()
 </script>
 

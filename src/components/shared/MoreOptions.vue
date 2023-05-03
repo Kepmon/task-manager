@@ -1,15 +1,29 @@
 <template>
     <transition name="options">
         <div class="options-container">
-            <p class="mb-4 text-s text-medium-grey cursor-pointer">Edit {{ element }}</p>
-            <p class="text-s text-regular-red cursor-pointer">Delete {{ element }}</p>
+            <p
+                @click="element === 'Task' ? editTask() : editBoard()"
+                class="mb-4 text-s text-medium-grey cursor-pointer"
+            >
+                Edit {{ element }}
+            </p>
+            <p 
+                @click="element === 'Task' ? deleteTask() : deleteBoard()"
+                class="text-s text-regular-red cursor-pointer"
+            >
+                Delete {{ element }}
+            </p>
         </div>
     </transition>
 </template>
 
 <script setup lang="ts">
 defineProps<{
-    element: string
+    element: 'Task' | 'Board',
+    editTask: () => void,
+    editBoard: () => void,
+    deleteTask: () => void,
+    deleteBoard: () => void
 }>()
 </script>
 

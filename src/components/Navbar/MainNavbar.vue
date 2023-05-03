@@ -26,12 +26,17 @@
 
             <div class="flex items-center gap-3 min-[350px]:gap-4 relative">
                 <more-options
-                    v-show="areOptionsShown && width > 640"
+                    @click="toggleOptions"
+                    v-if="areOptionsShown && width > 640"
                     element="Board"
+                    :editTask="editTask"
+                    :editBoard="editBoard"
+                    :deleteTask="deleteTask"
+                    :deleteBoard="deleteBoard"
                     class="top-16 right-0"
                 />
                 <the-button
-                    @click.prevent="toggleDialog"
+                    @click.prevent="addTask"
                     :regularButton="true"
                     background="purple" 
                     :class="{
@@ -43,7 +48,7 @@
                     <span v-show="width >= 640" class="text-white">Add New Task</span>
                 </the-button>
                 <img
-                    @click="callback"
+                    @click="toggleOptions"
                     src="/img/icon-vertical-ellipsis.svg"
                     alt="click here to see more options"
                     class="px-1 h-[18px] cursor-pointer min-[350px]:h-auto"
@@ -63,9 +68,13 @@ defineProps<{
     dashboard: boolean,
     width: number,
     boardName: string,
-    areOptionsShown: boolean
-    toggleDialog: () => void
-    callback: () => void
+    areOptionsShown: boolean,
+    toggleOptions: () => void,
+    addTask: () => void,
+    editTask: () => void,
+    editBoard: () => void,
+    deleteTask: () => void,
+    deleteBoard: () => void
 }>()
 </script>
 

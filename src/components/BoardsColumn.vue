@@ -51,7 +51,7 @@ const circleColor = computed(() => {
 
 <style scoped>
 .columns-container {
-    @apply overflow-scroll;
+    @apply h-full overflow-scroll;
     @apply scrollbar-invisible hover:scrollbar-visibleLight dark:hover:scrollbar-visibleDark;
 }
 

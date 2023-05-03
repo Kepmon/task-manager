@@ -1,7 +1,7 @@
 <template>
 <div
     @click="callback"
-    class="bg-white dark:bg-dark-grey rounded-lg w-[280px] mb-[20px] text-left shadow-sm p-4"
+    class="task-card"
 >
     <p class="mb-1">{{ title }}</p>
     <p class="text-medium-grey text-sm">
@@ -18,3 +18,10 @@ defineProps<{
     callback: () => void
 }>()
 </script>
+
+<style scoped>
+.task-card {
+    @apply p-4 mb-[20px] w-[280px] text-left shadow-sm cursor-pointer rounded-lg;
+    @apply bg-white dark:bg-dark-grey;
+}
+</style>

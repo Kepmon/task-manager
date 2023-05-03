@@ -34,7 +34,6 @@
 import type { Subtask } from '../../api/boardsTypes'
 
 defineProps<{
-    title: string,
     description: string,
     howManyCompleted: number,
     howManySubtasks: number,

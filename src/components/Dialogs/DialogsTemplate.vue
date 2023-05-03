@@ -1,17 +1,22 @@
 <template>
     <transition name="dialog">
-        <div @click.prevent.self="toggleDialog" key="dialog" class="semitransparent-bg">
+        <div v-if="condition" @click.self="toggleDialog" key="dialog" class="semitransparent-bg">
             <form class="form">
                 <more-options
-                    v-show="areOptionsShown"
+                    @click="areTaskOptionsShown = !areTaskOptionsShown"
+                    v-if="areTaskOptionsShown"
                     element="Task"
+                    :editTask="editTask"
+                    :editBoard="editBoard"
+                    :deleteTask="deleteTask"
+                    :deleteBoard="deleteBoard"
                     class="top-24 sm:top-20 right-12 sm:translate-x-1/2"
                 />
 
                 <div class="flex items-center justify-between gap-2 min-[350px]:gap-4">
                     <p class="min-[350px]:text-lg">{{ formTitle }}</p>
                     <img
-                        @click="areOptionsShown = !areOptionsShown"
+                        @click="areTaskOptionsShown = !areTaskOptionsShown"
                         v-show="formType === 'SeeTask'"
                         src="/img/icon-vertical-ellipsis.svg"
                         alt="click here to see more options"
@@ -64,7 +69,7 @@
                             <span v-show="formType === 'SeeTask'">Current</span>
                             Status
                         </p>
-                        <custom-select :selectedStatus="selectedStatus" :columns="boardProperties.columns"/>
+                        <custom-select :selectedStatus="selectedStatus" :columns="boardProperties.columns" />
                     </div>
 
                     <the-button
@@ -93,16 +98,21 @@ import { returnNumberOfCompletedSubtasks } from '../../composables/completedTask
 import { returnBoardProperties } from '../../composables/boardProperties'
 import { ref, computed } from 'vue'
 
+
 const props = defineProps<{
-    areOptionsShown?: boolean,
     isDark: boolean,
     formType: 'SeeTask' | 'Add' | 'Edit' | 'Delete',
     modifiedItem: 'Task' | 'Board',
     selectedStatus?: string,
-    toggleDialog: () => void
+    condition: boolean
+    toggleDialog: () => void,
+    editTask: () => void,
+    editBoard: () => void,
+    deleteTask: () => void,
+    deleteBoard: () => void
 }>()
 
-const areOptionsShown = ref(false)
+const areTaskOptionsShown = ref(false)
 const boardProperties = returnBoardProperties()
 
 const buttonOneContent = computed(() => {

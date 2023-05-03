@@ -1,22 +1,13 @@
 <template>
   <div class="main-container">
     <boards-navbar
-      v-show="isNavOpen"
-      :width="windowWidth"
-      :theme="isDark"
-      :boards="boardProperties.boards"
-      :boardName="boardProperties.boardName"
-      class="absolute sm:scale-0"
+      v-bind="boardsNavbarProps"
+      :class="{
+        'absolute sm:scale-0': windowWidth < 640,
+        'scale-0 sm:scale-100': windowWidth >= 640
+      }"
     />
-    <boards-navbar
-      v-show="isSidebarShown"
-      :width="windowWidth"
-      :theme="isDark"
-      :boards="boardProperties.boards"
-      :boardName="boardProperties.boardName"
-      :callback="toggleSidebar"
-      class="scale-0 sm:scale-100"
-    />
+
     <main-navbar
       :sidebar="isSidebarShown"
       :isLogo="isLogoShown"
@@ -25,8 +16,12 @@
       :width="windowWidth"
       :boardName="boardProperties.boardName"
       :areOptionsShown="areBoardOptionsShown"
-      :toggleDialog="toggleDialog"
-      :callback="toggleOptions"
+      :toggleOptions="toggleOptions"
+      :addTask="() => toggleDialog('addTask')"
+      :editTask="() => toggleDialog('editTask')"
+      :editBoard="() => toggleDialog('editBoard')"
+      :deleteTask="() => toggleDialog('deleteTask')"
+      :deleteBoard="() => toggleDialog('deleteBoard')"
       :class="{ 'col-span-2': isLogoShown }"
     />
 
@@ -58,30 +53,26 @@
       <boards-column
         :columns="boardProperties.columns"
         :logo="isLogoShown"
-        :callback="toggleDialog"
+        :callback="() => toggleDialog('seeTask')"
+      />
+
+      <dialogs-template
+        v-bind="dialogProps"
       />
     </main>
-
-    <dialogs-template
-      v-show="isDialogOpen"
-      :areOptionsShown="areTaskOptionsShown"
-      :isDark="isDark"
-      formType="SeeTask"
-      modifiedItem="Task"
-      :selectedStatus="boardProperties.status"
-      :toggleDialog="toggleDialog"
-    />
   </div>
 </template>
 
 <script setup lang="ts">
+import type { SharedProps, ToggledDialog, PropsToSelect } from '../api/dialogTypes'
 import MainNavbar from '../components/Navbar/MainNavbar.vue'
 import BoardsNavbar from '../components/Navbar/BoardsNavbar.vue'
 import EmptyInfo from '../components/EmptyInfo.vue'
 import BoardsColumn from '../components/BoardsColumn.vue'
 import DialogsTemplate from '../components/Dialogs/DialogsTemplate.vue'
 import { returnBoardProperties } from '../composables/boardProperties'
-import { ref } from 'vue'
+import { returnDialogPropsToSelect } from '../composables/dialogHandling'
+import { ref, Ref, computed } from 'vue'
 import { useDark } from '@vueuse/core'
 
 const isDark = useDark()
@@ -90,7 +81,15 @@ const boardProperties = returnBoardProperties()
 
 const isNavOpen = ref(false)
 const areBoardOptionsShown = ref(false)
-const areTaskOptionsShown = ref(false)
+const boardsNavbarProps = computed(() => ({
+  condition: windowWidth.value < 640 ? isNavOpen.value : isSidebarShown.value,
+  width: windowWidth.value,
+  theme: isDark.value,
+  boards: boardProperties.boards,
+  boardName: boardProperties.boardName,
+  toggleSidebar: toggleSidebar,
+  addNewBoard: () => toggleDialog('addBoard')
+}))
 const toggleOptions = () => {
   if (windowWidth.value < 640) {
     isNavOpen.value = !isNavOpen.value
@@ -99,8 +98,33 @@ const toggleOptions = () => {
   areBoardOptionsShown.value = !areBoardOptionsShown.value
 }
 
+const propsToSelect = returnDialogPropsToSelect()
+const toggledDialog: Ref<ToggledDialog> = ref('seeTask')
 const isDialogOpen = ref(false)
-const toggleDialog = () => {
+const dialogProps = computed(() => {
+  const sharedProps: SharedProps = {
+    isDark: isDark.value,
+    toggleDialog,
+    editTask: () => toggleDialog('editTask'),
+    editBoard: () => toggleDialog('editBoard'),
+    deleteTask: () => toggleDialog('deleteTask'),
+    deleteBoard: () => toggleDialog('deleteBoard'),
+    condition: isDialogOpen.value
+  }
+  const selectedProps = propsToSelect[toggledDialog.value as keyof PropsToSelect]
+
+  return { ...sharedProps, ...selectedProps }
+})
+const toggleDialog = (formType?: ToggledDialog) => {
+  if (formType) {
+    toggledDialog.value = formType
+  }
+  
+  if (formType === 'editTask' || formType === 'deleteTask') {
+    isDialogOpen.value = true
+    return
+  }
+  
   isDialogOpen.value = !isDialogOpen.value
 }
 
@@ -125,7 +149,7 @@ resizeObserwer.observe(document.body)
 
 <style scoped>
 .main-container {
-  @apply grid grid-rows-[12vh_88vh] min-h-screen;
+  @apply grid grid-rows-[80px_calc(100vh-80px)];
   @apply sm:grid-cols-[33%_67%] min-[896px]:grid-cols-[25%_75%] xl:grid-cols-[20%_80%]
 }
 
