@@ -39,6 +39,7 @@
                     v-show="formType === 'Add' || formType === 'Edit'"
                     :isDark="isDark"
                     :modifiedItem="modifiedItem"
+                    :formType="formType"
                 />
 
                 <delete

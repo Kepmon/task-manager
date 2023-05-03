@@ -5,12 +5,13 @@
         v-show="type === 'input'"
         type="text"
         class="input"
-        :placeholder="action === 'add' ? placeholder : ''"
+        :placeholder="action === 'Add' ? placeholder : undefined"
+        :value="action === 'Edit' ? inputValue : undefined"
     >
     <textarea
         v-show="type === 'textarea'"
         class="input min-h-[80px] max-h-[150px] scrollbar-invisible"
-        :placeholder="action === 'add' ? placeholder : ''"
+        placeholder="e.g. It’s always good to take a break. This 15 minute break will recharge the batteries a little."
     ></textarea>
 </div>
 </template>
@@ -18,8 +19,9 @@
 <script setup lang="ts">
 defineProps<{
     label: string,
-    placeholder: string
-    action: 'add' | 'edit',
+    placeholder?: string,
+    inputValue?: string
+    action: 'SeeTask' | 'Add' | 'Edit' | 'Delete',
     type: 'input' | 'textarea'
 }>()
 </script>

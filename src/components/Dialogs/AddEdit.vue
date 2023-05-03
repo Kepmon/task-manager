@@ -1,22 +1,25 @@
 <template>
     <div class="flex flex-col gap-6">
         <input-text
-            :label="inputOptions.taskTitle.label"
-            :placeholder="inputOptions.taskTitle.placeholder"
-            action="add"
+            :label="modifiedItem === 'Task' ? 'Title' : 'Board Name'"
+            :placeholder="
+                modifiedItem === 'Task' ?
+                'e.g. Take coffee brake' :
+                'e.g. Web Design'
+            "
+            :inputValue="inputValue"
+            :action="formType"
             type="input"
         />
         <input-text
             v-show="modifiedItem === 'Task'"
-            :label="inputOptions.taskDescription.label"
-            :placeholder="inputOptions.taskDescription.placeholder"
-            action="add"
+            label="Description"
+            :action="formType"
             type="textarea"
         />
         <multi-option
-            title="Subtasks"
-            element="subtask"
-            :items="inputOptions.exemplarySubtasksPlaceholders"
+            :modifiedItem="modifiedItem"
+            :formType="formType"
             :isDark="isDark"
         />
     </div>
@@ -25,24 +28,17 @@
 <script setup lang="ts">
 import InputText from './elements/InputText.vue'
 import MultiOption from './elements/MultiOption.vue'
+import { returnBoardProperties } from '../../composables/boardProperties'
+import { computed } from 'vue'
 
-defineProps<{
+const props = defineProps<{
     isDark: boolean,
-    modifiedItem: 'Task' | 'Board'
+    modifiedItem: 'Task' | 'Board',
+    formType: 'SeeTask' | 'Add' | 'Edit' | 'Delete'
 }>()
 
-const inputOptions = {
-    taskTitle: {
-        label: 'Title',
-        placeholder: 'e.g. Take coffee brake'
-    },
-    taskDescription: {
-        label: 'Description',
-        placeholder: 'e.g. It’s always good to take a break. This 15 minute break will recharge the batteries a little.'
-    },
-    exemplarySubtasksPlaceholders: [
-        'e.g. Make coffee',
-        'e.g. Drink coffee & smile'
-    ]
-}
+const boardProperties = returnBoardProperties()
+const inputValue = computed(() => 
+    props.modifiedItem === 'Task' ? boardProperties.title : boardProperties.boardName
+)
 </script>
