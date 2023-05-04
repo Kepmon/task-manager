@@ -27,7 +27,7 @@
             <div class="flex items-center gap-3 min-[350px]:gap-4 relative">
                 <more-options
                     @click="toggleOptions"
-                    v-if="areOptionsShown && width > 640"
+                    :condition="areOptionsShown && width > 640"
                     element="Board"
                     :editTask="editTask"
                     :editBoard="editBoard"

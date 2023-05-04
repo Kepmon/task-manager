@@ -1,6 +1,6 @@
 <template>
     <transition name="options">
-        <div class="options-container">
+        <div v-if="condition" class="options-container">
             <p
                 @click="element === 'Task' ? editTask() : editBoard()"
                 class="mb-4 text-s text-medium-grey cursor-pointer"
@@ -19,6 +19,7 @@
 
 <script setup lang="ts">
 defineProps<{
+    condition: boolean,
     element: 'Task' | 'Board',
     editTask: () => void,
     editBoard: () => void,

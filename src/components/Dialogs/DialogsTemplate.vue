@@ -4,7 +4,7 @@
             <form class="form">
                 <more-options
                     @click="areTaskOptionsShown = !areTaskOptionsShown"
-                    v-if="areTaskOptionsShown"
+                    :condition="areTaskOptionsShown"
                     element="Task"
                     :editTask="editTask"
                     :editBoard="editBoard"

@@ -8,13 +8,13 @@
                 'e.g. Web Design'
             "
             :inputValue="inputValue"
-            :action="formType"
+            :formType="formType"
             type="input"
         />
         <input-text
             v-show="modifiedItem === 'Task'"
             label="Description"
-            :action="formType"
+            :formType="formType"
             type="textarea"
         />
         <multi-option
