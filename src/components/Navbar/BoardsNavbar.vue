@@ -18,53 +18,32 @@
 
             <h3 class="boards-heading">all boards ({{ boards.length }})</h3>
             <div :class="{ 'flex flex-col justify-between grow': width >= 640 }">
-                <div class="w-full">
-                    <div
+                <div>
+                    <board-label
                         v-for="{ name } in boards"
                         :key="name"
-                        class="flex items-center h-12 w-[90%] pl-6 pr-6 rounded-r-[100px] sm:pr-11 cursor-pointer"
+                        :name="name"
                         :class="{ 
-                            'bg-main-purple': name === boardName, 'text-white': name === boardName, 
-                            'text-medium-grey': name !== boardName
-                        }">
-                        <img
-                            :src="name === boardName ? '/img/icon-board-white.svg' : '/img/icon-board.svg'"
-                            alt="board icon"
-                            class="mr-3"
-                        >
-                        <span class="boards-name">{{ name }}</span>
-                    </div>
-                    
-                    <div
+                            'bg-main-purple fill-white': name === boardName, 'text-white': name === boardName, 
+                            'text-medium-grey fill-medium-grey': name !== boardName
+                        }"
+                    />
+
+                    <board-label
                         @click="addNewBoard"
-                        class="flex items-center px-6 h-12 w-[90%] text-main-purple cursor-pointer"
-                    >
-                        <img
-                            src="/img/icon-board-purple.svg"
-                            alt="board icon"
-                            class="mr-3"
-                        >
-                        <img
-                            src="/img/icon-add-purple.svg"
-                            alt=""
-                            class="mr-1 h-[10px]"
-                        >
-                        <span class="whitespace-nowrap text-[14px] min-[350px]:text-base overflow-hidden">
-                            Create New Board
-                        </span>
-                    </div>
+                        name="Create New Board"
+                        class="text-main-purple fill-main-purple"
+                    />
                 </div>
 
                 <div>
                     <theme-toggle />
-                    <div
+                    <board-label
                         v-show="width >= 640"
                         @click="toggleSidebar"
-                        class="flex items-center gap-x-[10px] pt-4 pb-3 px-4 mt-2 cursor-pointer"
-                    >
-                        <img src="/img/icon-hide-sidebar.svg" alt="hide sidebar">
-                        <span class="text-medium-grey">Hide Sidebar</span>
-                    </div>
+                        name="Hide Sidebar"
+                        class="my-2 text-medium-grey fill-medium-grey"
+                    />
                 </div>  
             </div>
         </nav>
@@ -73,6 +52,7 @@
 
 <script setup lang="ts">
 import ThemeToggle from './ThemeToggle.vue'
+import BoardLabel from './BoardLabel.vue'
 import type { Board } from '../../api/boardsTypes'
 
 defineProps<{

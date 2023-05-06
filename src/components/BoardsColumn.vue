@@ -3,7 +3,7 @@
     class="columns-container"
     :class="{ 'w-full': logo, 'columns-container--sizes': !logo }"
 >
-    <div class="flex gap-6 h-[max-content]">
+    <div class="flex gap-6 h-max">
         <div v-for="column in columns" :key="column.name" class="flex flex-col">
             <div class="flex items-center gap-2 mb-8">
                 <div class="h-[15px] w-[15px] rounded-full" :class="circleColor(column)"></div>
@@ -19,9 +19,17 @@
             />
         </div>
         <div class="new-column">
-            <div class="flex gap-2 items-center justify-center text-medium-grey cursor-pointer p-2">
-                <img src="/img/icon-add-gray.svg" alt="">
-                <span class="text-xl">New Column</span>
+            <div class="flex gap-2 items-center justify-center text-medium-grey cursor-pointer p-2 group">
+                <svg width="12" height="12" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        fill="#828FA3"
+                        d="M7.368 12V7.344H12V4.632H7.368V0H4.656v4.632H0v2.712h4.656V12z"
+                        class="group-hover:fill-main-purple transition-all duration-300"
+                    />
+                </svg>
+                <span class="text-xl group-hover:text-main-purple transition-all duration-300">
+                    New Column
+                </span>
             </div>
         </div>
     </div>

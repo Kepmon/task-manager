@@ -38,7 +38,7 @@
                 <the-button
                     @click.prevent="addTask"
                     :regularButton="true"
-                    background="purple" 
+                    class="bg-main-purple hover:bg-main-purple-hover transition-all duration-300" 
                     :class="{
                         'opacity-25 cursor-not-allowed': dashboard,
                         'cursor-pointer': !dashboard

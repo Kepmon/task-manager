@@ -14,7 +14,7 @@
         >
             <div class="flex flex-col gap-2" role="option">
                 <label
-                    @click="changeCurrentStatus($event)"
+                    @click="($event) => changeCurrentStatus($event)"
                     v-for="{ name } in columns"
                     :key="name"
                     class="text-s text-medium-grey cursor-pointer"
@@ -50,7 +50,7 @@ const changeCurrentStatus = (e: Event) => {
 <style scoped>
 .select-container {
     @apply relative after:content-down-arrow;
-    @apply after:absolute after:right-4 after:top-1 after:h-[max-content];
+    @apply after:absolute after:right-4 after:top-1 after:h-max;
 }
 
 .select-btn {

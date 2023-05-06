@@ -144,5 +144,6 @@ resizeObserwer.observe(document.body)
 .show-sidebar {
   @apply flex items-center justify-center absolute left-0 bottom-6;
   @apply h-12 w-14 rounded-r-[100px] bg-main-purple cursor-pointer;
+  @apply hover:bg-main-purple-hover transition-all duration-300;
 }
 </style>

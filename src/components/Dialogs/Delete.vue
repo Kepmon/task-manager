@@ -13,11 +13,11 @@ const props = defineProps<{
 }>()
 
 const message = computed(() => {
-    const prefix = `Are you sure you want to delete the ${props.elementName}`
+    const prefix = `Are you sure you want to delete the '${props.elementName}'`
     const suffix = props.elementToDelete === 'board' ?
     'This action will remove all columns and tasks and cannot be reversed.' :
     'This action cannot be reversed.'
 
-    return `${prefix} ${props.elementToDelete}? ${suffix}`
+    return `${prefix} ${props.elementToDelete}${props.elementToDelete === 'task' ? ' and its subtasks' : ''}? ${suffix}`
 })
 </script>

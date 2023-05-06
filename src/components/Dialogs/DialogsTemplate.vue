@@ -14,7 +14,12 @@
                 />
 
                 <div class="flex items-center justify-between gap-2 min-[350px]:gap-4">
-                    <p class="min-[350px]:text-lg">{{ formTitle }}</p>
+                    <p
+                        class="min-[350px]:text-lg"
+                        :class="{ 'text-regular-red': formType === 'Delete' }"
+                    >
+                        {{ formTitle }}
+                    </p>
                     <img
                         @click="areTaskOptionsShown = !areTaskOptionsShown"
                         v-show="formType === 'SeeTask'"
@@ -44,8 +49,10 @@
 
                 <delete
                     v-show="formType === 'Delete'"
-                    elementToDelete="board"
-                    :elementName="boardProperties.boardName"
+                    :elementToDelete="modifiedItem === 'Board' ? 'board' : 'task'"
+                    :elementName="modifiedItem === 'Board' ?
+                    boardProperties.boardName :
+                    boardProperties.title"
                 />
 
                 <div
@@ -58,9 +65,11 @@
                     <the-button
                         v-show="formType !== 'SeeTask'"
                         :regularButton="true"
-                        :background="formType === 'Delete' ? 'red' : 'white'"
                         :isInForm="true"
-                        :class="{ 'text-main-purple': formType !== 'Delete' }"
+                        :class="{
+                            'button-one-bg': formType === 'Delete',
+                            'text-main-purple bg-transparent-purple dark:bg-white': formType !== 'Delete'
+                        }"
                     >
                         {{ buttonOneContent }}
                     </the-button>
@@ -70,15 +79,21 @@
                             <span v-show="formType === 'SeeTask'">Current</span>
                             Status
                         </p>
-                        <custom-select :selectedStatus="selectedStatus" :columns="boardProperties.columns" />
+                        <custom-select
+                            :selectedStatus="selectedStatus"
+                            :columns="boardProperties.columns"
+                        />
                     </div>
 
                     <the-button
                         v-show="formType !== 'SeeTask'"
                         :regularButton="true"
-                        :background="formType === 'Delete' ? 'white' : 'purple'"
                         :isInForm="true"
-                        :class="{ 'text-main-purple': formType === 'Delete' }"
+                        class="hover:bg-main-purple-hover transition-all duration-300"
+                        :class="{
+                            'button-two-bg': formType === 'Delete',
+                            'text-white bg-main-purple': formType !== 'Delete'
+                        }"
                     >
                         {{ buttonTwoContent }}
                     </the-button>
@@ -157,5 +172,13 @@ const formTitle = computed(() => {
 .form {
     @apply flex flex-col gap-6;
     @apply relative p-6 w-[90%] sm:w-[480px] rounded-md bg-white dark:bg-dark-grey;
+}
+
+.button-one-bg {
+    @apply text-white bg-regular-red hover:bg-red-hover transition-all duration-300;
+}
+
+.button-two-bg {
+    @apply text-main-purple bg-transparent-purple dark:bg-white;
 }
 </style>

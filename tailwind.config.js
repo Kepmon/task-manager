@@ -16,7 +16,7 @@ module.exports = {
       colors: {
         'main-purple': '#635FC7',
         'transparent-purple': '#635FC71A',
-        'semitransparent-purple': '#635FC740',
+        'semitransparent-purple': ' #635FC740',
         'white-purple': '#635FC71A',
         'main-purple-hover': '#A8A4FF',
         'regular-black': '#000112',

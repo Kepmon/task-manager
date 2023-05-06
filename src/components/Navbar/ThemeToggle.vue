@@ -4,8 +4,7 @@
         <the-button
             @click="toggleDark()"
             :regularButton="false"
-            background="purple"
-            class="flex items-center px-1 w-[40px] h-[20px] rounded-xl"
+            class="toggle-theme"
         >
             <transition-group name="theme-toggle">
                 <div class="w-[14px] h-[14px] bg-white rounded-full" :class="{ 'ml-auto': isDark }" key="theme-toggle"></div>
@@ -26,5 +25,10 @@ const toggleDark = useToggle(isDark)
 <style scoped>
 .theme-toggle-move {
     @apply transition-all duration-300;
+}
+
+.toggle-theme {
+    @apply flex items-center px-1 w-[40px] h-[20px] rounded-xl;
+    @apply bg-main-purple hover:bg-main-purple-hover transition-all duration-300;
 }
 </style>

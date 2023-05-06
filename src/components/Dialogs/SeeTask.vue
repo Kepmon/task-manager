@@ -10,11 +10,7 @@
             <div
                 v-for="subtask in subtasks"
                 :key="subtask.title"
-                class="[&:not(:last-of-type)]:mb-2 p-2 rounded"
-                :class="{
-                    'bg-light-grey dark:bg-very-dark-grey': subtask.isCompleted,
-                    'bg-semitransparent-purple': !subtask.isCompleted
-                }"
+                class="subtask"
             >
                 <label class="flex items-center gap-4 px-1 cursor-pointer">
                     <input type="checkbox" :checked="subtask.isCompleted" class="checkbox">
@@ -46,5 +42,11 @@ defineProps<{
     @apply appearance-none after:flex after:items-center after:justify-center;
     @apply after:h-3 after:w-3 after:bg-white after:shadow-option after:rounded-[2px];
     @apply checked:after:bg-main-purple checked:after:content-checked;
+}
+
+.subtask {
+    @apply [&:not(:last-of-type)]:mb-2 p-2 rounded bg-light-grey dark:bg-very-dark-grey;
+    @apply hover:bg-semitransparent-purple hover:dark:bg-semitransparent-purple;
+    @apply transition-all duration-300;
 }
 </style>

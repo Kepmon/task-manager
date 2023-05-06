@@ -6,7 +6,10 @@
             {{ emptyDashboard ? 'board' : 'column' }}
             to get started.
         </p>
-        <the-button background="purple" :regularButton="true" class="w-max">
+        <the-button
+            :regularButton="true"
+            class="w-max bg-main-purple hover:bg-main-purple-hover transition-all duration-300"
+        >
             <img src="/img/icon-add-task-mobile.svg" alt="" class="h-3">
             <span class="text-white">
                 Add New {{ emptyDashboard ? 'Board' : 'Column' }}
