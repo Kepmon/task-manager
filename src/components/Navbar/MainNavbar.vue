@@ -20,7 +20,9 @@
                     >
                         {{ boardName }}
                     </h2>
-                    <img src="/img/icon-chevron-down.svg" alt="click here to see more options">
+                    <svg v-show="width < 640" width="10" height="7" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke="#635FC7" stroke-width="2" fill="none" d="m1 1 4 4 4-4"/>
+                    </svg>
                 </div>
             </div>
 
@@ -38,13 +40,15 @@
                 <the-button
                     @click.prevent="addTask"
                     :regularButton="true"
-                    class="bg-main-purple hover:bg-main-purple-hover transition-all duration-300" 
+                    class="gap-[2px] bg-main-purple hover:bg-main-purple-hover transition-all duration-300" 
                     :class="{
                         'opacity-25 cursor-not-allowed': dashboard,
                         'cursor-pointer': !dashboard
                     }"
                 >
-                    <img src="/img/icon-add-task-mobile.svg" alt="" class="h-3">
+                    <svg width="12" height="12" xmlns="http://www.w3.org/2000/svg" class="scale-[.7]">
+                        <path fill="#FFF" d="M7.368 12V7.344H12V4.632H7.368V0H4.656v4.632H0v2.712h4.656V12z"/>
+                    </svg>
                     <span v-show="width >= 640" class="text-white">Add New Task</span>
                 </the-button>
                 <img

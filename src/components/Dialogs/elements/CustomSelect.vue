@@ -1,31 +1,34 @@
 <template>
-<div
-    class="select-container" 
-    role="combobox"
-    :aria-expanded="isDropdownShown ? true : false"
->
-    <button @click.prevent="isDropdownShown = !isDropdownShown" class="select-btn">
-        {{ currentStatus }}
-    </button>
-    <transition name="dropdown">
-        <div
-            v-show="isDropdownShown"
-            class="absolute p-4 w-full bg-white dark:bg-very-dark-grey rounded-lg"
-        >
-            <div class="flex flex-col gap-2" role="option">
-                <label
-                    @click="($event) => changeCurrentStatus($event)"
-                    v-for="{ name } in columns"
-                    :key="name"
-                    class="text-s text-medium-grey cursor-pointer"
-                >
-                    <input type="radio" :name="name" class="appearance-none">
-                    {{ name }}
-                </label>
+    <div
+        class="relative" 
+        role="combobox"
+        :aria-expanded="isDropdownShown ? true : false"
+    >
+        <button @click.prevent="isDropdownShown = !isDropdownShown" class="select-btn">
+            {{ currentStatus }}
+            <svg width="10" height="7" xmlns="http://www.w3.org/2000/svg">
+                <path stroke="#635FC7" stroke-width="2" fill="none" d="m1 1 4 4 4-4"/>
+            </svg>
+        </button>
+        <transition name="dropdown">
+            <div
+                v-show="isDropdownShown"
+                class="absolute w-full p-4 bg-white dark:bg-very-dark-grey rounded-lg"
+            >
+                <div class="flex flex-col gap-2" role="option">
+                    <label
+                        @click="($event) => changeCurrentStatus($event)"
+                        v-for="{ name } in columns"
+                        :key="name"
+                        class="text-s text-medium-grey cursor-pointer"
+                    >
+                        <input type="radio" :name="name" class="appearance-none">
+                        {{ name }}
+                    </label>
+                </div>
             </div>
-        </div>
-    </transition>
-</div>
+        </transition>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -48,14 +51,10 @@ const changeCurrentStatus = (e: Event) => {
 </script>
 
 <style scoped>
-.select-container {
-    @apply relative after:content-down-arrow;
-    @apply after:absolute after:right-4 after:top-1 after:h-max;
-}
-
 .select-btn {
-    @apply py-2 px-4 w-full text-s bg-white dark:bg-dark-grey shadow-option rounded-[4px];
-    @apply text-left cursor-pointer appearance-none focus:outline focus:outline-main-purple;
+    @apply flex items-center justify-between gap-2 py-2 px-4 w-full text-s;
+    @apply bg-white dark:bg-dark-grey shadow-option rounded-[4px] cursor-pointer;
+    @apply appearance-none focus:outline focus:outline-main-purple;
 }
 
 .dropdown-enter-from,

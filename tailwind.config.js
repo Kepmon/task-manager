@@ -53,7 +53,6 @@ module.exports = {
         option: '0px 0px 1px #828FA3'
       },
       content: {
-        'down-arrow': 'url("/img/icon-chevron-down.svg")',
         'checked': 'url("/img/icon-check.svg")'
       },
     },

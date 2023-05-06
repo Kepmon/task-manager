@@ -13,10 +13,9 @@
                 class="subtask"
             >
                 <label class="flex items-center gap-4 px-1 cursor-pointer">
-                    <input type="checkbox" :checked="subtask.isCompleted" class="checkbox">
+                    <input type="checkbox" :checked="subtask.isCompleted" class="checkbox peer">
                     <span
-                        class="text-sm"
-                        :class="{ 'line-through opacity-50': subtask.isCompleted }"
+                        class="text-sm peer-checked:line-through peer-checked:opacity-50"
                     >
                         {{ subtask.title }}
                     </span>
