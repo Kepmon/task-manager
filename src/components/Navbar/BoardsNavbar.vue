@@ -69,7 +69,7 @@ defineProps<{
 <style scoped>
 .nav-mobile-enter-from,
 .nav-mobile-leave-to {
-    @apply origin-top-right opacity-50 scale-0;
+    @apply origin-top opacity-50 scale-0;
 }
 
 .nav-desktop-enter-from,
@@ -85,7 +85,7 @@ defineProps<{
 }
 
 .mobile-boards {
-    @apply absolute top-[calc(12vh+1rem)] left-1/2 -translate-x-1/2;
+    @apply absolute top-[calc(12vh+1rem)] right-1/2 translate-x-1/2;
     @apply w-[70vw] rounded-lg shadow-sm;
 }
 
@@ -94,10 +94,7 @@ defineProps<{
 }
 
 .boards-heading {
-    @apply ml-6 mb-[20px] text-sm text-medium-grey uppercase tracking-[2.4px] font-normal;
-}
-
-.boards-name {
-    @apply whitespace-nowrap text-[14px] min-[350px]:text-base overflow-hidden;
+    @apply ml-3 min-[350px]:ml-6 mb-[20px] text-sm text-medium-grey;
+    @apply uppercase tracking-[2.4px] font-normal;
 }
 </style>

@@ -17,6 +17,7 @@
       :boardName="boardProperties.boardName"
       :areOptionsShown="areBoardOptionsShown"
       :toggleOptions="toggleOptions"
+      :toggleBoardsNav="toggleBoardsNav"
       :addTask="() => toggleDialog('addTask')"
       :editTask="() => toggleDialog('editTask')"
       :editBoard="() => toggleDialog('editBoard')"
@@ -67,7 +68,6 @@ const isDark = useDark()
 const isDashboardEmpty = ref(false)
 const boardProperties = returnBoardProperties()
 
-const isNavOpen = ref(false)
 const areBoardOptionsShown = ref(false)
 const boardsNavbarProps = computed(() => ({
   condition: windowWidth.value < 640 ? isNavOpen.value : isSidebarShown.value,
@@ -79,10 +79,6 @@ const boardsNavbarProps = computed(() => ({
   addNewBoard: () => toggleDialog('addBoard')
 }))
 const toggleOptions = () => {
-  if (windowWidth.value < 640) {
-    isNavOpen.value = !isNavOpen.value
-    return
-  }
   areBoardOptionsShown.value = !areBoardOptionsShown.value
 }
 
@@ -117,6 +113,7 @@ const toggleDialog = (formType?: ToggledDialog) => {
 }
 
 const isSidebarShown = ref(true)
+const isNavOpen = ref(false)
 const isLogoShown = ref(false)
 const toggleSidebar = () => {
   isSidebarShown.value = !isSidebarShown.value
@@ -126,6 +123,12 @@ const toggleSidebar = () => {
       isLogoShown.value = true
     }
   }, 500)
+}
+const toggleBoardsNav = () => {
+  if (windowWidth.value >= 640) {
+    return
+  }
+  isNavOpen.value = !isNavOpen.value
 }
 
 const windowWidth = ref(window.innerWidth)

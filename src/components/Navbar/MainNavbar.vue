@@ -13,7 +13,7 @@
                         class="h-[26px] w-[153px] pr-6"
                     >
                 </div>
-                <div class="flex items-center gap-2">
+                <div @click="toggleBoardsNav" class="flex items-center gap-2">
                     <h2
                         class="font-bold min-[330px]:text-lg"
                         :class="{ 'pl-6': isLogo && width >= 640 }"
@@ -29,7 +29,7 @@
             <div class="flex items-center gap-3 min-[350px]:gap-4 relative">
                 <more-options
                     @click="toggleOptions"
-                    :condition="areOptionsShown && width > 640"
+                    :condition="areOptionsShown"
                     element="Board"
                     :editTask="editTask"
                     :editBoard="editBoard"
@@ -74,6 +74,7 @@ defineProps<{
     boardName: string,
     areOptionsShown: boolean,
     toggleOptions: () => void,
+    toggleBoardsNav: () => void,
     addTask: () => void,
     editTask: () => void,
     editBoard: () => void,
