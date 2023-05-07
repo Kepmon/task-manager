@@ -16,7 +16,8 @@
       :width="windowWidth"
       :boardName="boardProperties.boardName"
       :areOptionsShown="areBoardOptionsShown"
-      :toggleOptions="toggleOptions"
+      :toggleOptions="($event) => callMoreOptionsFn($event, toggleOptions)"
+      :closeOptions="($event) => callMoreOptionsFn($event, closeOptions)"
       :toggleBoardsNav="toggleBoardsNav"
       :addTask="() => toggleDialog('addTask')"
       :editTask="() => toggleDialog('editTask')"
@@ -61,6 +62,7 @@ import BoardsColumn from '../components/BoardsColumn.vue'
 import DialogsTemplate from '../components/Dialogs/DialogsTemplate.vue'
 import { returnBoardProperties } from '../composables/boardProperties'
 import { returnDialogPropsToSelect } from '../composables/dialogHandling'
+import moreOptionsPopup from '../composables/moreOptionsPopup'
 import { ref, Ref, computed } from 'vue'
 import { useDark } from '@vueuse/core'
 
@@ -78,8 +80,9 @@ const boardsNavbarProps = computed(() => ({
   toggleSidebar: toggleSidebar,
   addNewBoard: () => toggleDialog('addBoard')
 }))
-const toggleOptions = () => {
-  areBoardOptionsShown.value = !areBoardOptionsShown.value
+const { toggleOptions, closeOptions } = moreOptionsPopup
+const callMoreOptionsFn = (e: Event, cb: (e: Event, conditionToChange: Ref<boolean>) => void) => {
+  cb(e, areBoardOptionsShown)
 }
 
 const propsToSelect = returnDialogPropsToSelect()

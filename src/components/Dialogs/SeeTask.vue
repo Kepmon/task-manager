@@ -1,5 +1,17 @@
 <template>
-    <div class="flex flex-col gap-6">
+    <div class="flex flex-col gap-6 relative">
+        <more-options
+            :condition="areTaskOptionsShown"
+            element="Task"
+            :editTask="editTask"
+            :editBoard="editBoard"
+            :deleteTask="deleteTask"
+            :deleteBoard="deleteBoard"
+            :toggleOptions="toggleOptions"
+            :closeOptions="closeOptions"
+            class="right-0 -top-4"
+        />
+
         <p class="text-medium-grey text-sm min-[350px]:text-s">
             {{ description }}
         </p>
@@ -27,8 +39,16 @@
 
 <script setup lang="ts">
 import type { Subtask } from '../../api/boardsTypes'
+import MoreOptions from '../../components/shared/MoreOptions.vue'
 
 defineProps<{
+    editTask: () => void,
+    editBoard: () => void,
+    deleteTask: () => void,
+    deleteBoard: () => void,
+    toggleOptions: (e: Event) => void,
+    closeOptions: (e: Event) => void
+    areTaskOptionsShown: boolean,
     description: string,
     howManyCompleted: number,
     howManySubtasks: number,

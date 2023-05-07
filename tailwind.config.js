@@ -54,7 +54,7 @@ module.exports = {
       },
       content: {
         'checked': 'url("/img/icon-check.svg")'
-      },
+      }
     },
     scrollbar: {
       visibleDark: {

@@ -1,6 +1,6 @@
 <template>
     <transition name="options">
-        <div v-if="condition" class="options-container">
+        <div ref="target" @click="toggleOptions" v-if="condition" class="options-container">
             <p
                 @click="element === 'Task' ? editTask() : editBoard()"
                 class="mb-4 text-s text-medium-grey cursor-pointer"
@@ -18,14 +18,22 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
+import { onClickOutside } from '@vueuse/core'
+import { ref } from 'vue'
+
+const props = defineProps<{
     condition: boolean,
     element: 'Task' | 'Board',
     editTask: () => void,
     editBoard: () => void,
     deleteTask: () => void,
-    deleteBoard: () => void
+    deleteBoard: () => void,
+    toggleOptions: (e: Event) => void,
+    closeOptions: (e: Event) => void
 }>()
+
+const target = ref(null)
+onClickOutside(target, props.closeOptions)
 </script>
 
 <style scoped>

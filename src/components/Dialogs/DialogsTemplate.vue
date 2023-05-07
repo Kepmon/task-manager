@@ -2,17 +2,6 @@
     <transition name="dialog">
         <div v-if="condition" @click.self="toggleDialog" key="dialog" class="semitransparent-bg">
             <form class="form">
-                <more-options
-                    @click="areTaskOptionsShown = !areTaskOptionsShown"
-                    :condition="areTaskOptionsShown"
-                    element="Task"
-                    :editTask="editTask"
-                    :editBoard="editBoard"
-                    :deleteTask="deleteTask"
-                    :deleteBoard="deleteBoard"
-                    class="top-24 sm:top-20 right-12 sm:translate-x-1/2"
-                />
-
                 <div class="flex items-center justify-between gap-2 min-[350px]:gap-4">
                     <p
                         class="min-[350px]:text-lg"
@@ -25,6 +14,7 @@
                         v-show="formType === 'SeeTask'"
                         src="/img/icon-vertical-ellipsis.svg"
                         alt="click here to see more options"
+                        data-ellipsis
                         class="px-2 cursor-pointer"
                     >
                 </div>
@@ -38,6 +28,13 @@
                     "
                     :howManySubtasks="boardProperties.subtasks.length"
                     :subtasks="boardProperties.subtasks"
+                    :areTaskOptionsShown="areTaskOptionsShown"
+                    :editTask="editTask"
+                    :editBoard="editBoard"
+                    :deleteTask="deleteTask"
+                    :deleteBoard="deleteBoard"
+                    :toggleOptions="($event) => callMoreOptionsFn($event, toggleOptions)"
+                    :closeOptions="($event) => callMoreOptionsFn($event, closeOptions)"
                 />
 
                 <add-edit
@@ -104,7 +101,6 @@
 </template>
 
 <script setup lang="ts">
-import MoreOptions from '../../components/shared/MoreOptions.vue'
 import TheButton from '../../components/shared/TheButton.vue'
 import CustomSelect from '../../components/Dialogs/elements/CustomSelect.vue'
 import SeeTask from '../../components/Dialogs/SeeTask.vue'
@@ -112,7 +108,8 @@ import AddEdit from '../../components/Dialogs/AddEdit.vue'
 import Delete from '../../components/Dialogs/Delete.vue'
 import { returnNumberOfCompletedSubtasks } from '../../composables/completedTasks'
 import { returnBoardProperties } from '../../composables/boardProperties'
-import { ref, computed } from 'vue'
+import moreOptionsPopup from '../../composables/moreOptionsPopup'
+import { ref, Ref, computed } from 'vue'
 
 
 const props = defineProps<{
@@ -128,8 +125,13 @@ const props = defineProps<{
     deleteBoard: () => void
 }>()
 
-const areTaskOptionsShown = ref(false)
 const boardProperties = returnBoardProperties()
+
+const areTaskOptionsShown = ref(false)
+const { toggleOptions, closeOptions } = moreOptionsPopup
+const callMoreOptionsFn = (e: Event, cb: (e: Event, conditionToChange: Ref<boolean>) => void) => {
+  cb(e, areTaskOptionsShown)
+}
 
 const buttonOneContent = computed(() => {
     if (props.formType === 'Delete') return 'Delete'
