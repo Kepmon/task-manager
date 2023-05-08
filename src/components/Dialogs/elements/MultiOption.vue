@@ -13,14 +13,14 @@
                     :placeholder="
                         modifiedItem === 'Task' && formType === 'Add' ? item : undefined
                     "
-                    :value="
+                    :inputValue="
                         modifiedItem === 'Task' && formType === 'Add' ? undefined : item
                     "
                     :formType="formType"
                     type="input"
                     :error="isError"
                     :class="{ 'after:content-none': !isError }"
-                    class="w-full relative after:content-['Can\'t_be_empty'] after:text-s after:text-regular-red after:font-normal after:absolute after:right-4 after:top-1/2 after:-translate-y-1/2"
+                    class="grow relative after:content-['Can\'t_be_empty'] after:text-s after:text-regular-red after:font-normal after:absolute after:right-4 after:top-1/2 after:-translate-y-1/2"
                 />
                 <svg width="15" height="15" xmlns="http://www.w3.org/2000/svg" class="cursor-pointer">
                     <g :fill="isError ? '#EA5555' : '#828FA3'">
@@ -49,16 +49,16 @@ const isError = ref(false)
 
 interface MultiOptionItems {
     AddTask: string[]
-    EditTask: Subtask['title']
+    EditTask: Subtask['title'][]
     AddBoard: string[]
-    EditBoard: BoardColumn['name']
+    EditBoard: BoardColumn['name'][]
 }
 
 const boardProperties = returnBoardProperties()
 const subtasksTitles = boardProperties.subtasks.map(subtask => subtask.title)
 const boardColumns = boardProperties.columns.map(column => column.name)
 
-const multiOptionItems = {
+const multiOptionItems: MultiOptionItems = {
     AddTask: [
         'e.g. Make coffee',
         'e.g. Drink coffee & smile'

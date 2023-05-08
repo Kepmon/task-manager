@@ -6,9 +6,9 @@
             type="text"
             class="input"
             :class="{ 'border-regular-red': error, 'border-input-border focus:border-main-purple': !error }"
-            :placeholder="formType === 'Add' ? placeholder : undefined"
-            :value="formType === 'Edit' ? inputValue : undefined"
-        >
+            :placeholder="placeholder"
+            :value="inputValue"
+            >
         <textarea
             v-show="type === 'textarea'"
             class="input min-h-[80px] max-h-[150px] scrollbar-invisible"

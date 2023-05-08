@@ -7,7 +7,7 @@
                 'e.g. Take coffee brake' :
                 'e.g. Web Design'
             "
-            :inputValue="inputValue"
+            :inputValue="formType === 'Edit' ? inputValue : undefined"
             :formType="formType"
             type="input"
         />
