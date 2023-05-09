@@ -4,19 +4,27 @@
         role="combobox"
         :aria-expanded="isDropdownShown ? true : false"
     >
-    <button
-        @click.enter.prevent="isDropdownShown = !isDropdownShown"
-        tabindex="0"
-        class="select-btn"
-    >
+        <button
+            @click.enter.prevent="isDropdownShown = !isDropdownShown"
+            aria-controls="dropdown"
+            tabindex="0"
+            class="select-btn"
+        >
             {{ currentStatus }}
-            <svg width="10" height="7" xmlns="http://www.w3.org/2000/svg">
+            <svg
+                width="10"
+                height="7"
+                xmlns="http://www.w3.org/2000/svg"
+                class="transition-transform duration-500"
+                :class="{ 'rotate-180': isDropdownShown }"
+            >
                 <path stroke="#635FC7" stroke-width="2" fill="none" d="m1 1 4 4 4-4"/>
             </svg>
         </button>
         <transition name="dropdown">
             <div
                 v-show="isDropdownShown"
+                id="dropdown"
                 class="absolute w-full p-4 bg-white dark:bg-very-dark-grey rounded-lg"
             >
                 <div class="flex flex-col gap-2">

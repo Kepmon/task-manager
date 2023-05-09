@@ -1,7 +1,7 @@
 <template>
 <button
     :class="{
-        'flex items-center justify-center gap-2 w-full py-[10px] px-4 rounded-3xl shadow-sm': regularButton,
+        'flex items-center grow justify-center gap-2 py-[10px] px-4 rounded-3xl shadow-sm': regularButton,
         'text-s': isInForm
     }"
 >

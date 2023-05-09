@@ -20,7 +20,14 @@
                 >
                     {{ boardName }}
                 </h2>
-                <svg v-show="width < 640" width="10" height="7" xmlns="http://www.w3.org/2000/svg">
+                <svg
+                    v-show="width < 640"
+                    width="10"
+                    height="7"
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="transition-transform duration-500"
+                    :class="{ 'rotate-180': navOpen }"
+                >
                     <path stroke="#635FC7" stroke-width="2" fill="none" d="m1 1 4 4 4-4"/>
                 </svg>
             </div>
@@ -75,6 +82,7 @@ defineProps<{
     width: number,
     boardName: string,
     areOptionsShown: boolean,
+    navOpen: boolean,
     toggleOptions: (e: Event) => void,
     closeOptions: (e: Event) => void,
     toggleBoardsNav: () => void,

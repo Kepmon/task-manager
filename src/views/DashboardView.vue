@@ -16,6 +16,7 @@
       :width="windowWidth"
       :boardName="boardProperties.boardName"
       :areOptionsShown="areBoardOptionsShown"
+      :navOpen="isNavOpen"
       :toggleOptions="($event) => callMoreOptionsFn($event, toggleOptions)"
       :closeOptions="($event) => callMoreOptionsFn($event, closeOptions)"
       :toggleBoardsNav="toggleBoardsNav"

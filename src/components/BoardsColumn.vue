@@ -1,7 +1,7 @@
 <template>
 <div
     class="columns-container"
-    :class="{ 'w-full': logo, 'columns-container--sizes': !logo }"
+    :class="{ 'columns-container--sizes': !logo }"
 >
     <div class="flex gap-6 h-max">
         <div v-for="column in columns" :key="column.name" class="flex flex-col">
@@ -18,8 +18,8 @@
                 :callback="callback"
             />
         </div>
-        <div class="new-column">
-            <div class="flex gap-2 items-center justify-center text-medium-grey cursor-pointer p-2 group">
+        <div class="new-column group">
+            <div class="flex gap-2 items-center justify-center text-medium-grey p-2">
                 <svg width="12" height="12" xmlns="http://www.w3.org/2000/svg">
                     <path
                         fill="#828FA3"
@@ -70,7 +70,7 @@ const circleColor = computed(() => {
 
 .new-column {
     @apply flex items-center justify-center mt-[44px]  min-w-[280px] shadow-column;
-    @apply bg-gradient-to-b from-light-column-start to-light-column-end;
+    @apply bg-gradient-to-b from-light-column-start to-light-column-end cursor-pointer;
     @apply dark:from-dark-column-start dark:to-dark-column-end;
 }
 </style>
