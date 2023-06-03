@@ -7,12 +7,6 @@ import { RouterView } from 'vue-router'
 </script>
 
 <style>
-*,
-*::before,
-*::after {
-  @apply box-border p-0 m-0;
-}
-
 html {
   @apply bg-light-grey text-black;
 }
@@ -26,6 +20,6 @@ body {
 }
 
 ::-webkit-scrollbar-corner {
-  @apply bg-transparent
+  @apply bg-transparent;
 }
 </style>

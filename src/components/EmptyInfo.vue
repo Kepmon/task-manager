@@ -1,9 +1,9 @@
 <template>
     <div v-if="emptyDashboard || emptyBoard" class="flex flex-col items-center justify-center">
-        <p class="mb-[25px] text-lg text-medium-grey">
-            {{ emptyDashboard ? 'Your dashboard' : 'This board' }}
+        <p class="mb-[25px] text-lg text-center text-medium-grey first-letter:capitalize">
+            {{ emptyInfoSpans.spanOne }}
             is empty. Create a new
-            {{ emptyDashboard ? 'board' : 'column' }}
+            {{ emptyInfoSpans.spanTwo }}
             to get started.
         </p>
         <the-button
@@ -14,7 +14,7 @@
                 <path fill="#FFF" d="M7.368 12V7.344H12V4.632H7.368V0H4.656v4.632H0v2.712h4.656V12z"/>
             </svg>
             <span class="text-white">
-                Add New {{ emptyDashboard ? 'Board' : 'Column' }}
+                Add New <span class="capitalize">{{ emptyInfoSpans.spanTwo }}</span>
             </span>
         </the-button>
     </div>
@@ -28,4 +28,18 @@ import { computed } from 'vue'
 const boardProperties = returnBoardProperties()
 const emptyDashboard = computed(() => boardProperties.boards.length === 0)
 const emptyBoard = computed(() => boardProperties.columns.length === 0)
+
+const emptyInfoSpans = computed(() => {
+    if (emptyDashboard.value) {
+        return {
+            spanOne: 'your dashboard',
+            spanTwo: 'board'
+        }
+    }
+
+    return {
+        spanOne: 'this board',
+        spanTwo: 'column'
+    }
+})
 </script>

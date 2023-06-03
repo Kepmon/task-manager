@@ -7,7 +7,7 @@
         <div v-for="column in columns" :key="column.name" class="flex flex-col">
             <div class="flex items-center gap-2 mb-8">
                 <div class="h-[15px] w-[15px] rounded-full" :class="circleColor(column)"></div>
-                <p class="text-sm text-medium-grey uppercase" >{{ column.name }} ({{ column.tasks.length }})</p>
+                <p class="text-xs text-medium-grey uppercase" >{{ column.name }} ({{ column.tasks.length }})</p>
             </div>
             <task-card
                 v-for="{ title, subtasks } in column.tasks"
@@ -50,9 +50,9 @@ const props = defineProps<{
 
 const circleColor = computed(() => {
     return (column: BoardColumn) => ({
-        'bg-first-column': props.columns.indexOf(column) % 3 === 0,
-        'bg-second-column': props.columns.indexOf(column) % 3 === 1,
-        'bg-third-column': props.columns.indexOf(column) % 3 === 2
+        'bg-blue-400': props.columns.indexOf(column) % 3 === 0,
+        'bg-purple-400': props.columns.indexOf(column) % 3 === 1,
+        'bg-green-400': props.columns.indexOf(column) % 3 === 2
     })
 })
 </script>
@@ -70,7 +70,7 @@ const circleColor = computed(() => {
 
 .new-column {
     @apply flex items-center justify-center mt-[44px]  min-w-[280px] shadow-column;
-    @apply bg-gradient-to-b from-light-column-start to-light-column-end cursor-pointer;
-    @apply dark:from-dark-column-start dark:to-dark-column-end;
+    @apply bg-gradient-to-b from-lightBlue-100 to-lightBlue-80 cursor-pointer;
+    @apply dark:from-darkBlue-100 dark:to-darkBlue-80;
 }
 </style>

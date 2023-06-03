@@ -12,11 +12,11 @@
             class="right-0 -top-4"
         />
 
-        <p class="text-medium-grey text-sm min-[350px]:text-s">
+        <p class="text-medium-grey text-xs min-[350px]:text-sm">
             {{ description }}
         </p>
         <div>
-            <p class="mb-4 text-sm text-medium-grey dark:text-white">
+            <p class="mb-4 text-xs text-medium-grey dark:text-white">
                 Subtasks ({{ howManyCompleted }} of {{ howManySubtasks }})
             </p>
             <div
@@ -27,7 +27,7 @@
                 <label class="flex items-center gap-4 px-1 cursor-pointer">
                     <input type="checkbox" :checked="subtask.isCompleted" class="checkbox peer">
                     <span
-                        class="text-sm peer-checked:line-through peer-checked:opacity-50"
+                        class="text-xs peer-checked:line-through peer-checked:opacity-50"
                     >
                         {{ subtask.title }}
                     </span>

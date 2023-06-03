@@ -94,7 +94,7 @@ defineProps<{
 }
 
 .boards-heading {
-    @apply ml-3 min-[350px]:ml-6 mb-[20px] text-sm text-medium-grey;
+    @apply ml-3 min-[350px]:ml-6 mb-[20px] text-xs text-medium-grey;
     @apply uppercase tracking-[2.4px] font-normal;
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
     <div>
-        <p class="mb-2 text-sm">
+        <p class="mb-2 text-xs">
             {{ modifiedItem === 'Task' ? 'Subtasks' : 'Board Columns' }}
         </p>
 
@@ -20,7 +20,7 @@
                     type="input"
                     :error="isError"
                     :class="{ 'after:content-none': !isError }"
-                    class="grow relative after:content-['Can\'t_be_empty'] after:text-s after:text-regular-red after:font-normal after:absolute after:right-4 after:top-1/2 after:-translate-y-1/2"
+                    class="grow relative after:content-['Can\'t_be_empty'] after:text-sm after:text-regular-red after:font-normal after:absolute after:right-4 after:top-1/2 after:-translate-y-1/2"
                 />
                 <svg width="15" height="15" xmlns="http://www.w3.org/2000/svg" class="cursor-pointer">
                     <g :fill="isError ? '#EA5555' : '#828FA3'">

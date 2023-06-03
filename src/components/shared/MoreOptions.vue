@@ -3,13 +3,13 @@
         <div ref="target" @click="toggleOptions" v-if="condition" class="options-container">
             <p
                 @click="element === 'Task' ? editTask() : editBoard()"
-                class="mb-4 text-s text-medium-grey cursor-pointer"
+                class="mb-4 text-sm text-medium-grey cursor-pointer"
             >
                 Edit {{ element }}
             </p>
             <p 
                 @click="element === 'Task' ? deleteTask() : deleteBoard()"
-                class="text-s text-regular-red cursor-pointer"
+                class="text-sm text-regular-red cursor-pointer"
             >
                 Delete {{ element }}
             </p>

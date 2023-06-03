@@ -1,7 +1,7 @@
 <template>
     <form class="form">
         <more-options
-            v-show="options && condition"
+            v-if="options && condition"
             element="Task"
             class="top-24 sm:top-20 right-12 sm:translate-x-1/2"
         />

@@ -72,7 +72,7 @@
                     </the-button>
 
                     <div v-show="formType !== 'Delete' && modifiedItem === 'Task'">
-                        <p class="mb-2 text-sm text-medium-grey dark:text-white">
+                        <p class="mb-2 text-xs text-medium-grey dark:text-white">
                             <span v-show="formType === 'SeeTask'">Current</span>
                             Status
                         </p>

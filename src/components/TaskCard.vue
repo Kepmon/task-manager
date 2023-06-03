@@ -6,7 +6,7 @@
     <p class="mb-1 group-hover:text-main-purple transition-all duration-300">
         {{ title }}
     </p>
-    <p class="text-medium-grey text-sm">
+    <p class="text-medium-grey text-xs">
         {{ howManyCompleted }} of {{ howManySubtasks }} subtasks
     </p>
 </div>

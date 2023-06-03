@@ -35,7 +35,7 @@
                         :key="name"
                         role="option"
                         tabindex="0"
-                        class="text-s text-medium-grey cursor-pointer"
+                        class="text-sm text-medium-grey cursor-pointer"
                     >
                         <input type="radio" :name="name" class="appearance-none">
                         {{ name }}
@@ -67,7 +67,7 @@ const changeCurrentStatus = (e: Event) => {
 
 <style scoped>
 .select-btn {
-    @apply flex items-center justify-between gap-2 py-2 px-4 w-full text-s;
+    @apply flex items-center justify-between gap-2 py-2 px-4 w-full text-sm;
     @apply bg-white dark:bg-dark-grey shadow-option rounded-[4px] cursor-pointer;
     @apply appearance-none focus:outline focus:outline-main-purple;
 }

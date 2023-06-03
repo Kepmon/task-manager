@@ -28,20 +28,25 @@ module.exports = {
         'light-grey': '#F4F7FD',
         'regular-red': '#EA5555',
         'red-hover': '#FF9898',
-        'first-column': '#49C4E5',
-        'second-column': '#8471F2',
-        'third-column': '#67E2AE',
-        'light-column-start': '#E9EFFA',
-        'light-column-end': '#E9EFFA80',
-        'dark-column-start': '#2B2C37',
-        'dark-column-end': '#2B2C3780',
+        blue: { 400: "#49C4E5"},
+        purple: { 400: '#8471F2' },
+        green: { 400: '#67E2AE' },
+        lightBlue: {
+          80: '#E9EFFA80',
+          100: '#E9EFFA'
+        },
+        darkBlue: {
+          80: '#2B2C3780',
+          100: '#2B2C37'
+        },
         'semitransparent-black': '#00000077',
-        'input-border': '#828FA340',
-        'input-border-focus': '#828FA380'
+        grayAccent: {
+          40: '#828FA340'
+        }
       },
       fontSize: {
-        sm: ['12px', '15px'],
-        s: ['13px', '16px'],
+        xs: ['12px', '15px'],
+        sm: ['13px', '16px'],
         base: ['15px', '19px'],
         lg: ['18px', '23px'],
         xl: ['24px', '30px'],

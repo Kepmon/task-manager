@@ -1,5 +1,5 @@
 <template>
-    <p class="text-s text-medium-grey font-normal">
+    <p class="text-sm text-medium-grey font-normal">
         {{ message }}
     </p>
 </template>

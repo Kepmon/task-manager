@@ -1,18 +1,18 @@
 <template>
     <div :class="{ 'flex flex-col gap-2': label}">
-        <label v-show="label" class="text-sm">{{ label }}</label>
+        <label v-if="label" class="text-xs">{{ label }}</label>
         <input
-            v-show="type === 'input'"
+            v-if="type === 'input'"
             type="text"
             class="input"
-            :class="{ 'border-regular-red': error, 'border-input-border focus:border-main-purple': !error }"
+            :class="{ 'border-regular-red': error, 'border-grayAccent-40 focus:border-main-purple': !error }"
             :placeholder="placeholder"
             :value="inputValue"
             >
         <textarea
-            v-show="type === 'textarea'"
+            v-if="type === 'textarea'"
             class="input min-h-[80px] max-h-[150px] scrollbar-invisible"
-            :class="{ 'border-input-border focus:border-main-purple': !error }"
+            :class="{ 'border-grayAccent-40 focus:border-main-purple': !error }"
             placeholder="e.g. It’s always good to take a break. This 15 minute break will recharge the batteries a little."
         ></textarea>
     </div>
@@ -31,7 +31,7 @@ defineProps<{
 
 <style scoped>
 .input {
-    @apply py-3 px-4 w-full bg-transparent rounded-[4px] text-s font-normal;
+    @apply py-3 px-4 w-full bg-transparent rounded-[4px] text-sm font-normal;
     @apply outline-none border;
 }
 </style>

@@ -36,7 +36,7 @@
     </div>
 
     <main
-      class="flex flex-col justify-center p-4 sm:p-6"
+      class="flex flex-col justify-center p-4 sm:p-6 "
       :class="{ 'sm:col-start-2': !isLogoShown, 'sm:col-start-1 sm:col-span-2': isLogoShown }"
     > 
       <empty-info />
@@ -65,7 +65,7 @@ import { returnBoardProperties } from '../composables/boardProperties'
 import { returnDialogPropsToSelect } from '../composables/dialogHandling'
 import moreOptionsPopup from '../composables/moreOptionsPopup'
 import { ref, Ref, computed } from 'vue'
-import { useDark } from '@vueuse/core'
+import { useDark, useWindowSize } from '@vueuse/core'
 
 const isDark = useDark()
 const isDashboardEmpty = ref(false)
@@ -135,11 +135,12 @@ const toggleBoardsNav = () => {
   isNavOpen.value = !isNavOpen.value
 }
 
-const windowWidth = ref(window.innerWidth)
-const resizeObserwer = new ResizeObserver((entries) => {
+const { width } = useWindowSize()
+const windowWidth = ref(width)
+const resizeObserver = new ResizeObserver((entries) => {
   windowWidth.value = entries[0].contentRect.width
 })
-resizeObserwer.observe(document.body)
+resizeObserver.observe(document.body)
 </script>
 
 <style scoped>
