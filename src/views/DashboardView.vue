@@ -2,10 +2,6 @@
   <div class="main-container">
     <boards-navbar
       v-bind="boardsNavbarProps"
-      :class="{
-        'absolute sm:scale-0': windowWidth < 640,
-        'scale-0 sm:scale-100': windowWidth >= 640
-      }"
     />
 
     <main-navbar
@@ -18,7 +14,6 @@
       :areOptionsShown="areBoardOptionsShown"
       :navOpen="isNavOpen"
       :toggleBoardsNav="toggleBoardsNav"
-      :class="{ 'col-span-2': isLogoShown }"
     />
 
     <div
@@ -84,12 +79,7 @@ const toggleBoardsNav = () => {
   isNavOpen.value = !isNavOpen.value
 }
 
-const { width } = useWindowSize()
-const windowWidth = ref(width)
-const resizeObserver = new ResizeObserver((entries) => {
-  windowWidth.value = entries[0].contentRect.width
-})
-resizeObserver.observe(document.body)
+const { width: windowWidth } = useWindowSize()
 </script>
 
 <style scoped>

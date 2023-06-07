@@ -5,17 +5,19 @@
             aria-label="boards navigation"
             class="py-4 bg-white dark:bg-dark-grey"
             :class="{
-                'mobile-boards': width < 640, 'desktop-boards': width >= 640 
+                'mobile-boards': width < 640,
+                'desktop-boards': width >= 640,
+                'absolute sm:scale-0': width < 640,
+                'scale-0 sm:scale-100': width >= 640
             }"
         >
-            <div v-show="width >= 640" class="px-[10%] mt-4 mb-[54px]">
+            <div v-if="width >= 640" class="px-[10%] mt-4 mb-[54px]">
                 <img
                     :src="theme ? '/img/logo-light.svg' : '/img/logo-dark.svg'"
                     alt="app logo"
                     class="h-[26px] w-[153px]"
                 >
             </div>
-
             <h3 class="boards-heading">all boards ({{ boards.length }})</h3>
             <div :class="{ 'flex flex-col justify-between grow': width >= 640 }">
                 <div>
@@ -23,19 +25,17 @@
                         v-for="{ name } in boards"
                         :key="name"
                         :name="name"
-                        :class="{ 
-                            'bg-main-purple fill-white text-white': name === boardName, 
+                        :class="{
+                            'bg-main-purple fill-white text-white': name === boardName,
                             'text-medium-grey fill-medium-grey': name !== boardName
                         }"
                     />
-
                     <board-label
                         @click="isAddBoardDialogShown = true"
                         name="Create New Board"
                         class="text-main-purple fill-main-purple"
                     />
                 </div>
-
                 <div>
                     <theme-toggle />
                     <board-label
@@ -44,11 +44,10 @@
                         name="Hide Sidebar"
                         class="my-2 text-medium-grey fill-medium-grey"
                     />
-                </div>  
+                </div>
             </div>
         </nav>
     </transition>
-
     <board-dialog
         v-if="isAddBoardDialogShown"
         action="add"
