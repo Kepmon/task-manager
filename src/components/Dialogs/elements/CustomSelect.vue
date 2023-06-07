@@ -47,12 +47,12 @@
 </template>
 
 <script setup lang="ts">
-import type { BoardColumn } from '../../api/boardsTypes'
+import type { BoardColumn } from '../../../api/boardsTypes'
 import { ref } from 'vue'
 
 const props = defineProps<{
-    selectedStatus?: string,
-    columns?: BoardColumn[]
+    selectedStatus: string,
+    columns: BoardColumn[]
 }>()
 
 const isDropdownShown = ref(false)

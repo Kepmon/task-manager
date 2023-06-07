@@ -17,14 +17,7 @@
       :boardName="boardProperties.boardName"
       :areOptionsShown="areBoardOptionsShown"
       :navOpen="isNavOpen"
-      :toggleOptions="($event) => callMoreOptionsFn($event, toggleOptions)"
-      :closeOptions="($event) => callMoreOptionsFn($event, closeOptions)"
       :toggleBoardsNav="toggleBoardsNav"
-      :addTask="() => toggleDialog('addTask')"
-      :editTask="() => toggleDialog('editTask')"
-      :editBoard="() => toggleDialog('editBoard')"
-      :deleteTask="() => toggleDialog('deleteTask')"
-      :deleteBoard="() => toggleDialog('deleteBoard')"
       :class="{ 'col-span-2': isLogoShown }"
     />
 
@@ -44,27 +37,18 @@
       <boards-column
         :columns="boardProperties.columns"
         :logo="isLogoShown"
-        :callback="() => toggleDialog('seeTask')"
-      />
-
-      <dialogs-template
-        v-bind="dialogProps"
       />
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { SharedProps, ToggledDialog, PropsToSelect } from '../api/dialogTypes'
 import MainNavbar from '../components/Navbar/MainNavbar.vue'
 import BoardsNavbar from '../components/Navbar/BoardsNavbar.vue'
 import EmptyInfo from '../components/EmptyInfo.vue'
 import BoardsColumn from '../components/BoardsColumn.vue'
-import DialogsTemplate from '../components/Dialogs/DialogsTemplate.vue'
 import { returnBoardProperties } from '../composables/boardProperties'
-import { returnDialogPropsToSelect } from '../composables/dialogHandling'
-import moreOptionsPopup from '../composables/moreOptionsPopup'
-import { ref, Ref, computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useDark, useWindowSize } from '@vueuse/core'
 
 const isDark = useDark()
@@ -78,43 +62,8 @@ const boardsNavbarProps = computed(() => ({
   theme: isDark.value,
   boards: boardProperties.boards,
   boardName: boardProperties.boardName,
-  toggleSidebar: toggleSidebar,
-  addNewBoard: () => toggleDialog('addBoard')
+  toggleSidebar: toggleSidebar
 }))
-const { toggleOptions, closeOptions } = moreOptionsPopup
-const callMoreOptionsFn = (e: Event, cb: (e: Event, conditionToChange: Ref<boolean>) => void) => {
-  cb(e, areBoardOptionsShown)
-}
-
-const propsToSelect = returnDialogPropsToSelect()
-const toggledDialog: Ref<ToggledDialog> = ref('seeTask')
-const isDialogOpen = ref(false)
-const dialogProps = computed(() => {
-  const sharedProps: SharedProps = {
-    isDark: isDark.value,
-    toggleDialog,
-    editTask: () => toggleDialog('editTask'),
-    editBoard: () => toggleDialog('editBoard'),
-    deleteTask: () => toggleDialog('deleteTask'),
-    deleteBoard: () => toggleDialog('deleteBoard'),
-    condition: isDialogOpen.value
-  }
-  const selectedProps = propsToSelect[toggledDialog.value as keyof PropsToSelect]
-
-  return { ...sharedProps, ...selectedProps }
-})
-const toggleDialog = (formType?: ToggledDialog) => {
-  if (formType) {
-    toggledDialog.value = formType
-  }
-  
-  if (formType === 'editTask' || formType === 'deleteTask') {
-    isDialogOpen.value = true
-    return
-  }
-  
-  isDialogOpen.value = !isDialogOpen.value
-}
 
 const isSidebarShown = ref(true)
 const isNavOpen = ref(false)

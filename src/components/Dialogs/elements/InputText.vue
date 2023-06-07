@@ -8,7 +8,7 @@
             :class="{ 'border-regular-red': error, 'border-grayAccent-40 focus:border-main-purple': !error }"
             :placeholder="placeholder"
             :value="inputValue"
-            >
+        >
         <textarea
             v-if="type === 'textarea'"
             class="input min-h-[80px] max-h-[150px] scrollbar-invisible"
@@ -24,7 +24,7 @@ defineProps<{
     placeholder?: string,
     inputValue?: string,
     error?: boolean,
-    formType: 'SeeTask' | 'Add' | 'Edit' | 'Delete',
+    formType: 'add' | 'edit',
     type: 'input' | 'textarea'
 }>()
 </script>

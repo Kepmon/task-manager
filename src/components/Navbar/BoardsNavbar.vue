@@ -24,13 +24,13 @@
                         :key="name"
                         :name="name"
                         :class="{ 
-                            'bg-main-purple fill-white': name === boardName, 'text-white': name === boardName, 
+                            'bg-main-purple fill-white text-white': name === boardName, 
                             'text-medium-grey fill-medium-grey': name !== boardName
                         }"
                     />
 
                     <board-label
-                        @click="addNewBoard"
+                        @click="isAddBoardDialogShown = true"
                         name="Create New Board"
                         class="text-main-purple fill-main-purple"
                     />
@@ -48,12 +48,21 @@
             </div>
         </nav>
     </transition>
+
+    <board-dialog
+        v-if="isAddBoardDialogShown"
+        action="add"
+        :closeDialog="() => isAddBoardDialogShown = false"
+        :selectedMultiOptionItems="['Todo', 'Doing']"
+    />
 </template>
 
 <script setup lang="ts">
+import type { Board } from '../../api/boardsTypes'
 import ThemeToggle from './ThemeToggle.vue'
 import BoardLabel from './BoardLabel.vue'
-import type { Board } from '../../api/boardsTypes'
+import BoardDialog from '../Dialogs/BoardDialog.vue'
+import { ref } from 'vue'
 
 defineProps<{
     condition: boolean,
@@ -61,9 +70,10 @@ defineProps<{
     theme: boolean,
     boards: Board[],
     boardName: Board['name'],
-    toggleSidebar: () => void,
-    addNewBoard: () => void
+    toggleSidebar: () => void
 }>()
+
+const isAddBoardDialogShown = ref(false)
 </script>
 
 <style scoped>

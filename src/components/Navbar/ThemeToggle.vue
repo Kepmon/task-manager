@@ -1,5 +1,5 @@
 <template>
-    <div class="flex items-center justify-center gap-x-6 mt-4 mx-auto h-12 w-[90%] rounded-md bg-light-grey dark:bg-very-dark-grey">
+    <div class="theme-controller">
         <img src="/img/icon-light-theme.svg" alt="">
         <the-button
             @click="toggleDark()"
@@ -7,7 +7,11 @@
             class="toggle-theme"
         >
             <transition-group name="theme-toggle">
-                <div class="w-[14px] h-[14px] bg-white rounded-full" :class="{ 'ml-auto': isDark }" key="theme-toggle"></div>
+                <div
+                    class="w-[14px] h-[14px] bg-white rounded-full"
+                    :class="{ 'ml-auto': isDark }"
+                    key="theme-toggle">
+                </div>
             </transition-group>
         </the-button>
         <img src="/img/icon-dark-theme.svg" alt="choose dark theme">
@@ -23,6 +27,10 @@ const toggleDark = useToggle(isDark)
 </script>
 
 <style scoped>
+.theme-controller {
+    @apply flex items-center justify-center gap-x-6 mt-4 mx-auto h-12 w-[90%];
+    @apply rounded-md bg-light-grey dark:bg-very-dark-grey;
+}
 .theme-toggle-move {
     @apply transition-all duration-300;
 }

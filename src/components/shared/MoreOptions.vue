@@ -1,14 +1,23 @@
 <template>
     <transition name="options">
-        <div ref="target" @click="toggleOptions" v-if="condition" class="options-container">
+        <div
+            ref="target"
+            @click="toggleOptions"
+            v-if="condition"
+            class="options-container"
+            :class="{
+                'right-6 top-[72px]': element === 'board',
+                'right-0 -top-4': element === 'task'
+            }"
+        >
             <p
-                @click="element === 'Task' ? editTask() : editBoard()"
+                @click="showEditForm"
                 class="mb-4 text-sm text-medium-grey cursor-pointer"
             >
                 Edit {{ element }}
             </p>
             <p 
-                @click="element === 'Task' ? deleteTask() : deleteBoard()"
+                @click="showDeleteForm"
                 class="text-sm text-regular-red cursor-pointer"
             >
                 Delete {{ element }}
@@ -23,17 +32,15 @@ import { ref } from 'vue'
 
 const props = defineProps<{
     condition: boolean,
-    element: 'Task' | 'Board',
-    editTask: () => void,
-    editBoard: () => void,
-    deleteTask: () => void,
-    deleteBoard: () => void,
+    element: 'task' | 'board',
+    showEditForm: () => void,
+    showDeleteForm: () => void,
     toggleOptions: (e: Event) => void,
-    closeOptions: (e: Event) => void
+    closeMoreOptions: (e: Event) => void
 }>()
 
 const target = ref(null)
-onClickOutside(target, props.closeOptions)
+onClickOutside(target, props.closeMoreOptions)
 </script>
 
 <style scoped>

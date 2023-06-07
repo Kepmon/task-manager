@@ -1,7 +1,7 @@
 <template>
     <div>
         <p class="mb-2 text-xs">
-            {{ modifiedItem === 'Task' ? 'Subtasks' : 'Board Columns' }}
+            {{ modifiedItem === 'task' ? 'Subtasks' : 'Board Columns' }}
         </p>
 
         <div class="flex flex-col gap-3">
@@ -11,10 +11,10 @@
             >
                 <input-text
                     :placeholder="
-                        modifiedItem === 'Task' && formType === 'Add' ? item : undefined
+                        modifiedItem === 'task' && formType === 'add' ? item : undefined
                     "
                     :inputValue="
-                        modifiedItem === 'Task' && formType === 'Add' ? undefined : item
+                        modifiedItem === 'task' && formType === 'add' ? undefined : item
                     "
                     :formType="formType"
                     type="input"
@@ -36,41 +36,13 @@
 <script setup lang="ts">
 import type { Subtask, BoardColumn } from '../../../api/boardsTypes'
 import InputText from './InputText.vue'
-import { returnBoardProperties } from '../../../composables/boardProperties'
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 
-const props = defineProps<{
-    modifiedItem: 'Task' | 'Board',
-    formType: 'SeeTask' | 'Add' | 'Edit' | 'Delete',
-    isDark: boolean
+defineProps<{
+    modifiedItem: 'task' | 'board',
+    formType: 'add' | 'edit',
+    selectedMultiOptionItems: Subtask['title'][] | BoardColumn['name'][] | string[]
 }>()
 
 const isError = ref(false)
-
-interface MultiOptionItems {
-    AddTask: string[]
-    EditTask: Subtask['title'][]
-    AddBoard: string[]
-    EditBoard: BoardColumn['name'][]
-}
-
-const boardProperties = returnBoardProperties()
-const subtasksTitles = boardProperties.subtasks.map(subtask => subtask.title)
-const boardColumns = boardProperties.columns.map(column => column.name)
-
-const multiOptionItems: MultiOptionItems = {
-    AddTask: [
-        'e.g. Make coffee',
-        'e.g. Drink coffee & smile'
-    ],
-    EditTask: subtasksTitles,
-    AddBoard: [
-        'Todo',
-        'Doing'
-    ],
-    EditBoard: boardColumns
-}
-    
-const selectedMultiOptionItems = computed(() => 
-    multiOptionItems[props.formType+props.modifiedItem as keyof MultiOptionItems])
 </script>

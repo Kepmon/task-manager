@@ -1,4 +1,12 @@
 <template>
+    <more-options
+        :condition="areBoardOptionsShown"
+        element="board"
+        :showEditForm="() => isEditBoardDialogShown = true"
+        :showDeleteForm="() => isDeleteBoardDialogShown = true"
+        :toggleOptions="(e: Event) => callMoreOptionsFn(e, toggleOptions)"
+        :closeMoreOptions="(e: Event) => callMoreOptionsFn(e, closeOptions)"
+    />
     <nav aria-label="main navigation" class="main-nav">
         <div class="flex gap-2 items-center h-full">
             <img
@@ -33,20 +41,9 @@
             </div>
         </div>
 
-        <div class="flex items-center gap-3 min-[350px]:gap-4 relative">
-            <more-options
-                :condition="areOptionsShown"
-                element="Board"
-                :editTask="editTask"
-                :editBoard="editBoard"
-                :deleteTask="deleteTask"
-                :deleteBoard="deleteBoard"
-                :toggleOptions="toggleOptions"
-                :closeOptions="closeOptions"
-                class="top-12 right-0"
-            />
+        <div class="flex items-center gap-3 min-[350px]:gap-4">
             <the-button
-                @click.prevent="addTask"
+                @click="isAddTaskDialogShown = true"
                 :regularButton="true"
                 class="gap-[2px] bg-main-purple hover:bg-main-purple-hover transition-all duration-300" 
                 :class="{
@@ -60,7 +57,7 @@
                 <span v-show="width >= 640" class="text-white">Add New Task</span>
             </the-button>
             <img
-                @click="toggleOptions"
+                @click="() => areBoardOptionsShown = !areBoardOptionsShown"
                 src="/img/icon-vertical-ellipsis.svg"
                 alt="click here to see more options"
                 data-ellipsis
@@ -68,11 +65,36 @@
             >
         </div>
     </nav>
+
+    <task-dialog
+        v-if="isAddTaskDialogShown"
+        action="add"
+        :selectedMultiOptionItems="['e.g. Make coffee', 'e.g. Drink coffee & smile']"
+        :closeDialog="() => isAddTaskDialogShown = false"
+    />
+    <confirmation-dialog
+        v-if="isDeleteBoardDialogShown"
+        elementToDelete="board"
+        elementName="Platform Launch"
+        :closeDialog="() => isDeleteBoardDialogShown = false"
+    />
+    <board-dialog
+        v-if="isEditBoardDialogShown"
+        action="edit"
+        :closeDialog="() => isEditBoardDialogShown = false"
+        :selectedMultiOptionItems="selectedMultiOptionItems"
+    />
 </template>
 
 <script setup lang="ts">
 import TheButton from '../shared/TheButton.vue'
 import MoreOptions from '../shared/MoreOptions.vue'
+import TaskDialog from '../Dialogs/TaskDialog.vue'
+import ConfirmationDialog from '../Dialogs/ConfirmationDialog.vue'
+import BoardDialog from '../Dialogs/BoardDialog.vue'
+import moreOptionsPopup from '../../composables/moreOptionsPopup'
+import { returnBoardProperties } from '../../composables/boardProperties'
+import { ref, Ref } from 'vue'
 
 defineProps<{
     sidebar: boolean,
@@ -81,22 +103,27 @@ defineProps<{
     dashboard: boolean,
     width: number,
     boardName: string,
-    areOptionsShown: boolean,
     navOpen: boolean,
-    toggleOptions: (e: Event) => void,
-    closeOptions: (e: Event) => void,
     toggleBoardsNav: () => void,
-    addTask: () => void,
-    editTask: () => void,
-    editBoard: () => void,
-    deleteTask: () => void,
-    deleteBoard: () => void
 }>()
+
+const areBoardOptionsShown = ref(false)
+const isAddTaskDialogShown = ref(false)
+const isDeleteBoardDialogShown = ref(false)
+const isEditBoardDialogShown = ref(false)
+
+const boardProperties = returnBoardProperties()
+const selectedMultiOptionItems = boardProperties.columns.map(column => column.name)
+
+const { toggleOptions, closeOptions } = moreOptionsPopup
+const callMoreOptionsFn = (e: Event, cb: (e: Event, conditionToChange: Ref<boolean>) => void) => {
+  cb(e, areBoardOptionsShown)
+}
 </script>
 
 <style scoped>
 .main-nav {
-    @apply flex items-center justify-between basis-full px-3;
+    @apply flex items-center justify-between basis-full relative px-3;
     @apply min-[350px]:px-6 shadow-xs bg-white dark:bg-dark-grey;
 }
 

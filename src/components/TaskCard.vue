@@ -1,15 +1,15 @@
 <template>
-<div
-    @click="callback"
-    class="task-card group"
->
-    <p class="mb-1 group-hover:text-main-purple transition-all duration-300">
-        {{ title }}
-    </p>
-    <p class="text-medium-grey text-xs">
-        {{ howManyCompleted }} of {{ howManySubtasks }} subtasks
-    </p>
-</div>
+    <div
+        @click="showTaskDetails"
+        class="task-card group"
+    >
+        <p class="mb-1 group-hover:text-main-purple transition-all duration-300">
+            {{ title }}
+        </p>
+        <p class="text-medium-grey text-xs">
+            {{ howManyCompleted }} of {{ howManySubtasks }} subtasks
+        </p>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -17,7 +17,7 @@ defineProps<{
     title: string,
     howManyCompleted: number,
     howManySubtasks: number,
-    callback: () => void
+    showTaskDetails: (e: Event) => void
 }>()
 </script>
 
