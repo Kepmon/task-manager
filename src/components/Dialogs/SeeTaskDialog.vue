@@ -55,7 +55,7 @@
 
                 <div>
                     <p class="mb-2 text-xs text-medium-grey dark:text-white">Current Status</p>
-                    <custom-select selectedStatus="Doing" :columns="boardProperties.columns" />
+                    <v-select :options="statusItems" :searchable="false" placeholder="Doing"></v-select>
                 </div>
             </div>
         </template>
@@ -64,13 +64,11 @@
 
 <script setup lang="ts">
 import DialogsTemplate from './DialogsTemplate.vue'
-import CustomSelect from './elements/CustomSelect.vue'
 import MoreOptions from '../shared/MoreOptions.vue'
+import moreOptionsPopup from '../../composables/moreOptionsPopup'
 import { returnBoardProperties } from '../../composables/boardProperties'
 import { returnNumberOfCompletedSubtasks } from '../../composables/completedTasks'
 import { ref, Ref } from 'vue'
-
-import moreOptionsPopup from '../../composables/moreOptionsPopup'
 
 defineProps<{
     showEditForm: () => void,
@@ -79,6 +77,7 @@ defineProps<{
 }>()
 
 const boardProperties = returnBoardProperties()
+const statusItems = boardProperties.columns.map((column) => column.name)
 const areTaskOptionsShown = ref(false)
 
 const { toggleOptions, closeOptions } = moreOptionsPopup

@@ -34,7 +34,7 @@
 
             <div>
                 <p class="mb-2 text-xs text-medium-grey dark:text-white">Status</p>
-                <custom-select selectedStatus="Todo" :columns="boardProperties.columns" />
+                <v-select :options="statusItems" :searchable="false" placeholder="Todo"></v-select>
             </div>
 
             <the-button
@@ -53,7 +53,6 @@ import type { Subtask } from '../../api/boardsTypes'
 import DialogsTemplate from './DialogsTemplate.vue'
 import InputText from './elements/InputText.vue'
 import MultiOption from './elements/MultiOption.vue'
-import CustomSelect from './elements/CustomSelect.vue'
 import TheButton from '../../components/shared/TheButton.vue'
 import { returnBoardProperties } from '../../composables/boardProperties'
 
@@ -64,4 +63,5 @@ defineProps<{
 }>()
 
 const boardProperties = returnBoardProperties()
+const statusItems = boardProperties.columns.map((column) => column.name)
 </script>
