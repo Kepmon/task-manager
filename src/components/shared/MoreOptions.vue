@@ -6,19 +6,19 @@
             v-if="condition"
             class="options-container"
             :class="{
-                'right-6 top-[72px]': element === 'board',
+                'right-6 top-[76px]': element === 'board',
                 'right-0 -top-4': element === 'task'
             }"
         >
             <p
                 @click="showEditForm"
-                class="mb-4 text-sm text-medium-grey cursor-pointer"
+                class="option option--edit"
             >
                 Edit {{ element }}
             </p>
             <p 
                 @click="showDeleteForm"
-                class="text-sm text-regular-red cursor-pointer"
+                class="option option--delete"
             >
                 Delete {{ element }}
             </p>
@@ -45,8 +45,22 @@ onClickOutside(target, props.closeMoreOptions)
 
 <style scoped>
 .options-container {
-    @apply absolute p-4 w-[150px] md:w-[192px] rounded-lg shadow-xs;
-    @apply bg-white dark:bg-very-dark-grey;
+    @apply absolute w-[150px] md:w-[192px] rounded-lg shadow-xs;
+    @apply bg-white dark:bg-very-dark-grey z-10;
+}
+
+.option {
+    @apply p-[10px] text-sm text-medium-grey cursor-pointer;
+    @apply hover:bg-white-hover dark:hover:bg-very-dark-grey-hover;
+    @apply transition-all duration-300;
+}
+
+.option--edit {
+    @apply rounded-t-lg;
+}
+
+.option--delete {
+    @apply rounded-b-lg text-regular-red;
 }
 
 .options-enter-from,

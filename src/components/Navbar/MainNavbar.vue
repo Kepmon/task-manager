@@ -23,12 +23,12 @@
                     >
                 </div>
                 <div @click="toggleBoardsNav" class="flex items-center gap-2">
-                    <h2
+                    <h1
                         class="font-bold min-[330px]:text-lg"
                         :class="{ 'pl-6': isLogo && width >= 640 }"
                     >
                         {{ boardName }}
-                    </h2>
+                    </h1>
                     <svg
                         v-if="width < 640"
                         width="10"

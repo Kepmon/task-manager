@@ -1,15 +1,18 @@
 <template>
     <dialogs-template
-        formTitle="Research pricing points of various competitors and trial different business models"
         :closeDialog="closeSeeTask"
     >
+        <template v-slot:form-title>
+            <h2>Research pricing points of various competitors and trial different business models</h2>
+        </template>
+
         <template v-slot:ellipsis>
             <img
                 @click="areTaskOptionsShown = !areTaskOptionsShown"
                 src="/img/icon-vertical-ellipsis.svg"
-                alt="click here to see more options"
+                alt="click here to see more options" 
                 data-ellipsis
-                class="px-2 cursor-pointer"
+                class="px-3 cursor-pointer"
             >
         </template>
             

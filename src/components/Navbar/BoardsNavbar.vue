@@ -18,9 +18,9 @@
                     class="h-[26px] w-[153px]"
                 >
             </div>
-            <h3 class="boards-heading">all boards ({{ boards.length }})</h3>
+            <p class="all-boards">all boards ({{ boards.length }})</p>
             <div :class="{ 'flex flex-col justify-between grow': width >= 640 }">
-                <div>
+                <ul>
                     <board-label
                         v-for="{ name } in boards"
                         :key="name"
@@ -35,7 +35,7 @@
                         name="Create New Board"
                         class="text-main-purple fill-main-purple"
                     />
-                </div>
+                </ul>
                 <div>
                     <theme-toggle />
                     <board-label
@@ -102,7 +102,7 @@ const isAddBoardDialogShown = ref(false)
     @apply row-span-2 flex flex-col pt-4 rounded-none shadow-xs;
 }
 
-.boards-heading {
+.all-boards {
     @apply ml-3 min-[350px]:ml-6 mb-[20px] text-xs text-medium-grey;
     @apply uppercase tracking-[2.4px] font-normal;
 }

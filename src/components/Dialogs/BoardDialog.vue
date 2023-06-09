@@ -1,8 +1,11 @@
 <template>
     <dialogs-template
-        :formTitle="`${action} ${action === 'add' ? 'New' : ''} Board`"
         :closeDialog="closeDialog"
     >
+        <template v-slot:form-title>
+            <h2>{{ action }} {{ action === 'add' ? 'New' : '' }} Board</h2>
+        </template>
+
         <template v-slot:main-content>
             <input-text
                 label="Board Name"

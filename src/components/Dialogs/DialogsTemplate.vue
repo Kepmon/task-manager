@@ -3,12 +3,9 @@
         <div class="semitransparent-bg" @click.self="closeDialog">
             <form class="form">
                 <div class="flex items-center justify-between gap-2 min-[350px]:gap-4">
-                    <p
-                        class="min-[350px]:text-lg first-letter:uppercase"
-                        :class="{ 'text-regular-red': isTitleRed }"
-                    >
-                        {{ formTitle }}
-                    </p>
+                    <header class="min-[350px]:text-lg first-letter:uppercase">
+                        <slot name="form-title"></slot>
+                    </header>
                     <slot name="ellipsis"></slot>
                 </div>
                 <slot name="main-content"></slot>
@@ -19,8 +16,6 @@
 
 <script setup lang="ts">
 defineProps<{
-    isTitleRed?: true,
-    formTitle: string,
     closeDialog: () => void
 }>()
 </script>

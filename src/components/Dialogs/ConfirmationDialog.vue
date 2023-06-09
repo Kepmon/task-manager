@@ -1,9 +1,11 @@
 <template>
     <dialogs-template
-        :formTitle="`Delete this ${elementToDelete}?`"
-        :isTitleRed="true"
         :closeDialog="closeDialog"
     >
+        <template v-slot:form-title>
+            <h2 class="text-regular-red">Delete this {{ elementToDelete }}?</h2>
+        </template>
+
         <template v-slot:main-content>
             <p class="text-sm text-medium-grey font-normal">
                 {{ message }}

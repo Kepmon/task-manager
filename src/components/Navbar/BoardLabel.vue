@@ -1,5 +1,5 @@
 <template>
-    <div class="board-label">
+    <li class="board-label">
         <svg
             v-if="!name.includes('Hide')"
             width="16"
@@ -28,7 +28,7 @@
             </svg>
             <span class="boards-name">{{ name }}</span>
         </div>
-    </div>
+    </li>
 </template>
 
 <script setup lang="ts">
