@@ -34,11 +34,11 @@ defineProps<{
 
 .semitransparent-bg {
     @apply flex items-center justify-center absolute z-10 p-4;
-    @apply inset-0 bg-semitransparent-black;
+    @apply inset-0 bg-gray-880;
 }
 
 .form {
     @apply flex flex-col gap-6;
-    @apply relative p-6 w-[90%] sm:w-[480px] rounded-md bg-white dark:bg-dark-grey;
+    @apply relative p-6 w-[90%] sm:w-[480px] rounded-md bg-white dark:bg-gray-700;
 }
 </style>

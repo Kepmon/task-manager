@@ -30,20 +30,20 @@
             <the-button
                 :regularButton="true"
                 :isInForm="true"
-                class="text-main-purple bg-transparent-purple dark:bg-white"
+                class="text-purple-400 bg-purple-320 dark:bg-white"
             >
                 + Add New Subtask
             </the-button>
 
             <div>
-                <p class="mb-2 text-xs text-medium-grey dark:text-white">Status</p>
+                <p class="mb-2 text-xs text-gray-400 dark:text-white">Status</p>
                 <v-select :options="statusItems" :searchable="false" placeholder="Todo"></v-select>
             </div>
 
             <the-button
                 :regularButton="true"
                 :isInForm="true"
-                class="hover:bg-main-purple-hover transition-all duration-300 text-white bg-main-purple"
+                class="hover:bg-purple-100 transition-all duration-300 text-white bg-purple-400"
             >
                 {{ action === 'add' ? 'Create Task' : 'Save Changes' }}
             </the-button>

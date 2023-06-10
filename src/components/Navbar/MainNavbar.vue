@@ -9,7 +9,7 @@
             :closeMoreOptions="(e: Event) => callMoreOptionsFn(e, closeOptions)"
         />
         <nav aria-label="main navigation" class="main-nav">
-            <div class="flex gap-2 items-center">
+            <div class="flex items-center gap-2 h-full">
                 <img
                     src="/img/logo-mobile.svg"
                     alt="app logo"
@@ -37,32 +37,38 @@
                         class="transition-transform duration-500"
                         :class="{ 'rotate-180': navOpen }"
                     >
-                        <path stroke="#635FC7" stroke-width="2" fill="none" d="m1 1 4 4 4-4"/>
+                        <path stroke-width="2" fill="none" d="m1 1 4 4 4-4" class="stroke-purple-400" />
                     </svg>
                 </div>
             </div>
-            <div class="flex items-center gap-3 min-[350px]:gap-4">
+            <div class="flex items-center gap-2 min-[640px]:gap-3 text-white">
                 <the-button
                     @click="isAddTaskDialogShown = true"
-                    :regularButton="true"
-                    class="gap-[2px] bg-main-purple hover:bg-main-purple-hover transition-all duration-300"
+                    :regularButton="width >= 640 ? true : false"
+                    class="gap-[2px] bg-purple-400 hover:bg-purple-100 transition-all duration-300"
                     :class="{
                         'opacity-25 cursor-not-allowed': dashboard,
-                        'cursor-pointer': !dashboard
+                        'cursor-pointer': !dashboard,
+                        'px-4 py-[2px] rounded-2xl': width < 640
                     }"
                 >
-                    <svg width="12" height="12" xmlns="http://www.w3.org/2000/svg" class="scale-[.7]">
-                        <path fill="#FFF" d="M7.368 12V7.344H12V4.632H7.368V0H4.656v4.632H0v2.712h4.656V12z"/>
-                    </svg>
-                    <span v-show="width >= 640" class="text-white">Add New Task</span>
+                    <span class="leading-none" :class="{ 'text-2xl': width < 640 }">+</span>
+                    <span v-if="width >= 640">Add New Task</span>
                 </the-button>
-                <img
-                    @click="() => areBoardOptionsShown = !areBoardOptionsShown"
-                    src="/img/icon-vertical-ellipsis.svg"
-                    alt="click here to see more options"
+                <the-button :regularButton="false"
+                    @click.prevent="areBoardOptionsShown = !areBoardOptionsShown"
                     data-ellipsis
-                    class="px-1 h-[18px] cursor-pointer min-[350px]:h-auto"
+                    aria-label="click here to see more options"
+                    class="px-3 py-2 cursor-pointer"
                 >
+                    <svg width="5" height="20" xmlns="http://www.w3.org/2000/svg" data-ellipsis>
+                        <g fill-rule="evenodd" class="fill-gray-400">
+                            <circle cx="2.308" cy="2.308" r="2.308" />
+                            <circle cx="2.308" cy="10" r="2.308"/>
+                            <circle cx="2.308" cy="17.692" r="2.308"/>
+                        </g>
+                    </svg>
+                </the-button>
             </div>
         </nav>
         <task-dialog
@@ -123,17 +129,17 @@ const callMoreOptionsFn = (e: Event, cb: (e: Event, conditionToChange: Ref<boole
 
 <style scoped>
 .main-nav {
-    @apply flex items-center justify-between basis-full relative px-3;
-    @apply min-[350px]:px-6 shadow-xs bg-white dark:bg-dark-grey;
+    @apply flex items-center justify-between relative px-3;
+    @apply min-[350px]:px-6 shadow-xs bg-white dark:bg-gray-700;
 }
 
 .main-nav__logo {
     @apply flex items-center h-full sm:border-r;
-    @apply sm:border-lines-light dark:border-lines-dark;
+    @apply sm:border-blue-300 dark:border-gray-600;
 }
 
 .main-nav__button {
-    @apply flex gap-2 items-center bg-main-purple rounded-3xl px-3 py-[6px];
+    @apply flex gap-2 items-center bg-purple-400 rounded-3xl px-3 py-[6px];
     @apply min-[330px]:px-6 min-[330px]:py-[10px];
 }
 </style>

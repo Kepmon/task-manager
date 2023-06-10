@@ -90,7 +90,7 @@ const { width: windowWidth } = useWindowSize()
 
 .show-sidebar {
   @apply flex items-center justify-center absolute left-0 bottom-6;
-  @apply h-12 w-14 rounded-r-[100px] bg-main-purple cursor-pointer;
-  @apply hover:bg-main-purple-hover transition-all duration-300;
+  @apply h-12 w-14 rounded-r-[100px] bg-purple-400 cursor-pointer;
+  @apply hover:bg-purple-100 transition-all duration-300;
 }
 </style>

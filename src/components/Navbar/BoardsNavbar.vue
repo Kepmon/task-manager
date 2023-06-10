@@ -3,7 +3,7 @@
         <nav
             v-show="condition"
             aria-label="boards navigation"
-            class="py-4 bg-white dark:bg-dark-grey"
+            class="py-4 bg-white dark:bg-gray-700"
             :class="{
                 'mobile-boards': width < 640,
                 'desktop-boards': width >= 640,
@@ -26,14 +26,14 @@
                         :key="name"
                         :name="name"
                         :class="{
-                            'bg-main-purple fill-white text-white': name === boardName,
-                            'text-medium-grey fill-medium-grey': name !== boardName
+                            'bg-purple-400 fill-white text-white': name === boardName,
+                            'text-gray-400 fill-gray-400': name !== boardName
                         }"
                     />
                     <board-label
                         @click="isAddBoardDialogShown = true"
                         name="Create New Board"
-                        class="text-main-purple fill-main-purple"
+                        class="text-purple-400 fill-purple-400"
                     />
                 </ul>
                 <div>
@@ -42,7 +42,7 @@
                         v-show="width >= 640"
                         @click="toggleSidebar"
                         name="Hide Sidebar"
-                        class="my-2 text-medium-grey fill-medium-grey"
+                        class="my-2 text-gray-400 fill-gray-400"
                     />
                 </div>
             </div>
@@ -103,7 +103,7 @@ const isAddBoardDialogShown = ref(false)
 }
 
 .all-boards {
-    @apply ml-3 min-[350px]:ml-6 mb-[20px] text-xs text-medium-grey;
+    @apply ml-3 min-[350px]:ml-6 mb-[20px] text-xs text-gray-400;
     @apply uppercase tracking-[2.4px] font-normal;
 }
 </style>

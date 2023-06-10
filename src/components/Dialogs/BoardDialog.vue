@@ -24,7 +24,7 @@
             <the-button
                 :regularButton="true"
                 :isInForm="true"
-                class="text-main-purple bg-transparent-purple dark:bg-white"
+                class="text-purple-400 bg-purple-320 dark:bg-white"
             >
                 + Add New Column
             </the-button>
@@ -32,7 +32,7 @@
             <the-button
                 :regularButton="true"
                 :isInForm="true"
-                class="hover:bg-main-purple-hover transition-all duration-300 text-white bg-main-purple"
+                class="hover:bg-purple-100 transition-all duration-300 text-white bg-purple-400"
             >
                 {{ action === 'add' ? 'Create New Board' : 'Save Changes' }}
             </the-button>

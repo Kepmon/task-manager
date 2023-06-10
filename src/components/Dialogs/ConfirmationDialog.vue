@@ -3,11 +3,11 @@
         :closeDialog="closeDialog"
     >
         <template v-slot:form-title>
-            <h2 class="text-regular-red">Delete this {{ elementToDelete }}?</h2>
+            <h2 class="text-red-400">Delete this {{ elementToDelete }}?</h2>
         </template>
 
         <template v-slot:main-content>
-            <p class="text-sm text-medium-grey font-normal">
+            <p class="text-sm text-gray-400 font-normal">
                 {{ message }}
             </p>
 
@@ -60,11 +60,11 @@ const message = computed(() => {
 
 <style scoped>
 .button-one-bg {
-    @apply text-white bg-regular-red hover:bg-red-hover transition-all duration-300;
+    @apply text-white bg-red-400 hover:bg-red-200 transition-all duration-300;
 }
 
 .button-two-bg {
-    @apply text-main-purple bg-transparent-purple dark:bg-white;
-    @apply hover:bg-main-purple-hover transition-all duration-300;
+    @apply text-purple-400 bg-purple-320 dark:bg-white;
+    @apply hover:bg-purple-100 transition-all duration-300;
 }
 </style>

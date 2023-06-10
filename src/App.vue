@@ -8,11 +8,11 @@ import { RouterView } from 'vue-router'
 
 <style>
 html {
-  @apply bg-light-grey text-black;
+  @apply bg-gray-200 text-black;
 }
 
 html.dark {
-  @apply bg-very-dark-grey text-white;
+  @apply bg-gray-800 text-white;
 }
 
 body {
@@ -24,7 +24,7 @@ body {
 }
 
 .v-select {
-  @apply bg-white dark:bg-dark-grey shadow-option rounded-[4px];
+  @apply bg-white dark:bg-gray-700 shadow-option rounded-[4px];
 }
 
 .v-select .vs__selected,
@@ -49,16 +49,16 @@ body {
 }
 
 .v-select .vs__open-indicator {
-  @apply box-content p-2 fill-main-purple;
+  @apply box-content p-2 fill-purple-400;
 }
 
 .v-select .vs__dropdown-menu {
-  @apply absolute top-10 rounded-lg text-sm text-medium-grey;
-  @apply bg-white dark:bg-very-dark-grey;
+  @apply absolute top-10 rounded-lg text-sm text-gray-400;
+  @apply bg-white dark:bg-gray-800;
 }
 
 .v-select:has(:focus) .vs__dropdown-toggle {
-  @apply border-main-purple;
+  @apply border-purple-400;
 }
 
 .v-select .vs__dropdown-option {
@@ -66,6 +66,6 @@ body {
 }
 
 .v-select .vs__dropdown-option--highlight {
-  @apply bg-main-purple;
+  @apply bg-purple-400;
 }
 </style>

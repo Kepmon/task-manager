@@ -7,13 +7,20 @@
         </template>
 
         <template v-slot:ellipsis>
-            <img
-                @click="areTaskOptionsShown = !areTaskOptionsShown"
-                src="/img/icon-vertical-ellipsis.svg"
-                alt="click here to see more options" 
+            <the-button :regularButton="false"
+                @click.prevent="areTaskOptionsShown = !areTaskOptionsShown"
                 data-ellipsis
-                class="px-3 cursor-pointer"
+                aria-label="click here to see more options"
+                class="px-3 py-2 cursor-pointer"
             >
+                <svg width="5" height="20" xmlns="http://www.w3.org/2000/svg" data-ellipsis>
+                    <g fill-rule="evenodd" class="fill-gray-400">
+                        <circle cx="2.308" cy="2.308" r="2.308" />
+                        <circle cx="2.308" cy="10" r="2.308"/>
+                        <circle cx="2.308" cy="17.692" r="2.308"/>
+                    </g>
+                </svg>
+            </the-button>
         </template>
             
         <template v-slot:main-content>
@@ -28,12 +35,12 @@
                     :closeSeeTask="closeSeeTask"
                 />
 
-                <p class="text-medium-grey text-xs min-[350px]:text-sm">
+                <p class="text-gray-400 text-xs min-[350px]:text-sm">
                     {{ boardProperties.description }}
                 </p>
 
                 <div>
-                    <p class="mb-4 text-xs text-medium-grey dark:text-white">
+                    <p class="mb-4 text-xs text-gray-400 dark:text-white">
                         Subtasks (
                             {{ returnNumberOfCompletedSubtasks(boardProperties.subtasks) }}
                             of
@@ -57,7 +64,7 @@
                 </div>
 
                 <div>
-                    <p class="mb-2 text-xs text-medium-grey dark:text-white">Current Status</p>
+                    <p class="mb-2 text-xs text-gray-400 dark:text-white">Current Status</p>
                     <v-select :options="statusItems" :searchable="false" placeholder="Doing"></v-select>
                 </div>
             </div>
@@ -68,6 +75,7 @@
 <script setup lang="ts">
 import DialogsTemplate from './DialogsTemplate.vue'
 import MoreOptions from '../shared/MoreOptions.vue'
+import TheButton from '../shared/TheButton.vue'
 import moreOptionsPopup from '../../composables/moreOptionsPopup'
 import { returnBoardProperties } from '../../composables/boardProperties'
 import { returnNumberOfCompletedSubtasks } from '../../composables/completedTasks'
@@ -93,12 +101,12 @@ const callMoreOptionsFn = (e: Event, cb: (e: Event, conditionToChange: Ref<boole
 .checkbox {
     @apply appearance-none after:flex after:items-center after:justify-center;
     @apply after:h-3 after:w-3 after:bg-white after:shadow-option after:rounded-[2px];
-    @apply checked:after:bg-main-purple checked:after:content-checked;
+    @apply checked:after:bg-purple-400 checked:after:content-checked;
 }
 
 .subtask {
-    @apply [&:not(:last-of-type)]:mb-2 p-2 rounded bg-light-grey dark:bg-very-dark-grey;
-    @apply hover:bg-semitransparent-purple hover:dark:bg-semitransparent-purple;
+    @apply [&:not(:last-of-type)]:mb-2 p-2 rounded bg-blue-200 dark:bg-gray-800;
+    @apply hover:bg-purple-320 hover:dark:bg-purple-320;
     @apply transition-all duration-300;
 }
 </style>

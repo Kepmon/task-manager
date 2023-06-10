@@ -29,7 +29,7 @@ const toggleDark = useToggle(isDark)
 <style scoped>
 .theme-controller {
     @apply flex items-center justify-center gap-x-6 mt-4 mx-auto h-12 w-[90%];
-    @apply rounded-md bg-light-grey dark:bg-very-dark-grey;
+    @apply rounded-md bg-blue-200 dark:bg-gray-800;
 }
 .theme-toggle-move {
     @apply transition-all duration-300;
@@ -37,6 +37,6 @@ const toggleDark = useToggle(isDark)
 
 .toggle-theme {
     @apply flex items-center px-1 w-[40px] h-[20px] rounded-xl;
-    @apply bg-main-purple hover:bg-main-purple-hover transition-all duration-300;
+    @apply bg-purple-400 hover:bg-purple-100 transition-all duration-300;
 }
 </style>

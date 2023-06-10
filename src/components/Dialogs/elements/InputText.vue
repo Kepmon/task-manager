@@ -5,14 +5,14 @@
             v-if="type === 'input'"
             type="text"
             class="input"
-            :class="{ 'border-regular-red': error, 'border-grayAccent-40 focus:border-main-purple': !error }"
+            :class="{ 'border-red-400': error, 'border-blue-40 focus:border-purple-400': !error }"
             :placeholder="placeholder"
             :value="inputValue"
         >
         <textarea
             v-if="type === 'textarea'"
             class="input min-h-[80px] max-h-[150px] scrollbar-invisible"
-            :class="{ 'border-grayAccent-40 focus:border-main-purple': !error }"
+            :class="{ 'border-blue-40 focus:border-purple-400': !error }"
             placeholder="e.g. It’s always good to take a break. This 15 minute break will recharge the batteries a little."
         ></textarea>
     </div>

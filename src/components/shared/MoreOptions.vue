@@ -40,18 +40,18 @@ const props = defineProps<{
 }>()
 
 const target = ref(null)
-onClickOutside(target, props.closeMoreOptions)
+onClickOutside(target, props.closeMoreOptions) 
 </script>
 
 <style scoped>
 .options-container {
     @apply absolute w-[150px] md:w-[192px] rounded-lg shadow-xs;
-    @apply bg-white dark:bg-very-dark-grey z-10;
+    @apply bg-white dark:bg-gray-800 z-10;
 }
 
 .option {
-    @apply p-[10px] text-sm text-medium-grey cursor-pointer;
-    @apply hover:bg-white-hover dark:hover:bg-very-dark-grey-hover;
+    @apply p-[10px] text-sm text-gray-400 cursor-pointer;
+    @apply hover:bg-gray-200 dark:hover:bg-gray-500;
     @apply transition-all duration-300;
 }
 
@@ -60,7 +60,7 @@ onClickOutside(target, props.closeMoreOptions)
 }
 
 .option--delete {
-    @apply rounded-b-lg text-regular-red;
+    @apply rounded-b-lg text-red-400;
 }
 
 .options-enter-from,

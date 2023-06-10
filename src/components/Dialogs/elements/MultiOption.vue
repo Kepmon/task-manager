@@ -20,10 +20,10 @@
                     type="input"
                     :error="isError"
                     :class="{ 'after:content-none': !isError }"
-                    class="grow relative after:content-['Can\'t_be_empty'] after:text-sm after:text-regular-red after:font-normal after:absolute after:right-4 after:top-1/2 after:-translate-y-1/2"
+                    class="subtask-input"
                 />
                 <svg width="15" height="15" xmlns="http://www.w3.org/2000/svg" class="cursor-pointer">
-                    <g :fill="isError ? '#EA5555' : '#828FA3'">
+                    <g :class="{ 'fill-red-400': isError, 'fill-gray-400': !isError }">
                         <path d="m12.728 0 2.122 2.122L2.122 14.85 0 12.728z"/>
                         <path d="M0 2.122 2.122 0 14.85 12.728l-2.122 2.122z"/>
                     </g>
@@ -46,3 +46,11 @@ defineProps<{
 
 const isError = ref(false)
 </script>
+
+<style>
+.subtask-input {
+    @apply grow relative after:content-['Can\'t_be_empty'] after:text-sm;
+    @apply after:text-red-400 after:font-normal after:absolute;
+    @apply after:right-4 after:top-1/2 after:-translate-y-1/2;
+}
+</style>
