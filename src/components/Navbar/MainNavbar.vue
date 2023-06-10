@@ -71,24 +71,30 @@
                 </the-button>
             </div>
         </nav>
-        <task-dialog
-            v-if="isAddTaskDialogShown"
-            action="add"
-            :selectedMultiOptionItems="['e.g. Make coffee', 'e.g. Drink coffee & smile']"
-            :closeDialog="() => isAddTaskDialogShown = false"
-        />
-        <confirmation-dialog
-            v-if="isDeleteBoardDialogShown"
-            elementToDelete="board"
-            elementName="Platform Launch"
-            :closeDialog="() => isDeleteBoardDialogShown = false"
-        />
-        <board-dialog
-            v-if="isEditBoardDialogShown"
-            action="edit"
-            :closeDialog="() => isEditBoardDialogShown = false"
-            :selectedMultiOptionItems="selectedMultiOptionItems"
-        />
+        <transition name="dialog">
+            <task-dialog
+                v-if="isAddTaskDialogShown"
+                action="add"
+                :selectedMultiOptionItems="['e.g. Make coffee', 'e.g. Drink coffee & smile']"
+                :closeDialog="() => isAddTaskDialogShown = false"
+            />
+        </transition>
+        <transition name="dialog">
+            <confirmation-dialog
+                v-if="isDeleteBoardDialogShown"
+                elementToDelete="board"
+                elementName="Platform Launch"
+                :closeDialog="() => isDeleteBoardDialogShown = false"
+            />
+        </transition>
+        <transition name="dialog">
+            <board-dialog
+                v-if="isEditBoardDialogShown"
+                action="edit"
+                :closeDialog="() => isEditBoardDialogShown = false"
+                :selectedMultiOptionItems="selectedMultiOptionItems"
+            />
+        </transition>
     </div>
 </template>
 

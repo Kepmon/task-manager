@@ -68,4 +68,14 @@ body {
 .v-select .vs__dropdown-option--highlight {
   @apply bg-purple-400;
 }
+
+.dialog-enter-from,
+.dialog-leave-to {
+  @apply opacity-0;
+}
+
+.dialog-enter-active,
+.dialog-leave-active {
+  @apply transition-opacity duration-300;
+}
 </style>

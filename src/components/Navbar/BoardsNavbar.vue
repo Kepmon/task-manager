@@ -48,12 +48,14 @@
             </div>
         </nav>
     </transition>
-    <board-dialog
-        v-if="isAddBoardDialogShown"
-        action="add"
-        :closeDialog="() => isAddBoardDialogShown = false"
-        :selectedMultiOptionItems="['Todo', 'Doing']"
-    />
+    <transition name="dialog">
+        <board-dialog
+            v-if="isAddBoardDialogShown"
+            action="add"
+            :closeDialog="() => isAddBoardDialogShown = false"
+            :selectedMultiOptionItems="['Todo', 'Doing']"
+        />
+    </transition>
 </template>
 
 <script setup lang="ts">

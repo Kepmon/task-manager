@@ -25,25 +25,32 @@
                 </span>
             </div>
         </div>
-            <Teleport v-if="clickedTitle != null" to="body">
+        <Teleport  to="body">
+            <transition name="dialog">
                 <see-task-dialog
+                    v-if="clickedTitle != null"
                     :showEditForm="showEditForm"
                     :showDeleteForm="showDeleteForm"
                     :closeSeeTask="closeSeeTask"
                 />
-            </Teleport>
+            </transition>
+        </Teleport>
+        <transition name="dialog">
             <confirmation-dialog
                 v-if="isDeleteTaskDialogShown"
                 elementToDelete="task"
                 elementName="Research pricing points of various competitors and trial different business models"
                 :closeDialog="() => isDeleteTaskDialogShown = false"
             />
+        </transition>
+        <transition name="dialog">
             <task-dialog
                 v-if="isEditTaskDialogShown"
                 action="edit"
                 :selectedMultiOptionItems="selectedMultiOptionItems"
                 :closeDialog="() => isEditTaskDialogShown = false"
             />
+        </transition>
     </div>
 </template>
 
