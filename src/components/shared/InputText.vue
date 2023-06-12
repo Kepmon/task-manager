@@ -24,7 +24,7 @@ defineProps<{
     placeholder?: string,
     inputValue?: string,
     error?: boolean,
-    formType: 'add' | 'edit',
+    formType?: 'add' | 'edit',
     type: 'input' | 'textarea'
 }>()
 </script>

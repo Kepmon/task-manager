@@ -1,5 +1,5 @@
 <template>
-    <div class="theme-controller">
+    <div class="flex items-center justify-center gap-x-6 mx-auto h-12">
         <img src="/img/icon-light-theme.svg" alt="">
         <the-button
             @click="toggleDark()"
@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import TheButton from '../shared/TheButton.vue';
+import TheButton from '../shared/TheButton.vue'
 import { useDark, useToggle } from '@vueuse/core'
 
 const isDark = useDark()
@@ -27,10 +27,6 @@ const toggleDark = useToggle(isDark)
 </script>
 
 <style scoped>
-.theme-controller {
-    @apply flex items-center justify-center gap-x-6 mt-4 mx-auto h-12 w-[90%];
-    @apply rounded-md bg-blue-200 dark:bg-gray-800;
-}
 .theme-toggle-move {
     @apply transition-all duration-300;
 }

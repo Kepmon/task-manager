@@ -4,6 +4,9 @@
 
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
+import { useDark } from '@vueuse/core'
+
+const isDark = useDark()
 </script>
 
 <style>
@@ -17,6 +20,11 @@ html.dark {
 
 body {
   @apply min-h-screen text-base font-semibold;
+  @apply scrollbar-visibleLight dark:scrollbar-visibleDark;
+}
+
+.auth-main {
+  @apply grid place-items-center content-center gap-5 min-h-screen;
 }
 
 ::-webkit-scrollbar-corner {

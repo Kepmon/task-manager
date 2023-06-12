@@ -43,7 +43,7 @@
 <script setup lang="ts">
 import type { BoardColumn } from '../../api/boardsTypes'
 import DialogsTemplate from './DialogsTemplate.vue'
-import InputText from './elements/InputText.vue'
+import InputText from '../shared/InputText.vue'
 import MultiOption from './elements/MultiOption.vue'
 import TheButton from '../../components/shared/TheButton.vue'
 

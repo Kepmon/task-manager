@@ -35,7 +35,7 @@
 
 <script setup lang="ts">
 import type { Subtask, BoardColumn } from '../../../api/boardsTypes'
-import InputText from './InputText.vue'
+import InputText from '../../shared/InputText.vue'
 import { ref } from 'vue'
 
 defineProps<{

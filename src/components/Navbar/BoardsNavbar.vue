@@ -37,7 +37,7 @@
                     />
                 </ul>
                 <div>
-                    <theme-toggle />
+                    <theme-toggle class="mt-4 w-[90%] bg-blue-200 dark:bg-gray-800 rounded-md" />
                     <board-label
                         v-show="width >= 640"
                         @click="toggleSidebar"
@@ -60,7 +60,7 @@
 
 <script setup lang="ts">
 import type { Board } from '../../api/boardsTypes'
-import ThemeToggle from './ThemeToggle.vue'
+import ThemeToggle from '../shared/ThemeToggle.vue'
 import BoardLabel from './BoardLabel.vue'
 import BoardDialog from '../Dialogs/BoardDialog.vue'
 import { ref } from 'vue'
