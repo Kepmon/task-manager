@@ -19,10 +19,8 @@
                     :showTaskDetails="(e: Event) => changeClickedTask(e)"
                 />
             </div>
-            <div class="new-column group">
-                <span class="p-2 text-gray-400 text-xl group-hover:text-purple-400 transition-all duration-300">
-                    + New Column
-                </span>
+            <div class="new-column group" tabindex="0">
+                <span class="new-column-text">+ New Column</span>
             </div>
         </div>
         <Teleport  to="body">
@@ -121,5 +119,10 @@ const showDeleteForm = () => {
     @apply flex items-center justify-center mt-[44px]  min-w-[280px] shadow-column;
     @apply bg-gradient-to-b from-blue-100 to-blue-80 cursor-pointer;
     @apply dark:from-gray-700 dark:to-gray-680;
+}
+
+.new-column-text {
+    @apply flex p-2 text-gray-400 text-xl group-hover:text-purple-400;
+    @apply group-focus:text-purple-400 transition-colors duration-300;
 }
 </style>

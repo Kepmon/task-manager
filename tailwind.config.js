@@ -37,10 +37,10 @@ module.exports = {
           400: 'hsl(155 75% 70%)'
         },
         purple: {
-          100: 'hsl(242 100% 82%)',
           320: 'hsl(242 48% 58% / .2)',
           330: 'hsl(242 48% 58% / .3)',
-          400: 'hsl(242 48% 58%)'
+          400: 'hsl(242 48% 58%)',
+          500: 'hsl(242 48% 52%)'
         },
         red: {
           200: 'hsl(0 100% 73%)',
@@ -51,8 +51,11 @@ module.exports = {
         xs: ['12px', '15px'],
         sm: ['13px', '16px'],
         base: ['15px', '19px'],
+        baseFluid: 'clamp(0.81rem, calc(0.78rem + 0.21vw), 0.94rem)',
         lg: ['18px', '23px'],
+        lgFluid: 'clamp(0.88rem, calc(0.80rem + 0.42vw), 1.13rem)',
         xl: ['24px', '30px'],
+        xlFluid: 'clamp(1.25rem, calc(1.07rem + 1.04vw), 1.88rem)'
       },
       boxShadow: {
         xs: '0 0 2px -1px hsl(0 0% 59%)',

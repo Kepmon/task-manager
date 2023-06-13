@@ -45,7 +45,7 @@
                 <the-button
                     @click="isAddTaskDialogShown = true"
                     :regularButton="width >= 640 ? true : false"
-                    class="gap-[2px] bg-purple-400 hover:bg-purple-100 transition-all duration-300"
+                    class="gap-[2px] purple-class"
                     :class="{
                         'opacity-25 cursor-not-allowed': dashboard,
                         'cursor-pointer': !dashboard,
@@ -142,10 +142,5 @@ const callMoreOptionsFn = (e: Event, cb: (e: Event, conditionToChange: Ref<boole
 .main-nav__logo {
     @apply flex items-center h-full sm:border-r;
     @apply sm:border-blue-300 dark:border-gray-600;
-}
-
-.main-nav__button {
-    @apply flex gap-2 items-center bg-purple-400 rounded-3xl px-3 py-[6px];
-    @apply min-[330px]:px-6 min-[330px]:py-[10px];
 }
 </style>

@@ -41,7 +41,7 @@ const currentPath = useRoute().path
 .close-button {
     @apply absolute top-0 right-1/2 max-[480px]:translate-x-1/2;
     @apply min-[480px]:top-2 min-[480px]:right-2 p-3 cursor-pointer;
-    @apply after:content-[''] after:absolute after:inset-0 after:border-2;
-    @apply after:rounded-full motion-reduce:after:opacity-0;
+    @apply after:absolute after:inset-0 after:border-2 after:rounded-full;
+    @apply after:border-black dark:after:border-white;
 }
 </style>

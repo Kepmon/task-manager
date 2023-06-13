@@ -52,7 +52,7 @@ onClickOutside(target, props.closeMoreOptions)
 .option {
     @apply p-[10px] text-sm text-gray-400 cursor-pointer;
     @apply hover:bg-gray-200 dark:hover:bg-gray-500;
-    @apply transition-all duration-300;
+    @apply transition-colors duration-300;
 }
 
 .option--edit {

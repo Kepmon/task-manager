@@ -34,7 +34,7 @@ defineProps<{
     @apply flex items-center gap-2 min-[350px]:gap-4 h-12 w-[90%] px-3 min-[350px]:px-6;
     @apply rounded-r-[100px] cursor-pointer sm:pr-11;
     @apply hover:bg-purple-320 hover:text-purple-400 hover:fill-purple-400;
-    @apply dark:hover:bg-white transition-all duration-300;
+    @apply dark:hover:bg-white transition-colors duration-300;
 }
 
 .boards-name {

@@ -19,7 +19,8 @@
     <div
       @click="toggleSidebar"
       v-show="isLogoShown && windowWidth >= 640"
-      class="show-sidebar">
+      tabindex="0"
+      class="show-sidebar purple-class">
       <img src="/img/icon-show-sidebar.svg" alt="show sidebar">
     </div>
 
@@ -90,7 +91,6 @@ const { width: windowWidth } = useWindowSize()
 
 .show-sidebar {
   @apply flex items-center justify-center absolute left-0 bottom-6;
-  @apply h-12 w-14 rounded-r-[100px] bg-purple-400 cursor-pointer;
-  @apply hover:bg-purple-100 transition-all duration-300;
+  @apply h-12 w-14 rounded-r-[100px] cursor-pointer;
 }
 </style>

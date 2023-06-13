@@ -8,7 +8,7 @@
         </p>
         <the-button
             :regularButton="true"
-            class="gap-[2px] w-max bg-purple-400 hover:bg-purple-100 transition-all duration-300"
+            class="gap-[2px] w-max purple-class"
         >
             + Add New <span class="capitalize">{{ emptyInfoSpans.spanTwo }}</span>
         </the-button>

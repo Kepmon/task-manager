@@ -24,7 +24,7 @@
             <the-button
                 :regularButton="true"
                 :isInForm="true"
-                class="text-white bg-purple-400 hover:bg-purple-100 transition-all duration-300">
+                class="purple-class">
                 {{ currentAccountLink.action }}
             </the-button>
 
@@ -36,13 +36,14 @@
             </p>
         </form>
 
-        <div class="text-sm text-center">
+        <div class="flex text-sm text-center">
             <span v-if="currentPath === '/sign-up'">By clicking 'Sign up' you agree to</span>&nbsp;
             <the-button
                 :regularButton="false"
                 @click="isPrivacyPolicyShown = true"
+                class="purple-text"
             >
-                <span class="purple-text">Privacy Policy</span>
+                Privacy Policy
             </the-button>
         </div>
     </main>
@@ -95,8 +96,8 @@ const currentAccountLink = ref(havingAccountLink.value[currentPath as keyof type
 .purple-text {
     @apply block mx-auto relative w-[max-content] text-purple-400 cursor-pointer;
     @apply after:content-[''] after:absolute after:-bottom-1 after:left-0 after:h-[2px];
-    @apply after:w-full after:bg-purple-400 after:scale-0 hover:after:scale-100 ;
-    @apply after:origin-left after:transition-transform after:duration-300;
+    @apply after:w-full after:bg-purple-400 after:scale-0 hover:after:scale-100 focus:after:scale-100;
+    @apply after:origin-left after:transition-transform after:duration-300 outline-none;
 }
 
 .privacy-policy-enter-from,

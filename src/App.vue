@@ -23,8 +23,31 @@ html.dark {
 }
 
 body {
-  @apply min-h-screen text-base font-semibold overflow-x-hidden;
+  @apply min-h-screen text-base font-semibold;
   @apply scrollbar-visibleLight dark:scrollbar-visibleDark;
+}
+
+#app {
+  @apply overflow-x-hidden;
+}
+
+button {
+  @apply border-none;
+}
+
+[tabindex="0"] {
+  @apply outline-none;
+}
+
+.purple-class {
+  @apply bg-purple-400 hover:bg-purple-600 focus:bg-purple-600;
+  @apply text-white outline-none transition-colors duration-300;
+}
+
+.white-button {
+  @apply text-purple-400 bg-purple-320 dark:bg-white;
+  @apply hover:bg-purple-200 focus:bg-purple-200;
+  @apply transition-colors duration-300 outline-none;
 }
 
 .auth-main {

@@ -17,7 +17,7 @@
                 <the-button
                     :regularButton="true"
                     :isInForm="true"
-                    class="button-one-bg"
+                    class="red-button"
                 >
                     Delete
                 </the-button>
@@ -25,7 +25,7 @@
                 <the-button
                     :regularButton="true"
                     :isInForm="true"
-                    class="button-two-bg"
+                    class="white-button"
                 >
                     Cancel
                 </the-button>
@@ -59,12 +59,8 @@ const message = computed(() => {
 </script>
 
 <style scoped>
-.button-one-bg {
-    @apply text-white bg-red-400 hover:bg-red-200 transition-all duration-300;
-}
-
-.button-two-bg {
-    @apply text-purple-400 bg-purple-320 dark:bg-white;
-    @apply hover:bg-purple-100 transition-all duration-300;
+.red-button {
+    @apply text-white bg-red-400 hover:bg-red-200 focus:bg-red-200;
+    @apply transition-colors duration-300 outline-none;
 }
 </style>

@@ -1,10 +1,10 @@
 <template>
-    <h1 class="max-[480px]:mt-4 mb-8 text-2xl min-[480px]:text-3xl text-center font-bold tracking-wider">
+    <h1 class="max-[480px]:mt-4 mb-8 text-xlFluid text-center font-bold tracking-wider">
         Privacy Policy
     </h1>
 
-    <div class="text-center">
-        <p class="font-bold italic min-[480px]:text-lg">
+    <div class="text-center text-baseFluid">
+        <p class="font-bold italic text-lgFluid">
             Thank you for visiting our website. We take your privacy seriously and
             want you to know how we collect, use, and share your personal
             information.

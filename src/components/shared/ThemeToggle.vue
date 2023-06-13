@@ -4,7 +4,7 @@
         <the-button
             @click="toggleDark()"
             :regularButton="false"
-            class="toggle-theme"
+            class="toggle-theme purple-class"
         >
             <transition-group name="theme-toggle">
                 <div
@@ -33,6 +33,5 @@ const toggleDark = useToggle(isDark)
 
 .toggle-theme {
     @apply flex items-center px-1 w-[40px] h-[20px] rounded-xl;
-    @apply bg-purple-400 hover:bg-purple-100 transition-all duration-300;
 }
 </style>
