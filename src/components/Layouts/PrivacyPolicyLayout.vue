@@ -4,6 +4,7 @@
             @click="closePopup"
             aria-label="Click here to close the popup"
             class="close-button"
+            :class="{ 'motion-safe:after:animate-ping-once': animationCondition }"
         >
             <close-icon />
         </button>
@@ -22,7 +23,8 @@ import PrivacyPolicyContent from '../PrivacyPolicyContent.vue'
 import { useRoute } from 'vue-router'
 
 defineProps<{
-    closePopup?: () => void
+    closePopup?: () => void,
+    animationCondition?: boolean
 }>()
 
 const currentPath = useRoute().path
@@ -39,5 +41,7 @@ const currentPath = useRoute().path
 .close-button {
     @apply absolute top-0 right-1/2 max-[480px]:translate-x-1/2;
     @apply min-[480px]:top-2 min-[480px]:right-2 p-3 cursor-pointer;
+    @apply after:content-[''] after:absolute after:inset-0 after:border-2;
+    @apply after:rounded-full motion-reduce:after:opacity-0;
 }
 </style>

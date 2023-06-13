@@ -1,5 +1,9 @@
 <template>
-  <RouterView />
+  <router-view v-slot="{ Component }">
+    <transition name="pages" mode="out-in">
+      <component :is="Component" />
+    </transition>
+</router-view>
 </template>
 
 <script setup lang="ts">
@@ -19,7 +23,7 @@ html.dark {
 }
 
 body {
-  @apply min-h-screen text-base font-semibold;
+  @apply min-h-screen text-base font-semibold overflow-x-hidden;
   @apply scrollbar-visibleLight dark:scrollbar-visibleDark;
 }
 
@@ -85,5 +89,18 @@ body {
 .dialog-enter-active,
 .dialog-leave-active {
   @apply transition-opacity duration-300;
+}
+
+.pages-enter-from {
+  @apply translate-x-40 opacity-0;
+}
+
+.pages-leave-to {
+  @apply -translate-x-40 opacity-0;
+}
+
+.pages-enter-active,
+.pages-leave-active {
+  @apply transition-all duration-300;
 }
 </style>

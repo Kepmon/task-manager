@@ -62,6 +62,9 @@ module.exports = {
       },
       content: {
         'checked': 'url("/img/icon-check.svg")'
+      },
+      animation: {
+        'ping-once': 'ping 1s ease-in-out forwards'
       }
     },
     scrollbar: {

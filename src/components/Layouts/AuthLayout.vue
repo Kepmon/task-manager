@@ -48,9 +48,10 @@
     </main>
 
     <transition name="privacy-policy">
-        <privacy-policy
+        <privacy-policy-layout
             v-if="isPrivacyPolicyShown"
             :closePopup="() => isPrivacyPolicyShown = false"
+            :animationCondition="isPrivacyPolicyShown"
         />
     </transition>
 </template>
@@ -59,7 +60,7 @@
 import InputText from '../../components/shared/InputText.vue'
 import TheButton from '../../components/shared/TheButton.vue'
 import ThemeToggle from '../../components/shared/ThemeToggle.vue'
-import PrivacyPolicy from '../../components/PrivacyPolicy.vue'
+import PrivacyPolicyLayout from './PrivacyPolicyLayout.vue'
 import { useDark } from '@vueuse/core'
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
