@@ -1,6 +1,6 @@
 <template>
     <main class="auth-main">
-        <transition name="privacy-policy" mode="out-in">
+        <transition name="privacy-policy">
             <theme-toggle
                 v-if="!isPrivacyPolicyShown"
                 class="absolute -top-2 px-8 max-w-[180px] bg-white dark:bg-gray-700 rounded-b-3xl"
@@ -36,8 +36,8 @@
             </p>
         </form>
 
-        <div class="text-sm">
-            <span v-if="currentPath === '/sign-up'">By clicking 'Log in' you agree to</span>&nbsp;
+        <div class="text-sm text-center">
+            <span v-if="currentPath === '/sign-up'">By clicking 'Sign up' you agree to</span>&nbsp;
             <the-button
                 :regularButton="false"
                 @click="isPrivacyPolicyShown = true"
@@ -47,7 +47,7 @@
         </div>
     </main>
 
-    <transition name="privacy-policy" mode="out-in">
+    <transition name="privacy-policy">
         <privacy-policy
             v-if="isPrivacyPolicyShown"
             :closePopup="() => isPrivacyPolicyShown = false"
