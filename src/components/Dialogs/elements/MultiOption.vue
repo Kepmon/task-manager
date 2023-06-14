@@ -17,7 +17,7 @@
                         modifiedItem === 'task' && formType === 'add' ? undefined : item
                     "
                     :formType="formType"
-                    type="input"
+                    type="text"
                     :error="isError"
                     :class="{ 'after:content-none': !isError }"
                     class="subtask-input"

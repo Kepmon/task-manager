@@ -2,12 +2,13 @@
     <div :class="{ 'flex flex-col gap-2': label}">
         <label v-if="label" class="text-xs">{{ label }}</label>
         <input
-            v-if="type === 'input'"
-            type="text"
+            v-if="type === 'text' || type === 'password'"
+            :type="type"
             class="input"
             :class="{ 'border-red-400': error, 'border-blue-40 focus:border-purple-400': !error }"
             :placeholder="placeholder"
-            :value="inputValue"
+            :value="inputValue ? inputValue : modelValue"
+            @input="$emit('update:modelValue', $event.target.value)"
         >
         <textarea
             v-if="type === 'textarea'"
@@ -24,8 +25,13 @@ defineProps<{
     placeholder?: string,
     inputValue?: string,
     error?: boolean,
+    modelValue?: string,
     formType?: 'add' | 'edit',
-    type: 'input' | 'textarea'
+    type: 'text' | 'password' | 'textarea'
+}>()
+
+defineEmits<{
+    'update:modelValue': () => void
 }>()
 </script>
 

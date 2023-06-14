@@ -12,7 +12,7 @@
                 :placeholder="action === 'add' ? 'e.g. Web Design' : ''"
                 :inputValue="action === 'edit' ? 'Platform Launch' : ''"
                 :formType="action"
-                type="input"
+                type="text"
             />
 
             <multi-option

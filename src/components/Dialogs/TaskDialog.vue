@@ -12,7 +12,7 @@
                 :placeholder="action === 'add' ? 'e.g. Take coffee break' : ''"
                 :inputValue="action === 'edit' ? 'Add authentication endpoints' : ''"
                 :formType="action"
-                type="input"
+                type="text"
             />
             
             <input-text

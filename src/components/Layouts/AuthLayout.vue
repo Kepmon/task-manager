@@ -13,13 +13,13 @@
             class="mb-4 scale-125 sm:scale-150"
         >
 
-        <form class="form">
+        <form @submit.prevent="handleAuth" class="form">
             <header class="min-[350px]:text-lg first-letter:uppercase">
                 <h2>{{ currentAccountLink.action }}</h2>
             </header>
 
-            <input-text label="Email" type="input" />
-            <input-text label="Password" type="input" />
+            <input-text v-model="email" label="Email" type="text" />
+            <input-text v-model="password" label="Password" type="password" />
 
             <the-button
                 :regularButton="true"
@@ -63,11 +63,18 @@ import TheButton from '../../components/shared/TheButton.vue'
 import ThemeToggle from '../../components/shared/ThemeToggle.vue'
 import PrivacyPolicyLayout from './PrivacyPolicyLayout.vue'
 import { useDark } from '@vueuse/core'
-import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, Ref, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useUserStore } from '../../stores/user'
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword
+} from 'firebase/auth'
 
 const isDark = useDark()
-const currentPath = useRoute().path
+const route = useRoute()
+const router = useRouter()
+const currentPath = route.path
 const isPrivacyPolicyShown = ref(false)
 
 const havingAccountLink = computed(() => ({
@@ -85,6 +92,25 @@ const havingAccountLink = computed(() => ({
     }
 }))
 const currentAccountLink = ref(havingAccountLink.value[currentPath as keyof typeof havingAccountLink.value])
+
+const email: Ref<string | null> = ref(null)
+const password: Ref<string | null> = ref(null)
+const handleAuth = async (e: Event) => {
+    const userStore = useUserStore()
+
+    const method = currentPath === '/' ? signInWithEmailAndPassword : createUserWithEmailAndPassword
+    const isUserAuthenticated = await userStore.handleAuth(
+        method, email.value, password.value, currentPath
+    )
+
+    if (isUserAuthenticated) {
+        router.push(`${currentPath === '/sign-up' ? '/' : '/dashboard'}`)
+        const form = e.target as HTMLFormElement
+        form.reset()
+        email.value = null
+        password.value = null
+    }
+}
 </script>
 
 <style scoped>
