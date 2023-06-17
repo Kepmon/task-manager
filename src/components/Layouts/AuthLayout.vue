@@ -1,60 +1,71 @@
 <template>
-    <main class="auth-main">
+    <div>
         <transition name="privacy-policy">
             <theme-toggle
                 v-if="!isPrivacyPolicyShown"
-                class="absolute -top-2 px-8 max-w-[180px] bg-white dark:bg-gray-700 rounded-b-3xl"
+                class="px-8 mb-12 max-w-[180px] bg-white dark:bg-gray-700 rounded-b-3xl"
             />
         </transition>
-
-        <img
-            :src="isDark ? '/img/logo-light.svg' : '/img/logo-dark.svg'"
-            alt="Company logo"
-            class="mb-4 scale-125 sm:scale-150"
-        >
-
-        <form @submit.prevent="handleAuth" class="form">
-            <header class="min-[350px]:text-lg first-letter:uppercase">
-                <h2>{{ currentAccountLink.action }}</h2>
-            </header>
-
-            <input-text v-model="email" label="Email" type="text" />
-            <input-text v-model="password" label="Password" type="password" />
-
-            <the-button
-                :regularButton="true"
-                :isInForm="true"
-                class="purple-class">
-                {{ currentAccountLink.action }}
-            </the-button>
-
-            <p class="text-center">
-                {{ currentAccountLink.question }}
-                <router-link :to="currentAccountLink.goTo" class="purple-text">
-                    {{ currentAccountLink.linkText }}
-                </router-link>
-            </p>
-        </form>
-
-        <div class="flex text-sm text-center">
-            <span v-if="currentPath === '/sign-up'">By clicking 'Sign up' you agree to</span>&nbsp;
-            <the-button
-                :regularButton="false"
-                @click="isPrivacyPolicyShown = true"
-                class="purple-text"
+        <main class="auth-main">
+            <img
+                :src="isDark ? '/img/logo-light.svg' : '/img/logo-dark.svg'"
+                alt="Company logo"
+                class="mb-4 scale-125 sm:scale-150"
             >
-                Privacy Policy
-            </the-button>
-        </div>
-    </main>
-
-    <transition name="privacy-policy">
-        <privacy-policy-layout
-            v-if="isPrivacyPolicyShown"
-            :closePopup="() => isPrivacyPolicyShown = false"
-            :animationCondition="isPrivacyPolicyShown"
-        />
-    </transition>
+            <Form @submit="handleAuth" :validation-schema="schema" class="form">
+                <header class="min-[350px]:text-lg first-letter:uppercase">
+                    <h2>{{ currentAccountLink.action }}</h2>
+                </header>
+                <input-text
+                    @emit-values="(value: string, e: Event) => assignValues(value, e, 'email')"
+                    label="Email"
+                    name="email"
+                    type="email"
+                />
+                <input-text
+                    @emit-values="(value: string, e: Event) => assignValues(value, e, 'password')"
+                    label="Password"
+                    name="password"
+                    type="password"
+                />
+                <input-text
+                    v-if="route.path === '/sign-up'"
+                    label="Repeat Password"
+                    name="repeatPassword"
+                    type="password"
+                />
+                <the-button
+                    :regularButton="true"
+                    :isInForm="true"
+                    class="purple-class">
+                    {{ currentAccountLink.action }}
+                </the-button>
+                <p class="text-center">
+                    {{ currentAccountLink.question }}
+                    <router-link :to="currentAccountLink.goTo" class="purple-text">
+                        {{ currentAccountLink.linkText }}
+                    </router-link>
+                </p>
+            </Form>
+            <div class="flex text-sm text-center">
+                <span v-if="currentPath === '/sign-up'">By clicking 'Sign up' you agree to</span>&nbsp;
+                <the-button
+                    :regularButton="false"
+                    @click="isPrivacyPolicyShown = true"
+                    class="purple-text"
+                >
+                    Privacy Policy
+                </the-button>
+            </div>
+        </main>
+        <transition name="privacy-policy">
+            <privacy-policy-layout
+                v-if="isPrivacyPolicyShown"
+                :closePopup="() => isPrivacyPolicyShown = false"
+                :animationCondition="isPrivacyPolicyShown"
+            />
+        </transition>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -70,6 +81,22 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword
 } from 'firebase/auth'
+import { Form } from 'vee-validate'
+import * as Yup from 'yup'
+
+interface AuthData {
+    email: Ref<null | string>,
+    password: Ref<null | string>
+}
+const authData: AuthData = {
+    email: ref(null),
+    password: ref(null)
+}
+const assignValues = (value: string, e: Event, type: 'password' | 'email') => {
+    if (e.type !== type) return
+
+    authData[type].value = value
+}
 
 const isDark = useDark()
 const route = useRoute()
@@ -93,22 +120,26 @@ const havingAccountLink = computed(() => ({
 }))
 const currentAccountLink = ref(havingAccountLink.value[currentPath as keyof typeof havingAccountLink.value])
 
-const email: Ref<string | null> = ref(null)
-const password: Ref<string | null> = ref(null)
+const schema = Yup.object().shape({
+  email: Yup.string().email('Must be a valid email').required("Can't be empty"),
+  password: Yup.string().min(8, "Must be at least 8 characters long").required("Can't be empty"),
+  repeatPassword: Yup.string()
+    .required("Can't be empty")
+    .oneOf([Yup.ref('password')], 'Passwords do not match'),
+})
+
 const handleAuth = async (e: Event) => {
     const userStore = useUserStore()
-
+    
     const method = currentPath === '/' ? signInWithEmailAndPassword : createUserWithEmailAndPassword
     const isUserAuthenticated = await userStore.handleAuth(
-        method, email.value, password.value, currentPath
+        method, authData.email.value, authData.password.value, currentPath
     )
 
     if (isUserAuthenticated) {
         router.push(`${currentPath === '/sign-up' ? '/' : '/dashboard'}`)
-        const form = e.target as HTMLFormElement
-        form.reset()
-        email.value = null
-        password.value = null
+
+        currentPath === '/' ? userStore.isLoggedIn = true : userStore.isLoggedIn = false
     }
 }
 </script>
