@@ -35,7 +35,7 @@ const currentPath = useRoute().path
     @apply absolute inset-x-0 inset-y-10 min-[480px]:inset-x-10 py-8 px-4 min-[480px]:px-8;
     @apply mx-auto max-w-[1200px] font-normal rounded-3xl;
     @apply border-4 border-purple-400 border-double;
-    @apply bg-gray-200 dark:bg-gray-800 overflow-scroll scrollbar-invisible;
+    @apply bg-gray-200 dark:bg-gray-800 overflow-auto scrollbar-invisible;
 }
 
 .close-button {

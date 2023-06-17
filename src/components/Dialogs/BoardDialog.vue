@@ -10,8 +10,9 @@
             <input-text
                 label="Board Name"
                 :placeholder="action === 'add' ? 'e.g. Web Design' : ''"
-                :inputValue="action === 'edit' ? 'Platform Launch' : ''"
+                :customValue="action === 'edit' ? 'Platform Launch' : ''"
                 :formType="action"
+                name="boardName"
                 type="text"
             />
 

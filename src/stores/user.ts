@@ -14,7 +14,6 @@ export const useUserStore = defineStore('user', () => {
   const handleAuth = async (
     method: Method, email: string | null, password: string | null, currentPath: string
   ) => {
-
     if (email && password) {
       try {
         await method(auth, email, password)

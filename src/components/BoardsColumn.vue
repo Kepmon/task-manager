@@ -106,7 +106,7 @@ const showDeleteForm = () => {
 
 <style scoped>
 .columns-container {
-    @apply h-full overflow-scroll;
+    @apply h-full overflow-auto;
     @apply scrollbar-invisible hover:scrollbar-visibleLight dark:hover:scrollbar-visibleDark;
 }
 

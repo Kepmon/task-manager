@@ -10,8 +10,9 @@
             <input-text
                 label="Title"
                 :placeholder="action === 'add' ? 'e.g. Take coffee break' : ''"
-                :inputValue="action === 'edit' ? 'Add authentication endpoints' : ''"
+                :customValue="action === 'edit' ? 'Add authentication endpoints' : ''"
                 :formType="action"
+                name="title"
                 type="text"
             />
             
@@ -19,6 +20,7 @@
                 label="Description"
                 :formType="action"
                 type="textarea"
+                name="description"
             />
 
             <multi-option

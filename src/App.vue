@@ -28,7 +28,7 @@ body {
 }
 
 #app {
-  @apply overflow-x-hidden;
+  @apply overflow-hidden;
 }
 
 button {
@@ -36,7 +36,7 @@ button {
 }
 
 [tabindex="0"] {
-  @apply outline-none;
+  @apply outline-transparent;
 }
 
 .purple-class {
@@ -51,7 +51,7 @@ button {
 }
 
 .auth-main {
-  @apply grid place-items-center content-center gap-5 min-h-screen;
+  @apply grid place-items-center content-center gap-5;
 }
 
 ::-webkit-scrollbar-corner {

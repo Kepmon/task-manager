@@ -1,7 +1,5 @@
 import { initializeApp } from "firebase/app"
-import {
-  getAuth
-} from 'firebase/auth'
+import { getAuth } from 'firebase/auth'
 
 const env = import.meta.env
 

@@ -13,7 +13,7 @@
                     :placeholder="
                         modifiedItem === 'task' && formType === 'add' ? item : undefined
                     "
-                    :inputValue="
+                    :customValue="
                         modifiedItem === 'task' && formType === 'add' ? undefined : item
                     "
                     :formType="formType"
