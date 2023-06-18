@@ -3,17 +3,14 @@
     <transition name="pages" mode="out-in">
       <component :is="Component" />
     </transition>
-</router-view>
+  </router-view>
 </template>
 
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
-import { useDark } from '@vueuse/core'
-
-const isDark = useDark()
+import { RouterView } from "vue-router";
 </script>
 
-<style>
+<style lang="postcss">
 html {
   @apply bg-gray-200 text-black;
 }
@@ -125,5 +122,15 @@ button {
 .pages-enter-active,
 .pages-leave-active {
   @apply transition-all duration-300;
+}
+
+.fadeIn-enter-from,
+.fadeIn-leave-to {
+  @apply opacity-0;
+}
+
+.fadeIn-enter-active,
+.fadeIn-leave-active {
+  @apply transition-opacity duration-500;
 }
 </style>

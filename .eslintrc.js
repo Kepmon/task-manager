@@ -1,5 +1,5 @@
 /* eslint-env node */
-require('@rushstack/eslint-patch/modern-module-resolution')
+require("@rushstack/eslint-patch/modern-module-resolution");
 
 module.exports = {
   root: true,
@@ -12,25 +12,32 @@ module.exports = {
   parser: "vue-eslint-parser",
   parserOptions: {
     parser: "@typescript-eslint/parser",
-    sourceType: "module"
+    sourceType: "module",
   },
   plugins: ["@typescript-eslint", "prettier", "promise"],
   root: true,
+  ignorePatterns: [
+    "node_modules",
+    "/dist",
+    "/client/dist",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "tailwind.config.js",
+    "tsconfig*",
+  ],
   rules: {
     "prettier/prettier": 2,
     "no-warning-comments": [1, { terms: ["todo", "fixme"] }],
-    reportUnusedDisableDirectives: true,
-    ignorePatterns: ["node_modules", "/dist", "/client/dist"],
-    overrides: [
-      {
-        files: ["src/pages/**/*.vue"],
-        rules: {
-          "vue/multi-word-component-names": "off",
-        },
+    semi: ["error", "always"],
+    "no-trailing-spaces": ["error", { skipBlankLines: true }],
+    "vue/multi-word-component-names": 0,
+  },
+  overrides: [
+    {
+      files: ["src/pages/**/*.vue"],
+      rules: {
+        "vue/multi-word-component-names": "off",
       },
-    ],
-    semi: ['error', 'never'],
-    'no-trailing-spaces': ['error', { skipBlankLines: true }],
-    'comma-dangle': ['error', 'never']
-  }
-}
+    },
+  ],
+};

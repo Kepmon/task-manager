@@ -1,51 +1,52 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
-import { auth } from '../firebase.js'
+import { defineStore } from "pinia";
+import { ref } from "vue";
+import { auth } from "../firebase";
 import {
+  UserCredential,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signOut
-} from 'firebase/auth'
+  signOut,
+} from "firebase/auth";
 
-export const useUserStore = defineStore('user', () => {
-  const isLoggedIn = ref(false)
+export const useUserStore = defineStore("user", () => {
+  const isLoggedIn = ref(false);
+  const user = ref<UserCredential["user"] | null>(null);
 
-  type Method = typeof createUserWithEmailAndPassword | typeof signInWithEmailAndPassword
-  const handleAuth = async (
-    method: Method, email: string | null, password: string | null, currentPath: string
-  ) => {
-    if (email && password) {
-      try {
-        await method(auth, email, password)
-
-        if (currentPath === '/') {
-          isLoggedIn.value = true
-        }
-
-        if (currentPath === '/sign-up') {
-          await logOutUser()
-        }
-
-        return true
-      }
-      catch (err) {
-        return false
-      }
+  async function register({
+    email,
+    password,
+  }: Record<"email" | "password", string>) {
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+      throw error;
     }
   }
 
-  const logOutUser = async () => {
+  async function login({
+    email,
+    password,
+  }: Record<"email" | "password", string>) {
+    console.log("login triggered");
     try {
-      await signOut(auth)
+      const req = await signInWithEmailAndPassword(auth, email, password);
+      user.value = req.user;
+      isLoggedIn.value = true;
+    } catch (error) {
+      throw error;
+    }
+  }
 
-      return true
-    }
-    catch (err) {
-      return false
-    }
+  async function logout() {
+    await signOut(auth);
+    isLoggedIn.value = false;
   }
 
   return {
-    isLoggedIn, handleAuth
-  }
-})
+    isLoggedIn,
+    register,
+    login,
+    logout,
+    user,
+  };
+});

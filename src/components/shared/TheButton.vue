@@ -1,17 +1,18 @@
 <template>
-<button
+  <button
     :class="{
-        'flex items-center grow justify-center gap-2 py-[10px] px-4 rounded-3xl': regularButton,
-        'text-sm': isInForm
+      'flex items-center grow justify-center gap-2 py-[10px] px-4 rounded-3xl':
+        regularButton,
     }"
->
-    <slot></slot>
-</button>
+    :disabled="disabled"
+  >
+    <slot />
+  </button>
 </template>
 
 <script setup lang="ts">
 defineProps<{
-    regularButton: boolean,
-    isInForm?: true
-}>()
+  regularButton: boolean;
+  disabled?: boolean;
+}>();
 </script>
