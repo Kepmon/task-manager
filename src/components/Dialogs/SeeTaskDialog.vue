@@ -7,7 +7,8 @@
         </template>
 
         <template v-slot:ellipsis>
-            <the-button :regularButton="false"
+            <the-button
+                :regularButton="false"
                 @click.prevent="areTaskOptionsShown = !areTaskOptionsShown"
                 data-ellipsis
                 aria-label="click here to see more options"

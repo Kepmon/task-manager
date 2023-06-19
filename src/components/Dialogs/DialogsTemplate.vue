@@ -1,21 +1,32 @@
 <template>
-    <div class="semitransparent-bg" @click.self="closeDialog">
-        <form class="form">
-            <div class="flex items-center justify-between gap-2 min-[350px]:gap-4">
-                <header class="min-[350px]:text-lg first-letter:uppercase">
-                    <slot name="form-title"></slot>
-                </header>
-                <slot name="ellipsis"></slot>
-            </div>
-            <slot name="main-content"></slot>
-        </form>
-    </div>
+    <UseFocusTrap :options="{ immediate: true }">
+        <div class="semitransparent-bg" @click.self="closeDialog">
+            <form class="form">
+                <div class="flex items-center justify-between gap-2 min-[350px]:gap-4">
+                    <header class="min-[350px]:text-lg first-letter:uppercase">
+                        <slot name="form-title"></slot>
+                    </header>
+                    <slot name="ellipsis"></slot>
+                </div>
+                <slot name="main-content"></slot>
+            </form>
+        </div>
+    </UseFocusTrap>
 </template>
 
 <script setup lang="ts">
-defineProps<{
+import { UseFocusTrap } from '@vueuse/integrations/useFocusTrap/component'
+
+const props = defineProps<{
     closeDialog: () => void
 }>()
+
+const closeDialogOnEsc = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+        props.closeDialog()
+    }
+}
+window.addEventListener('keydown', (e: KeyboardEvent) => closeDialogOnEsc(e))
 </script>
 
 <style scoped>

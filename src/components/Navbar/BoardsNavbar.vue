@@ -25,6 +25,7 @@
                         v-for="{ name } in boards"
                         :key="name"
                         :name="name"
+                        tabindex="0"
                         :class="{
                             'bg-purple-400 fill-white text-white': name === boardName,
                             'text-gray-400 fill-gray-400': name !== boardName
@@ -32,7 +33,9 @@
                     />
                     <board-label
                         @click="isAddBoardDialogShown = true"
+                        @keydown.enter="isAddBoardDialogShown = true"
                         name="Create New Board"
+                        tabindex="0"
                         class="text-purple-400 fill-purple-400"
                     />
                 </ul>
@@ -41,7 +44,9 @@
                     <board-label
                         v-show="width >= 640"
                         @click="toggleSidebar"
+                        @keydown.enter="toggleSidebar"
                         name="Hide Sidebar"
+                        tabindex="0"
                         class="my-2 text-gray-400 fill-gray-400"
                     />
                 </div>

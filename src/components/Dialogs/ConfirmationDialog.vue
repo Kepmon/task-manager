@@ -61,6 +61,6 @@ const message = computed(() => {
 <style scoped>
 .red-button {
     @apply text-white bg-red-400 hover:bg-red-200 focus:bg-red-200;
-    @apply transition-colors duration-300 outline-none;
+    @apply transition-colors duration-300 outline outline-transparent;
 }
 </style>

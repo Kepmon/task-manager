@@ -18,6 +18,7 @@
 
     <div
       @click="toggleSidebar"
+      @keydown.enter="toggleSidebar"
       v-show="isLogoShown && windowWidth >= 640"
       tabindex="0"
       class="show-sidebar purple-class">

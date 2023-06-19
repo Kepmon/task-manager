@@ -10,18 +10,18 @@
                 'right-0 -top-4': element === 'task'
             }"
         >
-            <p
+            <button
                 @click="showEditForm"
                 class="option option--edit"
             >
                 Edit {{ element }}
-            </p>
-            <p 
+            </button>
+            <button
                 @click="showDeleteForm"
                 class="option option--delete"
             >
                 Delete {{ element }}
-            </p>
+            </button>
         </div>
     </transition>
 </template>
@@ -50,7 +50,7 @@ onClickOutside(target, props.closeMoreOptions)
 }
 
 .option {
-    @apply p-[10px] text-sm text-gray-400 cursor-pointer;
+    @apply block p-[10px] text-sm text-gray-400 cursor-pointer;
     @apply hover:bg-gray-200 dark:hover:bg-gray-500;
     @apply transition-colors duration-300;
 }

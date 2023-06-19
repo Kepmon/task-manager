@@ -38,6 +38,6 @@ defineEmits<{
 <style scoped>
 .input {
     @apply py-3 px-4 w-full bg-transparent rounded-[4px] text-sm font-normal;
-    @apply outline-none border;
+    @apply outline outline-transparent border;
 }
 </style>
