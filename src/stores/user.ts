@@ -1,51 +1,55 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { auth } from '../firebase.js'
+import { auth } from '../firebase'
 import {
+  UserCredential,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut
 } from 'firebase/auth'
 
 export const useUserStore = defineStore('user', () => {
-  const isLoggedIn = ref(false)
+  const user = ref<UserCredential['user'] | null>(null)
 
-  type Method = typeof createUserWithEmailAndPassword | typeof signInWithEmailAndPassword
+  type Method =
+    | typeof createUserWithEmailAndPassword
+    | typeof signInWithEmailAndPassword
+
   const handleAuth = async (
-    method: Method, email: string | null, password: string | null, currentPath: string
+    method: Method,
+    email: string,
+    password: string,
+    currentPath: string
   ) => {
-    if (email && password) {
-      try {
-        await method(auth, email, password)
+    try {
+      const request = await method(auth, email, password)
 
-        if (currentPath === '/') {
-          isLoggedIn.value = true
-        }
-
-        if (currentPath === '/sign-up') {
-          await logOutUser()
-        }
-
-        return true
+      if (currentPath === '/') {
+        user.value = request.user
       }
-      catch (err) {
-        return false
+
+      if (currentPath === '/sign-up') {
+        await logOutUser()
       }
+
+      return true
+    } catch (err) {
+      return false
     }
   }
 
   const logOutUser = async () => {
     try {
       await signOut(auth)
-
       return true
-    }
-    catch (err) {
+    } catch (err) {
       return false
     }
   }
 
   return {
-    isLoggedIn, handleAuth
+    user,
+    handleAuth,
+    logOutUser
   }
 })

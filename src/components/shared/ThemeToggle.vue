@@ -1,21 +1,21 @@
 <template>
-    <div class="flex items-center justify-center gap-x-6 mx-auto h-12">
-        <img src="/img/icon-light-theme.svg" alt="">
-        <the-button
-            @click="toggleDark()"
-            :regularButton="false"
-            class="toggle-theme purple-class"
-        >
-            <transition-group name="theme-toggle">
-                <div
-                    class="w-[14px] h-[14px] bg-white rounded-full"
-                    :class="{ 'ml-auto': isDark }"
-                    key="theme-toggle">
-                </div>
-            </transition-group>
-        </the-button>
-        <img src="/img/icon-dark-theme.svg" alt="choose dark theme">
-    </div>
+  <div class="flex items-center justify-center gap-x-6 mx-auto h-12">
+    <img src="/img/icon-light-theme.svg" alt="" />
+    <the-button
+      @click="toggleDark()"
+      :regularButton="false"
+      class="toggle-theme purple-class"
+    >
+      <transition-group name="theme-toggle">
+        <div
+          key="theme-toggle"
+          class="w-[14px] h-[14px] bg-white rounded-full"
+          :class="{ 'ml-auto': isDark }"
+        ></div>
+      </transition-group>
+    </the-button>
+    <img src="/img/icon-dark-theme.svg" alt="choose dark theme" />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -28,10 +28,10 @@ const toggleDark = useToggle(isDark)
 
 <style scoped>
 .theme-toggle-move {
-    @apply transition-all duration-300;
+  @apply transition-all duration-300;
 }
 
 .toggle-theme {
-    @apply flex items-center px-1 w-[40px] h-[20px] rounded-xl;
+  @apply flex items-center px-1 w-[40px] h-[20px] rounded-xl;
 }
 </style>

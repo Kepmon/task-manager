@@ -3,7 +3,7 @@
     <transition name="pages" mode="out-in">
       <component :is="Component" />
     </transition>
-</router-view>
+  </router-view>
 </template>
 
 <script setup lang="ts">

@@ -1,8 +1,6 @@
 <template>
   <div class="main-container">
-    <boards-navbar
-      v-bind="boardsNavbarProps"
-    />
+    <boards-navbar v-bind="boardsNavbarProps" />
 
     <main-navbar
       :sidebar="isSidebarShown"
@@ -17,24 +15,25 @@
     />
 
     <div
+      v-show="isLogoShown && windowWidth >= 640"
       @click="toggleSidebar"
       @keydown.enter="toggleSidebar"
-      v-show="isLogoShown && windowWidth >= 640"
       tabindex="0"
-      class="show-sidebar purple-class">
-      <img src="/img/icon-show-sidebar.svg" alt="show sidebar">
+      class="show-sidebar purple-class"
+    >
+      <img src="/img/icon-show-sidebar.svg" alt="show sidebar" />
     </div>
 
     <main
-      class="flex flex-col justify-center p-4 sm:p-6 "
-      :class="{ 'sm:col-start-2': !isLogoShown, 'sm:col-start-1 sm:col-span-2': isLogoShown }"
-    > 
+      class="flex flex-col justify-center p-4 sm:p-6"
+      :class="{
+        'sm:col-start-2': !isLogoShown,
+        'sm:col-start-1 sm:col-span-2': isLogoShown
+      }"
+    >
       <empty-info />
 
-      <boards-column
-        :columns="boardProperties.columns"
-        :logo="isLogoShown"
-      />
+      <boards-column :columns="boardProperties.columns" :logo="isLogoShown" />
     </main>
   </div>
 </template>
@@ -87,7 +86,7 @@ const { width: windowWidth } = useWindowSize()
 <style scoped>
 .main-container {
   @apply grid grid-rows-[80px_calc(100vh-80px)];
-  @apply sm:grid-cols-[33%_67%] min-[896px]:grid-cols-[25%_75%] xl:grid-cols-[20%_80%]
+  @apply sm:grid-cols-[33%_67%] min-[896px]:grid-cols-[25%_75%] xl:grid-cols-[20%_80%];
 }
 
 .show-sidebar {

@@ -1,56 +1,50 @@
 <template>
-    <dialogs-template
-        :closeDialog="closeDialog"
-    >
-        <template v-slot:form-title>
-            <h2>{{ action }} {{ action === 'add' ? 'New' : '' }} Task</h2>
-        </template>
+  <dialogs-template :closeDialog="closeDialog">
+    <template #form-title>
+      <h2>{{ action }} {{ action === 'add' ? 'New' : '' }} Task</h2>
+    </template>
 
-        <template v-slot:main-content>
-            <input-text
-                label="Title"
-                :placeholder="action === 'add' ? 'e.g. Take coffee break' : ''"
-                :customValue="action === 'edit' ? 'Add authentication endpoints' : ''"
-                :formType="action"
-                name="title"
-                type="text"
-            />
-            
-            <input-text
-                label="Description"
-                :formType="action"
-                type="textarea"
-                name="description"
-            />
+    <template #main-content>
+      <input-text
+        label="Title"
+        :placeholder="action === 'add' ? 'e.g. Take coffee break' : ''"
+        :customValue="action === 'edit' ? 'Add authentication endpoints' : ''"
+        :formType="action"
+        name="title"
+        type="text"
+      />
 
-            <multi-option
-                modifiedItem="task"
-                :formType="action"
-                :selectedMultiOptionItems="selectedMultiOptionItems"
-            />
+      <input-text
+        label="Description"
+        :formType="action"
+        type="textarea"
+        name="description"
+      />
 
-            <the-button
-                :regularButton="true"
-                :isInForm="true"
-                class="white-button"
-            >
-                + Add New Subtask
-            </the-button>
+      <multi-option
+        modifiedItem="task"
+        :formType="action"
+        :selectedMultiOptionItems="selectedMultiOptionItems"
+      />
 
-            <div>
-                <p class="mb-2 text-xs text-gray-400 dark:text-white">Status</p>
-                <v-select :options="statusItems" :searchable="false" placeholder="Todo"></v-select>
-            </div>
+      <the-button :regularButton="true" :isInForm="true" class="white-button">
+        + Add New Subtask
+      </the-button>
 
-            <the-button
-                :regularButton="true"
-                :isInForm="true"
-                class="purple-class"
-            >
-                {{ action === 'add' ? 'Create Task' : 'Save Changes' }}
-            </the-button>
-        </template>
-    </dialogs-template>
+      <div>
+        <p class="mb-2 text-xs text-gray-400 dark:text-white">Status</p>
+        <v-select
+          :options="statusItems"
+          :searchable="false"
+          placeholder="Todo"
+        ></v-select>
+      </div>
+
+      <the-button :regularButton="true" :isInForm="true" class="purple-class">
+        {{ action === 'add' ? 'Create Task' : 'Save Changes' }}
+      </the-button>
+    </template>
+  </dialogs-template>
 </template>
 
 <script setup lang="ts">
@@ -62,9 +56,9 @@ import TheButton from '../../components/shared/TheButton.vue'
 import { returnBoardProperties } from '../../composables/boardProperties'
 
 defineProps<{
-    action: 'add' | 'edit',
-    selectedMultiOptionItems: Subtask['title'][] | string[],
-    closeDialog: () => void
+  action: 'add' | 'edit'
+  selectedMultiOptionItems: Subtask['title'][] | string[]
+  closeDialog: () => void
 }>()
 
 const boardProperties = returnBoardProperties()

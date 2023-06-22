@@ -1,7 +1,7 @@
 <template>
-    <div>
-        <auth-layout />
-    </div>
+  <div>
+    <auth-layout />
+  </div>
 </template>
 
 <script setup lang="ts">
