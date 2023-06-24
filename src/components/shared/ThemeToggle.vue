@@ -2,7 +2,7 @@
   <div class="flex items-center justify-center gap-x-6 mx-auto h-12">
     <img src="/img/icon-light-theme.svg" alt="" />
     <the-button
-      @click="toggleDark()"
+      @click="() => toggleDark()"
       :regularButton="false"
       class="toggle-theme purple-class"
     >

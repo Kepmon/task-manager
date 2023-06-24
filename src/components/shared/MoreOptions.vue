@@ -2,7 +2,7 @@
   <transition name="options">
     <div
       v-if="condition"
-      @click="toggleOptions"
+      @click="$emit('toggle-options')"
       ref="target"
       class="options-container"
       :class="{
@@ -10,10 +10,16 @@
         'right-0 -top-4': element === 'task'
       }"
     >
-      <button @click="showEditForm" class="option option--edit">
+      <button
+        @click.prevent="$emit('show-edit-form')"
+        class="option option--edit"
+      >
         Edit {{ element }}
       </button>
-      <button @click="showDeleteForm" class="option option--delete">
+      <button
+        @click.prevent="$emit('show-delete-form')"
+        class="option option--delete"
+      >
         Delete {{ element }}
       </button>
     </div>
@@ -24,27 +30,29 @@
 import { onClickOutside } from '@vueuse/core'
 import { ref } from 'vue'
 
-const props = defineProps<{
+defineProps<{
   condition: boolean
   element: 'task' | 'board'
-  showEditForm: () => void
-  showDeleteForm: () => void
-  toggleOptions: (e: Event) => void
-  closeMoreOptions: (e: Event) => void
 }>()
+const emits = defineEmits([
+  'toggle-options',
+  'show-edit-form',
+  'show-delete-form',
+  'close-more-options'
+])
 
 const target = ref(null)
-onClickOutside(target, props.closeMoreOptions)
+onClickOutside(target, (e: Event) => emits('close-more-options', e))
 </script>
 
 <style scoped>
 .options-container {
-  @apply absolute w-[150px] md:w-[192px] rounded-lg shadow-xs;
-  @apply bg-white dark:bg-gray-800 z-10;
+  @apply absolute grid w-[150px] md:w-[192px];
+  @apply bg-white dark:bg-gray-800 rounded-lg shadow-xs z-10;
 }
 
 .option {
-  @apply block p-[10px] text-sm text-gray-400 cursor-pointer;
+  @apply block p-[10px] text-start text-sm text-gray-400;
   @apply hover:bg-gray-200 dark:hover:bg-gray-500;
   @apply transition-colors duration-300;
 }

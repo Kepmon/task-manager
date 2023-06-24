@@ -1,14 +1,6 @@
 <template>
   <div>
-    <svg
-      id="svg13"
-      xmlns:dc="http://purl.org/dc/elements/1.1/"
-      xmlns:cc="http://creativecommons.org/ns#"
-      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-      xmlns:svg="http://www.w3.org/2000/svg"
-      xmlns="http://www.w3.org/2000/svg"
-      version="1.1"
-    >
+    <svg id="svg13" version="1.1">
       <g id="g849" transform="translate(-2.9035067,-8.4071338)">
         <path
           id="path7"

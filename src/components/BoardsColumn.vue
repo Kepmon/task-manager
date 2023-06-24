@@ -12,13 +12,13 @@
           </p>
         </div>
         <task-card
-          v-for="{ title, subtasks } in column.tasks"
+          @change-task-title="(title) => (clickedTitle = title)"
+          v-for="{ title } in column.tasks"
           :key="title"
           :howManyCompleted="returnNumberOfCompletedSubtasks(subtasks)"
           :howManySubtasks="subtasks.length"
           :title="title"
           :isClickedTask="clickedTitle === title"
-          :showTaskDetails="(e: Event) => changeClickedTask(e)"
         />
       </div>
       <div class="new-column group" tabindex="0">
@@ -29,26 +29,26 @@
       <transition name="dialog">
         <see-task-dialog
           v-if="clickedTitle != null"
-          :showEditForm="showEditForm"
-          :showDeleteForm="showDeleteForm"
-          :closeSeeTask="closeSeeTask"
+          @close-dialog="closeSeeTask"
+          @show-edit-form="showEditForm"
+          @show-delete-form="showDeleteForm"
         />
       </transition>
     </Teleport>
     <transition name="dialog">
       <confirmation-dialog
         v-if="isDeleteTaskDialogShown"
+        @close-dialog="isDeleteTaskDialogShown = false"
         elementToDelete="task"
         elementName="Research pricing points of various competitors and trial different business models"
-        :closeDialog="() => (isDeleteTaskDialogShown = false)"
       />
     </transition>
     <transition name="dialog">
       <task-dialog
         v-if="isEditTaskDialogShown"
+        @close-dialog="isEditTaskDialogShown = false"
         action="edit"
         :selectedMultiOptionItems="selectedMultiOptionItems"
-        :closeDialog="() => (isEditTaskDialogShown = false)"
       />
     </transition>
   </div>
@@ -60,8 +60,7 @@ import TaskCard from './TaskCard.vue'
 import SeeTaskDialog from './Dialogs/SeeTaskDialog.vue'
 import ConfirmationDialog from '../components/Dialogs/ConfirmationDialog.vue'
 import TaskDialog from '../components/Dialogs/TaskDialog.vue'
-import { returnBoardProperties } from '../composables/boardProperties'
-import { returnNumberOfCompletedSubtasks } from '../composables/completedTasks'
+import { useBoardsStore } from '../stores/boards'
 import { computed, ref, Ref } from 'vue'
 
 const props = defineProps<{
@@ -78,22 +77,11 @@ const circleColor = computed(() => {
 })
 
 const clickedTitle: Ref<null | Task['title']> = ref(null)
-const changeClickedTask = (e: Event) => {
-  const titleOfClickedTask = (e.currentTarget as HTMLElement)?.querySelector(
-    'p'
-  )?.textContent
-
-  if (titleOfClickedTask != null) {
-    clickedTitle.value = titleOfClickedTask
-  }
-}
 
 const isEditTaskDialogShown = ref(false)
 const isDeleteTaskDialogShown = ref(false)
-const boardProperties = returnBoardProperties()
-const selectedMultiOptionItems = boardProperties.subtasks.map(
-  (subtask) => subtask.title
-)
+const { subtasks, returnNumberOfCompletedSubtasks } = useBoardsStore()
+const selectedMultiOptionItems = subtasks.map((subtask) => subtask.title)
 
 const closeSeeTask = () => {
   clickedTitle.value = null

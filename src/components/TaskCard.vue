@@ -1,14 +1,14 @@
 <template>
   <div
-    @click="showTaskDetails"
-    @keypress.enter="showTaskDetails"
+    @click="$emit('change-task-title', title)"
+    @keypress.enter="$emit('change-task-title', title)"
     tabindex="0"
     class="task-card group"
   >
     <p class="task-card__title">
       {{ title }}
     </p>
-    <p class="text-gray-400 text-xs">
+    <p v-if="howManySubtasks !== 0" class="text-gray-400 text-xs">
       {{ howManyCompleted }} of {{ howManySubtasks }} subtasks
     </p>
   </div>
@@ -19,8 +19,8 @@ defineProps<{
   title: string
   howManyCompleted: number
   howManySubtasks: number
-  showTaskDetails: (e: Event) => void
 }>()
+defineEmits(['change-task-title'])
 </script>
 
 <style scoped>

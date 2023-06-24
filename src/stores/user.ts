@@ -29,7 +29,7 @@ export const useUserStore = defineStore('user', () => {
       }
 
       if (currentPath === '/sign-up') {
-        await logOutUser()
+        await logout()
       }
 
       return true
@@ -38,9 +38,10 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  const logOutUser = async () => {
+  const logout = async () => {
     try {
       await signOut(auth)
+      user.value = null
       return true
     } catch (err) {
       return false
@@ -50,6 +51,6 @@ export const useUserStore = defineStore('user', () => {
   return {
     user,
     handleAuth,
-    logOutUser
+    logout
   }
 })

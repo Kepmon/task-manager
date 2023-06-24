@@ -8,7 +8,7 @@
       <div
         v-for="item in selectedMultiOptionItems"
         :key="item"
-        class="flex items-center gap-2"
+        class="flex items-center"
       >
         <input-text
           :placeholder="
@@ -24,17 +24,17 @@
           :class="{ 'after:content-none': !isError }"
           class="subtask-input"
         />
-        <svg
-          width="15"
-          height="15"
-          xmlns="http://www.w3.org/2000/svg"
-          class="cursor-pointer"
+        <button
+          class="p-2 box-content"
+          aria-label="click here to close off this field"
         >
-          <g :class="{ 'fill-red-400': isError, 'fill-gray-400': !isError }">
-            <path d="m12.728 0 2.122 2.122L2.122 14.85 0 12.728z" />
-            <path d="M0 2.122 2.122 0 14.85 12.728l-2.122 2.122z" />
-          </g>
-        </svg>
+          <svg width="15" height="15">
+            <g :class="{ 'fill-red-400': isError, 'fill-gray-400': !isError }">
+              <path d="m12.728 0 2.122 2.122L2.122 14.85 0 12.728z" />
+              <path d="M0 2.122 2.122 0 14.85 12.728l-2.122 2.122z" />
+            </g>
+          </svg>
+        </button>
       </div>
     </div>
   </div>

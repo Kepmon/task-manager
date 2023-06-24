@@ -1,5 +1,5 @@
 <template>
-  <dialogs-template :closeDialog="closeDialog">
+  <dialogs-template @close-dialog="$emit('close-dialog')">
     <template #form-title>
       <h2>{{ action }} {{ action === 'add' ? 'New' : '' }} Board</h2>
     </template>
@@ -41,6 +41,6 @@ import TheButton from '../../components/shared/TheButton.vue'
 defineProps<{
   action: 'add' | 'edit'
   selectedMultiOptionItems: string[] | BoardColumn['name'][]
-  closeDialog: () => void
 }>()
+defineEmits(['close-dialog'])
 </script>

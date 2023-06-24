@@ -45,7 +45,7 @@ const props = defineProps<{
   error?: boolean
   formType?: 'add' | 'edit'
   name: string
-  type: 'text' | 'email' | 'password' | 'textarea'
+  type: HTMLInputElement['type']
 }>()
 
 const name = toRef(props, 'name')

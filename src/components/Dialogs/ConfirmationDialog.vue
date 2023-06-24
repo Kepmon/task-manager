@@ -1,5 +1,5 @@
 <template>
-  <dialogs-template :closeDialog="closeDialog">
+  <dialogs-template @close-dialog="$emit('close-dialog')">
     <template #form-title>
       <h2 class="text-red-400">Delete this {{ elementToDelete }}?</h2>
     </template>
@@ -30,8 +30,8 @@ import { computed } from 'vue'
 const props = defineProps<{
   elementToDelete: 'board' | 'task'
   elementName: string
-  closeDialog: () => void
 }>()
+defineEmits(['close-dialog'])
 
 const message = computed(() => {
   const prefix = `Are you sure you want to delete the '${props.elementName}'`
@@ -49,7 +49,7 @@ const message = computed(() => {
 
 <style scoped>
 .red-button {
-  @apply text-white bg-red-400 hover:bg-red-200 focus:bg-red-200;
+  @apply text-white bg-red-400 hover:bg-red-200 focus-visible:bg-red-200;
   @apply transition-colors duration-300 outline outline-transparent;
 }
 </style>

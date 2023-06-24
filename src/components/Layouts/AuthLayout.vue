@@ -1,17 +1,12 @@
 <template>
-  <div>
+  <div class="pb-8">
     <transition name="privacy-policy">
       <theme-toggle
-        v-if="!isPrivacyPolicyShown"
         class="px-8 mb-20 max-w-[180px] bg-white dark:bg-gray-700 rounded-b-3xl"
       />
     </transition>
     <main class="auth-main">
-      <img
-        :src="isDark ? '/img/logo-light.svg' : '/img/logo-dark.svg'"
-        alt="Company logo"
-        class="mb-4 scale-125 sm:scale-150"
-      />
+      <Logo aria-label="The app logo" class="mb-4 scale-125 sm:scale-150" />
       <form @submit.prevent="handleAuth" class="form">
         <header class="min-[350px]:text-lg first-letter:uppercase">
           <h2>{{ currentAccountLink.action }}</h2>
@@ -55,7 +50,7 @@
     <transition name="privacy-policy">
       <privacy-policy-layout
         v-if="isPrivacyPolicyShown"
-        :closePopup="() => (isPrivacyPolicyShown = false)"
+        @close-popup="isPrivacyPolicyShown = false"
         :animationCondition="isPrivacyPolicyShown"
       />
     </transition>
@@ -71,6 +66,7 @@ import TheButton from '../../components/shared/TheButton.vue'
 import ThemeToggle from '../../components/shared/ThemeToggle.vue'
 import ConfirmationPopup from '../../components/shared/ConfirmationPopup.vue'
 import PrivacyPolicyLayout from './PrivacyPolicyLayout.vue'
+import Logo from '../Svgs/Logo.vue'
 import { useDark } from '@vueuse/core'
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -174,8 +170,8 @@ const handleAuth = form.handleSubmit(async (values) => {
 
 .purple-text {
   @apply block mx-auto relative w-[max-content] text-purple-400 cursor-pointer;
-  @apply after:content-[''] after:absolute after:-bottom-1 after:left-0 after:h-[2px];
-  @apply after:w-full after:bg-purple-400 after:scale-0 hover:after:scale-100 focus:after:scale-100;
+  @apply after:absolute after:-bottom-1 after:left-0 after:h-[2px];
+  @apply after:w-full after:bg-purple-400 after:scale-0 hover:after:scale-100 focus-visible:after:scale-100;
   @apply after:origin-left after:transition-transform after:duration-300 outline outline-transparent;
 }
 

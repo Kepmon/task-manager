@@ -1,5 +1,5 @@
 <template>
-  <dialogs-template :closeDialog="closeDialog">
+  <dialogs-template @close-dialog="$emit('close-dialog')">
     <template #form-title>
       <h2>{{ action }} {{ action === 'add' ? 'New' : '' }} Task</h2>
     </template>
@@ -53,14 +53,14 @@ import DialogsTemplate from './DialogsTemplate.vue'
 import InputText from '../shared/InputText.vue'
 import MultiOption from './elements/MultiOption.vue'
 import TheButton from '../../components/shared/TheButton.vue'
-import { returnBoardProperties } from '../../composables/boardProperties'
+import { useBoardsStore } from '../../stores/boards'
 
 defineProps<{
   action: 'add' | 'edit'
   selectedMultiOptionItems: Subtask['title'][] | string[]
-  closeDialog: () => void
 }>()
+defineEmits(['close-dialog'])
 
-const boardProperties = returnBoardProperties()
-const statusItems = boardProperties.columns.map((column) => column.name)
+const { columns } = useBoardsStore()
+const statusItems = columns.map((column) => column.name)
 </script>

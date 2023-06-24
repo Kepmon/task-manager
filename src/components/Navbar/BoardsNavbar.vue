@@ -12,11 +12,7 @@
       }"
     >
       <div v-if="width >= 640" class="px-[10%] mt-4 mb-[54px]">
-        <img
-          :src="theme ? '/img/logo-light.svg' : '/img/logo-dark.svg'"
-          alt="app logo"
-          class="h-[26px] w-[153px]"
-        />
+        <Logo aria-label="The app logo" />
       </div>
       <p class="all-boards">all boards ({{ boards.length }})</p>
       <div :class="{ 'flex flex-col justify-between grow': width >= 640 }">
@@ -45,8 +41,8 @@
           />
           <board-label
             v-show="width >= 640"
-            @click="toggleSidebar"
-            @keydown.enter="toggleSidebar"
+            @click="$emit('toggle-sidebar')"
+            @keydown.enter="$emit('toggle-sidebar')"
             name="Hide Sidebar"
             tabindex="0"
             class="my-2 text-gray-400 fill-gray-400"
@@ -58,8 +54,8 @@
   <transition name="dialog">
     <board-dialog
       v-if="isAddBoardDialogShown"
+      @close-dialog="isAddBoardDialogShown = false"
       action="add"
-      :closeDialog="() => (isAddBoardDialogShown = false)"
       :selectedMultiOptionItems="['Todo', 'Doing']"
     />
   </transition>
@@ -70,6 +66,7 @@ import type { Board } from '../../api/boardsTypes'
 import ThemeToggle from '../shared/ThemeToggle.vue'
 import BoardLabel from './BoardLabel.vue'
 import BoardDialog from '../Dialogs/BoardDialog.vue'
+import Logo from '../Svgs/Logo.vue'
 import { ref } from 'vue'
 
 defineProps<{
@@ -78,8 +75,8 @@ defineProps<{
   theme: boolean
   boards: Board[]
   boardName: Board['name']
-  toggleSidebar: () => void
 }>()
+defineEmits(['toggle-sidebar'])
 
 const isAddBoardDialogShown = ref(false)
 </script>

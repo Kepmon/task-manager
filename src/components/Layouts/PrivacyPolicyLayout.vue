@@ -1,7 +1,7 @@
 <template>
   <div v-if="currentPath !== '/privacy-policy'" class="privacy-policy-popup">
     <button
-      @click="closePopup"
+      @click="$emit('close-popup')"
       aria-label="Click here to close the popup"
       class="close-button"
       :class="{ 'motion-safe:after:animate-ping-once': animationCondition }"
@@ -23,9 +23,9 @@ import PrivacyPolicyContent from '../PrivacyPolicyContent.vue'
 import { useRoute } from 'vue-router'
 
 defineProps<{
-  closePopup?: () => void
   animationCondition?: boolean
 }>()
+defineEmits(['close-popup'])
 
 const currentPath = useRoute().path
 </script>

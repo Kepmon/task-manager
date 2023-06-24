@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { Ref } from 'vue'
-import type { Board } from '../api/boardsTypes'
+import type { Board, Subtask } from '../api/boardsTypes'
 
 export const useBoardsStore = defineStore('boards', () => {
   const boards: Ref<Board[]> = ref([
@@ -445,7 +445,21 @@ export const useBoardsStore = defineStore('boards', () => {
     }
   ])
 
+  const { name: boardName, columns } = boards.value[0]
+  const { tasks } = columns[1]
+  const { title, description, status, subtasks } = tasks[5]
+
+  const returnNumberOfCompletedSubtasks = (arr: Subtask[]) =>
+    arr.filter((subtask) => subtask.isCompleted === true).length
+
   return {
-    boards
+    boards,
+    boardName,
+    columns,
+    title,
+    description,
+    status,
+    subtasks,
+    returnNumberOfCompletedSubtasks
   }
 })

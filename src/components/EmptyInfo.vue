@@ -1,42 +1,39 @@
 <template>
   <div
-    v-if="emptyDashboard || emptyBoard"
+    v-if="emptyElement.dashboard || emptyElement.board"
     class="flex flex-col items-center justify-center"
   >
     <p
       class="mb-[25px] text-lg text-center text-gray-400 first-letter:capitalize"
     >
-      {{ emptyInfoSpans.spanOne }}
-      is empty. Create a new
-      {{ emptyInfoSpans.spanTwo }}
-      to get started.
+      {{ message }}
     </p>
     <the-button :regularButton="true" class="gap-[2px] w-max purple-class">
-      + Add New <span class="capitalize">{{ emptyInfoSpans.spanTwo }}</span>
+      + Add New
+      <span class="capitalize">{{
+        emptyElement.dashboard ? 'board' : 'column'
+      }}</span>
     </the-button>
   </div>
 </template>
 
 <script setup lang="ts">
 import TheButton from '../components/shared/TheButton.vue'
-import { returnBoardProperties } from '../composables/boardProperties'
+import { useBoardsStore } from '../stores/boards'
 import { computed } from 'vue'
 
-const boardProperties = returnBoardProperties()
-const emptyDashboard = computed(() => boardProperties.boards.length === 0)
-const emptyBoard = computed(() => boardProperties.columns.length === 0)
+const { boards, columns } = useBoardsStore()
+const emptyElement = computed(() => ({
+  dashboard: boards.length === 0,
+  board: columns.length === 0
+}))
 
-const emptyInfoSpans = computed(() => {
-  if (emptyDashboard.value) {
-    return {
-      spanOne: 'your dashboard',
-      spanTwo: 'board'
-    }
-  }
-
-  return {
-    spanOne: 'this board',
-    spanTwo: 'column'
-  }
-})
+const message = computed(
+  () =>
+    `${
+      emptyElement.value.dashboard ? 'your dashboard' : 'this board'
+    } is empty. Create a new ${
+      emptyElement.value.dashboard ? 'board' : 'column'
+    }.`
+)
 </script>

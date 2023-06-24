@@ -40,13 +40,13 @@ button {
 }
 
 .purple-class {
-  @apply bg-purple-400 hover:bg-purple-600 focus:bg-purple-600;
+  @apply bg-purple-400 hover:bg-purple-600 focus-visible:bg-purple-600;
   @apply text-white outline outline-transparent transition-colors duration-300;
 }
 
 .white-button {
   @apply text-purple-400 bg-purple-320 dark:bg-white;
-  @apply hover:bg-purple-200 focus:bg-purple-200;
+  @apply hover:bg-purple-200 focus-visible:bg-purple-200;
   @apply transition-colors duration-300 outline outline-transparent;
 }
 

@@ -1,17 +1,17 @@
 <template>
   <div class="main-container">
-    <boards-navbar v-bind="boardsNavbarProps" />
+    <boards-navbar @toggle-sidebar="toggleSidebar" v-bind="boardsNavbarProps" />
 
     <main-navbar
+      @toggle-boards-nav="toggleBoardsNav"
       :sidebar="isSidebarShown"
       :isLogo="isLogoShown"
       :theme="isDark"
       :dashboard="isDashboardEmpty"
       :width="windowWidth"
-      :boardName="boardProperties.boardName"
+      :boardName="boardName"
       :areOptionsShown="areBoardOptionsShown"
       :navOpen="isNavOpen"
-      :toggleBoardsNav="toggleBoardsNav"
     />
 
     <div
@@ -33,7 +33,7 @@
     >
       <empty-info />
 
-      <boards-column :columns="boardProperties.columns" :logo="isLogoShown" />
+      <boards-column :columns="columns" :logo="isLogoShown" />
     </main>
   </div>
 </template>
@@ -43,22 +43,21 @@ import MainNavbar from '../components/Navbar/MainNavbar.vue'
 import BoardsNavbar from '../components/Navbar/BoardsNavbar.vue'
 import EmptyInfo from '../components/EmptyInfo.vue'
 import BoardsColumn from '../components/BoardsColumn.vue'
-import { returnBoardProperties } from '../composables/boardProperties'
+import { useBoardsStore } from '../stores/boards'
 import { ref, computed } from 'vue'
 import { useDark, useWindowSize } from '@vueuse/core'
 
 const isDark = useDark()
 const isDashboardEmpty = ref(false)
-const boardProperties = returnBoardProperties()
+const { boards, boardName, columns } = useBoardsStore()
 
 const areBoardOptionsShown = ref(false)
 const boardsNavbarProps = computed(() => ({
   condition: windowWidth.value < 640 ? isNavOpen.value : isSidebarShown.value,
   width: windowWidth.value,
   theme: isDark.value,
-  boards: boardProperties.boards,
-  boardName: boardProperties.boardName,
-  toggleSidebar: toggleSidebar
+  boards,
+  boardName
 }))
 
 const isSidebarShown = ref(true)

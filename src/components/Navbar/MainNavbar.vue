@@ -1,28 +1,29 @@
 <template>
   <div class="grid" :class="{ 'col-span-2': isLogo }">
     <more-options
+      @toggle-options="(e: Event) => closeMoreOptionsFn(e, toggleOptions)"
+      @show-edit-form="isEditBoardDialogShown = true"
+      @show-delete-form="isDeleteBoardDialogShown = true"
+      @close-more-options="(e: Event) => closeMoreOptionsFn(e, closeOptions)"
       :condition="areBoardOptionsShown"
       element="board"
-      :showEditForm="() => (isEditBoardDialogShown = true)"
-      :showDeleteForm="() => (isDeleteBoardDialogShown = true)"
-      :toggleOptions="(e: Event) => callMoreOptionsFn(e, toggleOptions)"
-      :closeMoreOptions="(e: Event) => callMoreOptionsFn(e, closeOptions)"
     />
     <nav aria-label="main navigation" class="main-nav">
       <div class="flex items-center gap-2 h-full">
-        <img
-          src="/img/logo-mobile.svg"
-          alt="app logo"
-          class="sm:hidden h-5 min-[350px]:h-auto"
-        />
+        <svg width="24" height="25" class="sm:hidden" aria-label="The app logo">
+          <g fill="#635FC7" fill-rule="evenodd">
+            <rect width="6" height="25" rx="2" />
+            <rect opacity=".75" x="9" width="6" height="25" rx="2" />
+            <rect opacity=".5" x="18" width="6" height="25" rx="2" />
+          </g>
+        </svg>
         <div v-if="isLogo && width >= 640" class="main-nav__logo">
-          <img
-            :src="theme ? '/img/logo-light.svg' : '/img/logo-dark.svg'"
-            alt="app logo"
-            class="h-[26px] w-[153px] pr-6"
-          />
+          <Logo aria-label="The app logo" class="mr-8" />
         </div>
-        <div @click="toggleBoardsNav" class="flex items-center gap-2">
+        <div
+          @click="$emit('toggle-boards-nav')"
+          class="flex items-center gap-2"
+        >
           <h1
             class="font-bold min-[330px]:text-lg"
             :class="{ 'pl-6': isLogo && width >= 640 }"
@@ -33,7 +34,6 @@
             v-if="width < 640"
             width="10"
             height="7"
-            xmlns="http://www.w3.org/2000/svg"
             class="transition-transform duration-500"
             :class="{ 'rotate-180': navOpen }"
           >
@@ -69,12 +69,7 @@
           aria-label="click here to see more options"
           class="px-3 py-2 cursor-pointer"
         >
-          <svg
-            width="5"
-            height="20"
-            xmlns="http://www.w3.org/2000/svg"
-            data-ellipsis
-          >
+          <svg width="5" height="20" data-ellipsis>
             <g fill-rule="evenodd" class="fill-gray-400">
               <circle cx="2.308" cy="2.308" r="2.308" />
               <circle cx="2.308" cy="10" r="2.308" />
@@ -87,27 +82,27 @@
     <transition name="dialog">
       <task-dialog
         v-if="isAddTaskDialogShown"
+        @close-dialog="isAddTaskDialogShown = false"
         action="add"
         :selectedMultiOptionItems="[
           'e.g. Make coffee',
           'e.g. Drink coffee & smile'
         ]"
-        :closeDialog="() => (isAddTaskDialogShown = false)"
       />
     </transition>
     <transition name="dialog">
       <confirmation-dialog
         v-if="isDeleteBoardDialogShown"
+        @close-dialog="isDeleteBoardDialogShown = false"
         elementToDelete="board"
         elementName="Platform Launch"
-        :closeDialog="() => (isDeleteBoardDialogShown = false)"
       />
     </transition>
     <transition name="dialog">
       <board-dialog
         v-if="isEditBoardDialogShown"
+        @close-dialog="isEditBoardDialogShown = false"
         action="edit"
-        :closeDialog="() => (isEditBoardDialogShown = false)"
         :selectedMultiOptionItems="selectedMultiOptionItems"
       />
     </transition>
@@ -120,8 +115,9 @@ import MoreOptions from '../shared/MoreOptions.vue'
 import TaskDialog from '../Dialogs/TaskDialog.vue'
 import ConfirmationDialog from '../Dialogs/ConfirmationDialog.vue'
 import BoardDialog from '../Dialogs/BoardDialog.vue'
+import Logo from '../Svgs/Logo.vue'
 import moreOptionsPopup from '../../composables/moreOptionsPopup'
-import { returnBoardProperties } from '../../composables/boardProperties'
+import { useBoardsStore } from '../../stores/boards'
 import { ref, Ref } from 'vue'
 
 defineProps<{
@@ -132,21 +128,19 @@ defineProps<{
   width: number
   boardName: string
   navOpen: boolean
-  toggleBoardsNav: () => void
 }>()
+defineEmits(['toggle-boards-nav'])
 
 const areBoardOptionsShown = ref(false)
 const isAddTaskDialogShown = ref(false)
 const isDeleteBoardDialogShown = ref(false)
 const isEditBoardDialogShown = ref(false)
 
-const boardProperties = returnBoardProperties()
-const selectedMultiOptionItems = boardProperties.columns.map(
-  (column) => column.name
-)
+const { columns } = useBoardsStore()
+const selectedMultiOptionItems = columns.map((column) => column.name)
 
 const { toggleOptions, closeOptions } = moreOptionsPopup
-const callMoreOptionsFn = (
+const closeMoreOptionsFn = (
   e: Event,
   cb: (e: Event, conditionToChange: Ref<boolean>) => void
 ) => {
