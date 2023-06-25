@@ -54,6 +54,29 @@ button {
   @apply grid place-items-center content-center gap-5;
 }
 
+.options-container {
+  @apply absolute grid bg-white dark:bg-gray-800 rounded-lg shadow-xs z-10;
+}
+
+.option {
+  @apply block py-[7px] s:py-[10px] pl-3 pr-16 w-[max-content] text-start text-sm text-gray-400;
+  @apply hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors duration-300;
+}
+
+.option--delete {
+  @apply rounded-b-lg text-red-400;
+}
+
+.options-enter-from,
+.options-leave-to {
+  @apply opacity-0 scale-0 origin-top-right sm:origin-top;
+}
+
+.options-enter-active,
+.options-leave-active {
+  @apply transition-all duration-500;
+}
+
 ::-webkit-scrollbar-corner {
   @apply bg-transparent;
 }

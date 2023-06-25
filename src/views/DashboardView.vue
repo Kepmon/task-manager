@@ -31,9 +31,8 @@
         'sm:col-start-1 sm:col-span-2': isLogoShown
       }"
     >
-      <empty-info />
-
       <boards-column :columns="columns" :logo="isLogoShown" />
+      <empty-info />
     </main>
   </div>
 </template>
@@ -85,7 +84,7 @@ const { width: windowWidth } = useWindowSize()
 <style scoped>
 .main-container {
   @apply grid grid-rows-[80px_calc(100vh-80px)];
-  @apply sm:grid-cols-[33%_67%] min-[896px]:grid-cols-[25%_75%] xl:grid-cols-[20%_80%];
+  @apply sm:grid-cols-[33%_67%] lg:grid-cols-[25%_75%] xl:grid-cols-[20%_80%];
 }
 
 .show-sidebar {

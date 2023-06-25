@@ -17,7 +17,7 @@
 
 <style scoped>
 div {
-  @apply hidden min-[350px]:block w-[max-content];
+  @apply hidden xs:block w-[max-content];
 }
 
 svg {

@@ -106,7 +106,7 @@ const showDeleteForm = () => {
 
 .columns-container--sizes {
   @apply w-[calc(100vw-32px)] sm:w-[calc(67vw-48px)];
-  @apply min-[896px]:w-[calc(75vw-48px)] xl:w-[calc(80vw-48px)];
+  @apply lg:w-[calc(75vw-48px)] xl:w-[calc(80vw-48px)];
 }
 
 .new-column {

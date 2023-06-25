@@ -9,7 +9,7 @@
         {{ message }}
       </p>
 
-      <div class="flex flex-col min-[512px]:flex-row gap-4">
+      <div class="flex flex-col s:flex-row gap-4">
         <the-button :regularButton="true" :isInForm="true" class="red-button">
           Delete
         </the-button>

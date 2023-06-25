@@ -6,9 +6,12 @@
       />
     </transition>
     <main class="auth-main">
-      <Logo aria-label="The app logo" class="mb-4 scale-125 sm:scale-150" />
+      <logo-icon
+        aria-label="The app logo"
+        class="mb-4 scale-125 sm:scale-150"
+      />
       <form @submit.prevent="handleAuth" class="form">
-        <header class="min-[350px]:text-lg first-letter:uppercase">
+        <header class="xs:text-lg first-letter:uppercase">
           <h2>{{ currentAccountLink.action }}</h2>
         </header>
         <input-text label="Email" name="email" type="email" />
@@ -66,7 +69,7 @@ import TheButton from '../../components/shared/TheButton.vue'
 import ThemeToggle from '../../components/shared/ThemeToggle.vue'
 import ConfirmationPopup from '../../components/shared/ConfirmationPopup.vue'
 import PrivacyPolicyLayout from './PrivacyPolicyLayout.vue'
-import Logo from '../Svgs/Logo.vue'
+import LogoIcon from '../Svgs/LogoIcon.vue'
 import { useDark } from '@vueuse/core'
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -183,15 +186,5 @@ const handleAuth = form.handleSubmit(async (values) => {
 .privacy-policy-enter-active,
 .privacy-policy-leave-active {
   @apply transition-opacity duration-500;
-}
-
-.popup-enter-from,
-.popup-leave-to {
-  @apply -translate-y-[1000px];
-}
-
-.popup-enter-active,
-.popup-leave-active {
-  @apply transition-transform duration-1000;
 }
 </style>

@@ -9,7 +9,7 @@
 
 <style scoped>
 svg {
-  @apply h-6 w-6 min-[480px]:h-8 min-[480px]:w-8;
+  @apply h-6 w-6 s:h-8 s:w-8;
 }
 
 path {

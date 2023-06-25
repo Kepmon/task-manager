@@ -2,8 +2,8 @@
   <div @click.self="$emit('close-dialog')" class="semitransparent-bg">
     <UseFocusTrap :options="{ immediate: true, allowOutsideClick: true }">
       <form class="form">
-        <div class="flex items-center justify-between gap-2 min-[350px]:gap-4">
-          <header class="min-[350px]:text-lg first-letter:uppercase">
+        <div class="flex items-center justify-between gap-2 xs:gap-4">
+          <header class="xs:text-lg first-letter:uppercase">
             <slot name="form-title"></slot>
           </header>
           <slot name="ellipsis"></slot>

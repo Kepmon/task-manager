@@ -10,6 +10,11 @@ module.exports = {
   ],
   theme: {
     extend: {
+      screens: {
+        'xs': '350px',
+        's': '512px',
+        'lg': '896px'
+      },
       fontFamily: {
         sans: ['Plus Jakarta Sans', ...defaultTheme.fontFamily.sans]
       },
@@ -25,13 +30,15 @@ module.exports = {
         },
         gray: {
           200: 'hsl(0 0% 91%)',
+          300: 'hsl(0 0% 85%)',
           400: 'hsl(216 15% 57%)',
           500: 'hsl(237 16% 32%)',
           600: 'hsl(237 12% 27%)',
           680: 'hsl(237 12% 19% / .8)',
           700: 'hsl(237 12% 19%)',
           800: 'hsl(237 16% 15%)',
-          880: 'hsl(0 0% 0% / .8)'
+          880: 'hsl(0 0% 0% / .8)',
+          900: 'hsl(237 16% 10%)'
         },
         green: {
           400: 'hsl(155 75% 70%)',

@@ -12,7 +12,7 @@
       }"
     >
       <div v-if="width >= 640" class="px-[10%] mt-4 mb-[54px]">
-        <Logo aria-label="The app logo" />
+        <logo-icon aria-label="The app logo" />
       </div>
       <p class="all-boards">all boards ({{ boards.length }})</p>
       <div :class="{ 'flex flex-col justify-between grow': width >= 640 }">
@@ -66,7 +66,7 @@ import type { Board } from '../../api/boardsTypes'
 import ThemeToggle from '../shared/ThemeToggle.vue'
 import BoardLabel from './BoardLabel.vue'
 import BoardDialog from '../Dialogs/BoardDialog.vue'
-import Logo from '../Svgs/Logo.vue'
+import LogoIcon from '../Svgs/LogoIcon.vue'
 import { ref } from 'vue'
 
 defineProps<{
@@ -109,7 +109,7 @@ const isAddBoardDialogShown = ref(false)
 }
 
 .all-boards {
-  @apply ml-3 min-[350px]:ml-6 mb-[20px] text-xs text-gray-400;
+  @apply ml-3 xs:ml-6 mb-[20px] text-xs text-gray-400;
   @apply uppercase tracking-[2.4px] font-normal;
 }
 </style>

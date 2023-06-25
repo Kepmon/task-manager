@@ -28,15 +28,15 @@
     <template #main-content>
       <div class="flex flex-col gap-6 relative">
         <more-options
-          @toggle-options="(e: Event) => closeMoreOptionsFn(e, toggleOptions)"
+          @toggle-options="(e: Event) => handleMoreOptionsFn(e, toggleOptions)"
           @show-edit-form="$emit('show-edit-form')"
           @show-delete-form="$emit('show-delete-form')"
-          @close-more-options="(e: Event) => closeMoreOptionsFn(e, closeOptions)"
+          @close-more-options="(e: Event) => handleMoreOptionsFn(e, closeOptions)"
           :condition="areTaskOptionsShown"
           element="task"
         />
 
-        <p class="text-gray-400 text-xs min-[350px]:text-sm">
+        <p class="text-gray-400 text-xs xs::text-sm">
           {{ description }}
         </p>
 
@@ -99,7 +99,7 @@ const statusItems = columns.map((column) => column.name)
 const areTaskOptionsShown = ref(false)
 
 const { toggleOptions, closeOptions } = moreOptionsPopup
-const closeMoreOptionsFn = (
+const handleMoreOptionsFn = (
   e: Event,
   cb: (e: Event, conditionToChange: Ref<boolean>) => void
 ) => {

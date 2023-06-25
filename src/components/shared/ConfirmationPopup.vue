@@ -20,9 +20,14 @@ const message = computed(() => {
     return 'Ooops, something went wrong. Try again later.'
   }
 
-  return `You ${
-    useRoute().path === '/' ? 'logged in' : 'signed up'
-  } successfully`
+  const path = useRoute().path
+  const action = {
+    '/': 'logged in',
+    '/sign-up': 'signed up',
+    '/dashboard': 'logged out'
+  }
+
+  return `You ${action[path as keyof typeof action]} successfully`
 })
 </script>
 
@@ -30,5 +35,15 @@ const message = computed(() => {
 .popup-text {
   @apply absolute inset-0 bottom-auto py-10 mx-auto w-[min(90%,400px)];
   @apply translate-y-8 text-center text-gray-900 rounded-xl;
+}
+
+.popup-enter-from,
+.popup-leave-to {
+  @apply -translate-y-[1000px];
+}
+
+.popup-enter-active,
+.popup-leave-active {
+  @apply transition-transform duration-1000;
 }
 </style>

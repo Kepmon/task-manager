@@ -1,10 +1,10 @@
 <template>
   <div class="grid" :class="{ 'col-span-2': isLogo }">
     <more-options
-      @toggle-options="(e: Event) => closeMoreOptionsFn(e, toggleOptions)"
+      @toggle-options="(e: Event) => handleMoreOptionsFn(e, toggleOptions)"
       @show-edit-form="isEditBoardDialogShown = true"
       @show-delete-form="isDeleteBoardDialogShown = true"
-      @close-more-options="(e: Event) => closeMoreOptionsFn(e, closeOptions)"
+      @close-more-options="(e: Event) => handleMoreOptionsFn(e, closeOptions)"
       :condition="areBoardOptionsShown"
       element="board"
     />
@@ -18,14 +18,14 @@
           </g>
         </svg>
         <div v-if="isLogo && width >= 640" class="main-nav__logo">
-          <Logo aria-label="The app logo" class="mr-8" />
+          <logo-icon aria-label="The app logo" class="mr-8" />
         </div>
         <div
           @click="$emit('toggle-boards-nav')"
           class="flex items-center gap-2"
         >
           <h1
-            class="font-bold min-[330px]:text-lg"
+            class="font-bold xs:text-lg"
             :class="{ 'pl-6': isLogo && width >= 640 }"
           >
             {{ boardName }}
@@ -46,28 +46,28 @@
           </svg>
         </div>
       </div>
-      <div class="flex items-center gap-2 min-[640px]:gap-3 text-white">
+      <div class="flex items-center gap-2 ml-auto sm:gap-3 text-white">
         <the-button
           @click="isAddTaskDialogShown = true"
-          :regularButton="width >= 640 ? true : false"
+          :regularButton="width >= 768 ? true : false"
           class="gap-[2px] purple-class"
           :class="{
             'opacity-25 cursor-not-allowed': dashboard,
             'cursor-pointer': !dashboard,
-            'px-4 py-[2px] rounded-2xl': width < 640
+            'px-4 py-[2px] rounded-2xl': width < 768
           }"
         >
-          <span class="leading-none" :class="{ 'text-2xl': width < 640 }"
+          <span class="leading-none" :class="{ 'text-2xl': width < 768 }"
             >+</span
           >
-          <span v-if="width >= 640">Add New Task</span>
+          <span v-if="width >= 768">Add New Task</span>
         </the-button>
         <the-button
           @click.prevent="areBoardOptionsShown = !areBoardOptionsShown"
           :regularButton="false"
           data-ellipsis
           aria-label="click here to see more options"
-          class="px-3 py-2 cursor-pointer"
+          class="px-3 py-2"
         >
           <svg width="5" height="20" data-ellipsis>
             <g fill-rule="evenodd" class="fill-gray-400">
@@ -78,6 +78,21 @@
           </svg>
         </the-button>
       </div>
+      <Teleport v-if="width < 512" to="body">
+        <button
+          aria-label="Click here to see the user options"
+          class="absolute bottom-8 right-8 scale-125"
+        >
+          <user-options />
+        </button>
+      </Teleport>
+      <button
+        v-else
+        aria-label="Click here to see the user options"
+        class="s:static s:ml-2 sm:ml-3"
+      >
+        <user-options />
+      </button>
     </nav>
     <transition name="dialog">
       <task-dialog
@@ -115,7 +130,8 @@ import MoreOptions from '../shared/MoreOptions.vue'
 import TaskDialog from '../Dialogs/TaskDialog.vue'
 import ConfirmationDialog from '../Dialogs/ConfirmationDialog.vue'
 import BoardDialog from '../Dialogs/BoardDialog.vue'
-import Logo from '../Svgs/Logo.vue'
+import LogoIcon from '../Svgs/LogoIcon.vue'
+import UserOptions from '../UserOptions.vue'
 import moreOptionsPopup from '../../composables/moreOptionsPopup'
 import { useBoardsStore } from '../../stores/boards'
 import { ref, Ref } from 'vue'
@@ -140,7 +156,7 @@ const { columns } = useBoardsStore()
 const selectedMultiOptionItems = columns.map((column) => column.name)
 
 const { toggleOptions, closeOptions } = moreOptionsPopup
-const closeMoreOptionsFn = (
+const handleMoreOptionsFn = (
   e: Event,
   cb: (e: Event, conditionToChange: Ref<boolean>) => void
 ) => {
@@ -150,8 +166,8 @@ const closeMoreOptionsFn = (
 
 <style scoped>
 .main-nav {
-  @apply flex items-center justify-between relative px-3;
-  @apply min-[350px]:px-6 shadow-xs bg-white dark:bg-gray-700;
+  @apply flex items-center relative px-3;
+  @apply xs:px-6 shadow-xs bg-white dark:bg-gray-700;
 }
 
 .main-nav__logo {

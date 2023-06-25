@@ -32,15 +32,15 @@ const currentPath = useRoute().path
 
 <style scoped>
 .privacy-policy-popup {
-  @apply absolute inset-x-0 inset-y-10 min-[480px]:inset-x-10 py-8 px-4 min-[480px]:px-8;
-  @apply mx-auto max-w-[1200px] font-normal rounded-3xl;
+  @apply grid absolute inset-x-0 inset-y-6 s:inset-x-10 py-12 px-4 s:px-8 s:py-8;
+  @apply mt-10 mx-auto max-w-[1200px] font-normal rounded-3xl;
   @apply border-4 border-purple-400 border-double;
   @apply bg-gray-200 dark:bg-gray-800 overflow-auto scrollbar-invisible;
 }
 
 .close-button {
-  @apply absolute top-0 right-1/2 max-[480px]:translate-x-1/2;
-  @apply min-[480px]:top-2 min-[480px]:right-2 p-3 cursor-pointer;
+  @apply absolute top-0 right-1/2 max-[512px]:translate-x-1/2;
+  @apply s:top-2 s:right-2 p-3 cursor-pointer;
   @apply after:absolute after:inset-0 after:border-2 after:rounded-full;
   @apply after:border-black dark:after:border-white;
 }
