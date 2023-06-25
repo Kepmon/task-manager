@@ -72,8 +72,13 @@ import PrivacyPolicyLayout from './PrivacyPolicyLayout.vue'
 import LogoIcon from '../Svgs/LogoIcon.vue'
 import { useDark } from '@vueuse/core'
 import { ref, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useUserStore } from '../../stores/user'
+import {
+  isAuthError,
+  isPopupShown,
+  handleAuthResponse
+} from '../../composables/authHandler'
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword
@@ -84,7 +89,6 @@ import { toTypedSchema } from '@vee-validate/yup'
 
 const isDark = useDark()
 const route = useRoute()
-const router = useRouter()
 const userStore = useUserStore()
 const currentPath = route.path
 const isPrivacyPolicyShown = ref(false)
@@ -132,8 +136,7 @@ const form = useForm({
     })
   )
 })
-const isPopupShown = ref(false)
-const isAuthError = ref(false)
+
 const handleAuth = form.handleSubmit(async (values) => {
   const method =
     currentPath === '/'
@@ -147,21 +150,7 @@ const handleAuth = form.handleSubmit(async (values) => {
     currentPath
   )
 
-  if (!isUserAuthenticated) {
-    isAuthError.value = true
-  }
-
-  if (isUserAuthenticated) {
-    isAuthError.value = false
-    setTimeout(() => {
-      router.push(`${currentPath === '/sign-up' ? '/' : '/dashboard'}`)
-    }, 2000)
-  }
-
-  isPopupShown.value = true
-  setTimeout(() => {
-    isPopupShown.value = false
-  }, 2000)
+  handleAuthResponse(isUserAuthenticated)
 })
 </script>
 

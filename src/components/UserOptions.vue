@@ -2,7 +2,7 @@
   <div>
     <Teleport to="body">
       <transition name="popup">
-        <confirmation-popup v-if="isPopupShown" :isError="isError" />
+        <confirmation-popup v-if="isPopupShown" :isError="isAuthError" />
       </transition>
     </Teleport>
     <user-icon @click="areUserOptionsShown = !areUserOptionsShown" />
@@ -22,35 +22,21 @@
 import UserIcon from './Svgs/UserIcon.vue'
 import ConfirmationPopup from './shared/ConfirmationPopup.vue'
 import { useUserStore } from '../stores/user'
+import {
+  isAuthError,
+  isPopupShown,
+  handleAuthResponse
+} from '../composables/authHandler'
 import { onClickOutside } from '@vueuse/core'
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 
 const userStore = useUserStore()
-const router = useRouter()
-
 const areUserOptionsShown = ref(false)
 
-const isError = ref(false)
-const isPopupShown = ref(false)
 const logout = async () => {
   const response = await userStore.logout()
 
-  if (!response) {
-    isError.value = true
-  }
-
-  if (response) {
-    isError.value = false
-    setTimeout(() => {
-      router.push('/')
-    }, 2000)
-  }
-
-  isPopupShown.value = true
-  setTimeout(() => {
-    isPopupShown.value = false
-  }, 2000)
+  handleAuthResponse(response)
 }
 
 const target = ref(null)
