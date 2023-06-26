@@ -1,16 +1,13 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
 import { auth } from '../firebase'
 import {
-  UserCredential,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signOut
+  signOut,
+  onAuthStateChanged
 } from 'firebase/auth'
 
 export const useUserStore = defineStore('user', () => {
-  const user = ref<UserCredential['user'] | null>(null)
-
   type Method =
     | typeof createUserWithEmailAndPassword
     | typeof signInWithEmailAndPassword
@@ -22,11 +19,7 @@ export const useUserStore = defineStore('user', () => {
     currentPath: string
   ) => {
     try {
-      const request = await method(auth, email, password)
-
-      if (currentPath === '/') {
-        user.value = request.user
-      }
+      await method(auth, email, password)
 
       if (currentPath === '/sign-up') {
         await logout()
@@ -41,15 +34,22 @@ export const useUserStore = defineStore('user', () => {
   const logout = async () => {
     try {
       await signOut(auth)
-      user.value = null
       return true
     } catch (err) {
       return false
     }
   }
 
+  onAuthStateChanged(auth, (user) => {
+    if (user != null) {
+      localStorage.setItem('user', JSON.stringify(user))
+      return
+    }
+
+    localStorage.removeItem('user')
+  })
+
   return {
-    user,
     handleAuth,
     logout
   }

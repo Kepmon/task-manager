@@ -30,4 +30,20 @@ const router = createRouter({
   ]
 })
 
+router.beforeEach((to, from, next) => {
+  const user = localStorage.getItem('user')
+
+  if (to.path === '/dashboard' && !user) {
+    next('/')
+    return
+  }
+
+  if ((to.path === '/' || to.path === '/sign-up') && user) {
+    next('/dashboard')
+    return
+  }
+
+  next()
+})
+
 export default router

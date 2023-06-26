@@ -32,7 +32,7 @@ body {
 }
 
 button {
-  @apply border-none;
+  @apply border-none cursor-pointer;
 }
 
 [tabindex="0"] {
