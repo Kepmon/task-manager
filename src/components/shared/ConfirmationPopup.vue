@@ -13,9 +13,20 @@ import { useRoute } from 'vue-router'
 
 const props = defineProps<{
   isError: boolean
+  errorMessage?: string | null
 }>()
 
+const errorText = {
+  'auth/wrong-password': 'The provided password is incorrect',
+  'auth/email-already-in-use': 'A user with this email already exists',
+  'auth/user-not-found': 'No user exists with such email'
+}
+
 const message = computed(() => {
+  if (props.isError && props.errorMessage) {
+    return errorText[props.errorMessage as keyof typeof errorText]
+  }
+
   if (props.isError) {
     return 'Ooops, something went wrong. Try again later.'
   }

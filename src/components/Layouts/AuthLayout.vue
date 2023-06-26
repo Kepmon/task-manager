@@ -58,7 +58,11 @@
       />
     </transition>
     <transition name="popup">
-      <confirmation-popup v-show="isPopupShown" :isError="isAuthError" />
+      <confirmation-popup
+        v-show="isPopupShown"
+        :isError="isAuthError"
+        :errorMessage="errorMessage"
+      />
     </transition>
   </div>
 </template>
@@ -137,20 +141,25 @@ const form = useForm({
   )
 })
 
+const errorMessage = ref(null)
 const handleAuth = form.handleSubmit(async (values) => {
   const method =
     currentPath === '/'
       ? signInWithEmailAndPassword
       : createUserWithEmailAndPassword
 
-  const isUserAuthenticated = await userStore.handleAuth(
+  const response = await userStore.handleAuth(
     method,
     values.email,
     values.password,
     currentPath
   )
 
-  handleAuthResponse(isUserAuthenticated)
+  if (response !== true) {
+    errorMessage.value = response
+  }
+
+  handleAuthResponse(response)
 })
 </script>
 

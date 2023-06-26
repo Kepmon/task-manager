@@ -4,11 +4,11 @@ import router from '../router'
 export const isAuthError = ref(false)
 export const isPopupShown = ref(false)
 export const handleAuthResponse = (response: boolean) => {
-  if (!response) {
+  if (response !== true) {
     isAuthError.value = true
   }
 
-  if (response) {
+  if (response === true) {
     isAuthError.value = false
     setTimeout(() => {
       router.push(

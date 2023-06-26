@@ -19,15 +19,17 @@ export const useUserStore = defineStore('user', () => {
     currentPath: string
   ) => {
     try {
-      await method(auth, email, password)
+      const response = await method(auth, email, password)
 
-      if (currentPath === '/sign-up') {
+      if (response && currentPath === '/sign-up') {
         await logout()
       }
 
+      if (!response) throw new Error()
+
       return true
     } catch (err) {
-      return false
+      return err.code
     }
   }
 
