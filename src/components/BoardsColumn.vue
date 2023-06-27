@@ -12,7 +12,7 @@
           </p>
         </div>
         <task-card
-          @change-task-title="(title) => (clickedTitle = title)"
+          @change="(title) => (clickedTitle = title)"
           v-for="{ title } in column.tasks"
           :key="title"
           :howManyCompleted="returnNumberOfCompletedSubtasks(subtasks)"

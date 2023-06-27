@@ -25,7 +25,7 @@
           class="flex items-center gap-2"
         >
           <h1
-            class="font-bold xs:text-lg"
+            class="py-4 font-bold xs:text-lg"
             :class="{ 'pl-6': isLogo && width >= 640 }"
           >
             {{ boardName }}
@@ -67,7 +67,7 @@
           :regularButton="false"
           data-ellipsis
           aria-label="click here to see more options"
-          class="px-3 py-2"
+          class="px-3 py-2 rounded-md focus-visible:outline outline-[3px] outline-gray-400"
         >
           <svg width="5" height="20" data-ellipsis>
             <g fill-rule="evenodd" class="fill-gray-400">
@@ -79,20 +79,9 @@
         </the-button>
       </div>
       <Teleport v-if="width < 512" to="body">
-        <button
-          aria-label="Click here to see the user options"
-          class="absolute bottom-8 right-8 scale-125"
-        >
-          <user-options />
-        </button>
+        <user-options class="absolute bottom-8 right-8 scale-125" />
       </Teleport>
-      <button
-        v-else
-        aria-label="Click here to see the user options"
-        class="s:static s:ml-2 sm:ml-3"
-      >
-        <user-options />
-      </button>
+      <user-options v-else class="static ml-2 sm:ml-3" />
     </nav>
     <transition name="dialog">
       <task-dialog

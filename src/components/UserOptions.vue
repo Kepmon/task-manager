@@ -5,7 +5,13 @@
         <confirmation-popup v-if="isPopupShown" :isError="isAuthError" />
       </transition>
     </Teleport>
-    <user-icon @click="areUserOptionsShown = !areUserOptionsShown" />
+    <button
+      @click="areUserOptionsShown = !areUserOptionsShown"
+      aria-label="Click here to see the user options"
+      class="block rounded-md focus-visible:outline outline-purple-400 outline-[3px]"
+    >
+      <user-icon />
+    </button>
     <transition name="options">
       <div
         v-if="areUserOptionsShown"

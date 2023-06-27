@@ -14,6 +14,12 @@ const isDark = useDark()
 </script>
 
 <style>
+@supports (scrollbar-width: thin) {
+  * {
+    scrollbar-width: thin;
+  }
+}
+
 html {
   @apply bg-gray-200 text-black;
 }
@@ -60,7 +66,8 @@ button {
 
 .option {
   @apply block py-[7px] s:py-[10px] pl-3 pr-16 w-[max-content] text-start text-sm text-gray-400;
-  @apply hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors duration-300;
+  @apply hover:bg-gray-200 dark:hover:bg-gray-500 focus-visible:bg-gray-200 dark:focus-visible:bg-gray-500;
+  @apply outline-transparent transition-colors duration-300;
 }
 
 .option--delete {

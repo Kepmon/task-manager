@@ -1,7 +1,7 @@
 <template>
   <div
-    @click="$emit('change-task-title', title)"
-    @keypress.enter="$emit('change-task-title', title)"
+    @click="$emit('change', title)"
+    @keypress.enter="$emit('change', title)"
     tabindex="0"
     class="task-card group"
   >
@@ -20,7 +20,7 @@ defineProps<{
   howManyCompleted: number
   howManySubtasks: number
 }>()
-defineEmits(['change-task-title'])
+defineEmits(['change'])
 </script>
 
 <style scoped>

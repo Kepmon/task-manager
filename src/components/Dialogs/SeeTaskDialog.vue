@@ -13,7 +13,7 @@
         :regularButton="false"
         data-ellipsis
         aria-label="click here to see more options"
-        class="px-3 py-2 cursor-pointer"
+        class="px-3 py-2 cursor-pointer rounded-md focus-visible:outline outline-[3px] outline-gray-400"
       >
         <svg width="5" height="20" data-ellipsis>
           <g fill-rule="evenodd" class="fill-gray-400">
