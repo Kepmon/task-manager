@@ -54,15 +54,28 @@ import EmptyInfo from '../components/EmptyInfo.vue'
 import BoardsColumn from '../components/BoardsColumn.vue'
 import UserOptions from '../components/UserOptions.vue'
 import { useBoardsNewStore } from '../stores/boardsNew'
+import { useUserStore } from '../stores/user'
 import { ref, computed, onMounted } from 'vue'
 import { useDark, useWindowSize } from '@vueuse/core'
 
 const isDark = useDark()
 const { getBoardsData, boards } = useBoardsNewStore()
+const { logout } = useUserStore()
 
 const isDashboardEmpty = ref(false)
 const isBoardEmpty = ref(false)
 onMounted(async () => {
+  const { lastLoginAt } = JSON.parse(localStorage.getItem('user') || '{}')
+  const dateNumber = parseInt(lastLoginAt)
+  const lastLoggedIn = new Date(dateNumber)
+  const currentDate = new Date()
+  if (
+    (currentDate.getTime() - lastLoggedIn.getTime()) / 1000 / 60 / 60 / 24 >=
+    30
+  ) {
+    await logout()
+    return
+  }
   await getBoardsData()
 
   if (boards.length === 0) {
