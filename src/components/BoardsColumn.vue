@@ -1,5 +1,9 @@
 <template>
-  <div class="columns-container" :class="{ 'columns-container--sizes': !logo }">
+  <div
+    v-if="columns"
+    class="columns-container"
+    :class="{ 'columns-container--sizes': !logo }"
+  >
     <div class="flex gap-6 h-max">
       <div v-for="column in columns" :key="column.name" class="flex flex-col">
         <div class="flex items-center gap-2 mb-8">

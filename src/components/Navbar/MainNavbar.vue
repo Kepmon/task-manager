@@ -52,8 +52,8 @@
           :regularButton="width >= 768 ? true : false"
           class="gap-[2px] purple-class"
           :class="{
-            'opacity-25 cursor-not-allowed': dashboard,
-            'cursor-pointer': !dashboard,
+            'opacity-25 cursor-not-allowed': isBoardEmpty,
+            'cursor-pointer': !isBoardEmpty,
             'px-4 py-[2px] rounded-2xl': width < 768
           }"
         >
@@ -129,7 +129,7 @@ defineProps<{
   sidebar: boolean
   isLogo: boolean
   theme: boolean
-  dashboard: boolean
+  isBoardEmpty: boolean
   width: number
   boardName: string
   navOpen: boolean

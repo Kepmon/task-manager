@@ -3,11 +3,12 @@
     <boards-navbar @toggle-sidebar="toggleSidebar" v-bind="boardsNavbarProps" />
 
     <main-navbar
+      v-if="!isDashboardEmpty"
       @toggle-boards-nav="toggleBoardsNav"
       :sidebar="isSidebarShown"
       :isLogo="isLogoShown"
       :theme="isDark"
-      :dashboard="isDashboardEmpty"
+      :isBoardEmpty="isBoardEmpty"
       :width="windowWidth"
       :boardName="boardName"
       :areOptionsShown="areBoardOptionsShown"
@@ -28,11 +29,20 @@
       class="flex flex-col justify-center p-4 sm:p-6"
       :class="{
         'sm:col-start-2': !isLogoShown,
-        'sm:col-start-1 sm:col-span-2': isLogoShown
+        'sm:col-start-1 sm:col-span-2': isLogoShown,
+        'sm:row-start-1 sm:row-span-2': isDashboardEmpty
       }"
     >
       <boards-column :columns="columns" :logo="isLogoShown" />
-      <empty-info />
+      <empty-info
+        :emptyDashboard="isDashboardEmpty"
+        :emptyBoard="isBoardEmpty"
+      />
+      <user-options
+        v-if="isDashboardEmpty"
+        :isDashboardEmpty="isDashboardEmpty"
+        class="absolute bottom-8 right-8 scale-125"
+      />
     </main>
   </div>
 </template>
@@ -42,20 +52,31 @@ import MainNavbar from '../components/Navbar/MainNavbar.vue'
 import BoardsNavbar from '../components/Navbar/BoardsNavbar.vue'
 import EmptyInfo from '../components/EmptyInfo.vue'
 import BoardsColumn from '../components/BoardsColumn.vue'
-import { useBoardsStore } from '../stores/boards'
-import { ref, computed } from 'vue'
+import UserOptions from '../components/UserOptions.vue'
+import { useBoardsNewStore } from '../stores/boardsNew'
+import { ref, computed, onMounted } from 'vue'
 import { useDark, useWindowSize } from '@vueuse/core'
 
 const isDark = useDark()
-const isDashboardEmpty = ref(false)
-const { boards, boardName, columns } = useBoardsStore()
+const { getBoardsData, boards } = useBoardsNewStore()
 
+const isDashboardEmpty = ref(false)
+const isBoardEmpty = ref(false)
+onMounted(async () => {
+  await getBoardsData()
+
+  if (boards.length === 0) {
+    isDashboardEmpty.value = true
+  }
+})
+
+const boardName = ''
 const areBoardOptionsShown = ref(false)
 const boardsNavbarProps = computed(() => ({
   condition: windowWidth.value < 640 ? isNavOpen.value : isSidebarShown.value,
   width: windowWidth.value,
   theme: isDark.value,
-  boards,
+  boards: null,
   boardName
 }))
 

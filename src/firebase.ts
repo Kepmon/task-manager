@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
+import { getFirestore, collection } from 'firebase/firestore'
 
 const env = import.meta.env
 
@@ -14,3 +15,5 @@ const firebaseConfig = {
 
 export const app = initializeApp(firebaseConfig)
 export const auth = getAuth()
+const db = getFirestore()
+export const colRef = collection(db, 'users')

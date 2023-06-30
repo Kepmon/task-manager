@@ -14,9 +14,11 @@
       <div v-if="width >= 640" class="px-[10%] mt-4 mb-[54px]">
         <logo-icon aria-label="The app logo" />
       </div>
-      <p class="all-boards">all boards ({{ boards.length }})</p>
+      <p class="all-boards">
+        all boards <span v-if="boards">({{ boards.length }})</span>
+      </p>
       <div :class="{ 'flex flex-col justify-between grow': width >= 640 }">
-        <ul>
+        <ul v-if="boards">
           <board-label
             v-for="{ name } in boards"
             :key="name"
@@ -35,6 +37,18 @@
             class="text-purple-400 fill-purple-400"
           />
         </ul>
+        <div v-else class="grid my-auto gap-8">
+          <p class="px-4 text-gray-400 text-center">
+            There are no boards to display
+          </p>
+          <button
+            @click="isAddBoardDialogShown = true"
+            @keydown.enter="isAddBoardDialogShown = true"
+            class="create-board"
+          >
+            + Create New Board
+          </button>
+        </div>
         <div>
           <theme-toggle
             class="mt-4 w-[90%] bg-blue-200 dark:bg-gray-800 rounded-md"
@@ -73,8 +87,8 @@ defineProps<{
   condition: boolean
   width: number
   theme: boolean
-  boards: Board[]
-  boardName: Board['name']
+  boards: Board[] | null
+  boardName: Board['name'] | ''
 }>()
 defineEmits(['toggle-sidebar'])
 
@@ -82,6 +96,12 @@ const isAddBoardDialogShown = ref(false)
 </script>
 
 <style scoped>
+.create-board {
+  @apply mx-auto px-4 py-2 w-[max-content] text-purple-400 rounded-3xl;
+  @apply outline outline-transparent hover:bg-white focus-visible:bg-white;
+  @apply transition-colors duration-300;
+}
+
 .nav-mobile-enter-from,
 .nav-mobile-leave-to {
   @apply origin-top opacity-50 scale-0;

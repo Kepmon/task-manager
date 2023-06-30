@@ -16,7 +16,11 @@
       <div
         v-if="areUserOptionsShown"
         ref="target"
-        class="options-container -top-9 right-0 s:top-auto s:-bottom-7 s:right-6 overflow-hidden"
+        class="options-container overflow-hidden"
+        :class="{
+          '-top-10 right-0': isDashboardEmpty,
+          '-top-9 right-0 s:top-auto s:-bottom-7 s:right-6': !isDashboardEmpty
+        }"
       >
         <button @click="logout" class="option">Log out</button>
       </div>
@@ -35,6 +39,10 @@ import {
 } from '../composables/authHandler'
 import { onClickOutside } from '@vueuse/core'
 import { ref } from 'vue'
+
+defineProps<{
+  isDashboardEmpty?: true
+}>()
 
 const userStore = useUserStore()
 const areUserOptionsShown = ref(false)

@@ -1,11 +1,12 @@
 import { defineStore } from 'pinia'
-import { auth } from '../firebase'
+import { auth, colRef } from '../firebase'
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged
 } from 'firebase/auth'
+import { addDoc } from 'firebase/firestore'
 
 export const useUserStore = defineStore('user', () => {
   type Method =
@@ -22,6 +23,7 @@ export const useUserStore = defineStore('user', () => {
       const response = await method(auth, email, password)
 
       if (response && currentPath === '/sign-up') {
+        await addDoc(colRef, { userID: response.user.uid })
         await logout()
       }
 
