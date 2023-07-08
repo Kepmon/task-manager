@@ -75,7 +75,24 @@ module.exports = {
         'checked': 'url("/img/icon-check.svg")'
       },
       animation: {
-        'ping-once': 'ping 1s ease-in-out forwards'
+        'ping-once': 'ping 1s ease-in-out forwards',
+        'lds-roller-1': 'lds-roller 1.2s -0.036s cubic-bezier(0.5, 0, 0.5, 1) infinite',
+        'lds-roller-2': 'lds-roller 1.2s -0.072s cubic-bezier(0.5, 0, 0.5, 1) infinite',
+        'lds-roller-3': 'lds-roller 1.2s -0.108s cubic-bezier(0.5, 0, 0.5, 1) infinite',
+        'lds-roller-4': 'lds-roller 1.2s -0.144s cubic-bezier(0.5, 0, 0.5, 1) infinite',
+        'lds-roller-5': 'lds-roller 1.2s -0.180s cubic-bezier(0.5, 0, 0.5, 1) infinite',
+        'lds-roller-6': 'lds-roller 1.2s -0.216s cubic-bezier(0.5, 0, 0.5, 1) infinite',
+        'lds-roller-7': 'lds-roller 1.2s -0.252s cubic-bezier(0.5, 0, 0.5, 1) infinite',
+        'lds-roller-8': 'lds-roller 1.2s -0.288s cubic-bezier(0.5, 0, 0.5, 1) infinite'
+      },
+      keyframes: {
+        'lds-roller': {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' },
+        }
+      },
+      transformOrigin: {
+        40: '40px 40px',
       }
     },
     scrollbar: {

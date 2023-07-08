@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="emptyDashboard || emptyBoard"
+    v-if="(emptyDashboard || emptyBoard) && !isLoading"
     class="grid content-center justify-items-center"
   >
     <p
@@ -34,6 +34,7 @@ import { ref, computed } from 'vue'
 const props = defineProps<{
   emptyDashboard: boolean
   emptyBoard: boolean
+  isLoading: boolean
 }>()
 
 const isBoardDialogShown = ref(false)
