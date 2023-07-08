@@ -33,7 +33,11 @@
         'sm:row-start-1 sm:row-span-2': isDashboardEmpty
       }"
     >
-      <boards-column :columns="columns" :logo="isLogoShown" />
+      <boards-column
+        v-if="!isDashboardEmpty"
+        :columns="boardsColumns"
+        :logo="isLogoShown"
+      />
       <empty-info
         :emptyDashboard="isDashboardEmpty"
         :emptyBoard="isBoardEmpty"
@@ -59,10 +63,12 @@ import { ref, computed, onMounted } from 'vue'
 import { useDark, useWindowSize } from '@vueuse/core'
 
 const isDark = useDark()
-const { getBoardsData, boards } = useBoardsNewStore()
+const { boardsColumns, updateBoardsData } = useBoardsNewStore()
 const { logout } = useUserStore()
 
-const isDashboardEmpty = ref(false)
+const isDashboardEmpty = computed(() =>
+  boardsColumns.length === 0 ? true : false
+)
 const isBoardEmpty = ref(false)
 onMounted(async () => {
   const { lastLoginAt } = JSON.parse(localStorage.getItem('user') || '{}')
@@ -76,11 +82,8 @@ onMounted(async () => {
     await logout()
     return
   }
-  await getBoardsData()
 
-  if (boards.length === 0) {
-    isDashboardEmpty.value = true
-  }
+  await updateBoardsData()
 })
 
 const boardName = ''

@@ -3,6 +3,8 @@
     <label v-if="label" class="text-xs">{{ label }}</label>
     <input
       v-if="type === 'text'"
+      @blur="$emit('handle-blur', inputData)"
+      v-model="inputData"
       :type="type"
       class="input"
       :class="{
@@ -10,7 +12,7 @@
         'border-blue-40 focus:border-purple-400': !error
       }"
       :placeholder="placeholder"
-      :value="customValue ? customValue : ''"
+      :value="customValue && !inputData ? customValue : inputData"
     />
     <Field
       v-if="type === 'email' || type === 'password'"
@@ -35,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import { toRef } from 'vue'
+import { ref, toRef } from 'vue'
 import { Field, ErrorMessage, useField } from 'vee-validate'
 
 const props = defineProps<{
@@ -47,7 +49,9 @@ const props = defineProps<{
   name: string
   type: HTMLInputElement['type']
 }>()
+// defineEmits(['handle-blur'])
 
+// const inputData = ref('')
 const name = toRef(props, 'name')
 const { errorMessage } = useField(name)
 </script>

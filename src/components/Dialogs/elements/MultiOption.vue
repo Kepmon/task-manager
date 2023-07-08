@@ -6,30 +6,34 @@
 
     <div class="flex flex-col gap-3">
       <div
-        v-for="item in selectedMultiOptionItems"
-        :key="item"
+        v-for="(item, index) in selectedMultiOptionItems"
+        :key="index"
         class="flex items-center"
       >
-        <input-text
+        <text-input
+          @handle-blur="$emit('handle-blur', columns)"
+          @update:model-value="(newValue: string) => (columns[index] = newValue)"
+          :modelValue="columns[index]"
           :placeholder="
-            modifiedItem === 'task' && formType === 'add' ? item : undefined
+            modifiedItem === 'task' && formType === 'add' ? item : ''
           "
-          :customValue="
-            modifiedItem === 'task' && formType === 'add' ? undefined : item
-          "
-          :formType="formType"
-          type="text"
-          :name="item"
-          :error="isError"
-          :class="{ 'after:content-none': !isError }"
-          class="subtask-input"
+          :isError="columns[index] === ''"
+          :class="{ 'after:content-none': item !== '' }"
+          class="input-error grow"
         />
         <button
+          @click="$emit('remove-input', index)"
           class="p-2 box-content"
           aria-label="click here to close off this field"
+          type="button"
         >
           <svg width="15" height="15">
-            <g :class="{ 'fill-red-400': isError, 'fill-gray-400': !isError }">
+            <g
+              :class="{
+                'fill-red-400': item === '',
+                'fill-gray-400': item !== ''
+              }"
+            >
               <path d="m12.728 0 2.122 2.122L2.122 14.85 0 12.728z" />
               <path d="M0 2.122 2.122 0 14.85 12.728l-2.122 2.122z" />
             </g>
@@ -42,7 +46,7 @@
 
 <script setup lang="ts">
 import type { Subtask, BoardColumn } from '../../../api/boardsTypes'
-import InputText from '../../shared/InputText.vue'
+import TextInput from '../../shared/Inputs/TextInput.vue'
 import { ref } from 'vue'
 
 defineProps<{
@@ -53,14 +57,7 @@ defineProps<{
     | BoardColumn['name'][]
     | string[]
 }>()
+defineEmits(['handle-blur', 'remove-input'])
 
-const isError = ref(false)
+const columns = ref(['Todo', 'Doing'])
 </script>
-
-<style>
-.subtask-input {
-  @apply grow relative after:content-['Can\'t_be_empty'] after:text-sm;
-  @apply after:text-red-400 after:font-normal after:absolute;
-  @apply after:right-4 after:top-1/2 after:-translate-y-1/2;
-}
-</style>

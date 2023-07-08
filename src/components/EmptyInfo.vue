@@ -8,21 +8,35 @@
     >
       {{ message }}
     </p>
-    <the-button :regularButton="true" class="gap-[2px] w-max purple-class">
+    <the-button
+      @click="isBoardDialogShown = true"
+      :regularButton="true"
+      class="gap-[2px] w-max purple-class"
+    >
       + Add New
       <span class="capitalize">{{ emptyDashboard ? 'board' : 'column' }}</span>
     </the-button>
+    <transition name="dialog">
+      <board-dialog
+        v-if="isBoardDialogShown"
+        @close-dialog="isBoardDialogShown = false"
+        action="add"
+      />
+    </transition>
   </div>
 </template>
 
 <script setup lang="ts">
 import TheButton from '../components/shared/TheButton.vue'
-import { computed } from 'vue'
+import BoardDialog from './Dialogs/BoardDialog.vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps<{
   emptyDashboard: boolean
   emptyBoard: boolean
 }>()
+
+const isBoardDialogShown = ref(false)
 
 const message = computed(
   () =>
