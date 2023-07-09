@@ -16,7 +16,6 @@
       />
     </svg>
     <div class="flex items-center gap-[2px]">
-      <span v-if="name.includes('Create')">+</span>
       <span class="boards-name">{{ name }}</span>
     </div>
   </li>

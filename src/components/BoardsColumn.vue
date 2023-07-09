@@ -64,7 +64,7 @@ import TaskCard from './TaskCard.vue'
 import SeeTaskDialog from './Dialogs/SeeTaskDialog.vue'
 import ConfirmationDialog from '../components/Dialogs/ConfirmationDialog.vue'
 import TaskDialog from '../components/Dialogs/TaskDialog.vue'
-import { computed, ref, Ref } from 'vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps<{
   columns: BoardColumn[]
@@ -80,7 +80,7 @@ const circleColor = computed(() => {
   })
 })
 
-const clickedTitle: Ref<null | Task['title']> = ref(null)
+const clickedTitle = ref<null | Task['title']>(null)
 
 const isEditTaskDialogShown = ref(false)
 const isDeleteTaskDialogShown = ref(false)

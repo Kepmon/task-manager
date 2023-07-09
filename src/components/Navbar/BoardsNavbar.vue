@@ -18,36 +18,29 @@
         all boards <span v-if="boards">({{ boards.length }})</span>
       </p>
       <div :class="{ 'flex flex-col justify-between grow': width >= 640 }">
-        <ul v-if="boards">
-          <board-label
-            v-for="{ name } in boards"
-            :key="name"
-            :name="name"
-            tabindex="0"
-            :class="{
-              'bg-purple-400 fill-white text-white': name === boardName,
-              'text-gray-400 fill-gray-400': name !== boardName
-            }"
-          />
+        <div>
+          <ul v-if="boards">
+            <board-label
+              v-for="{ name } in boards"
+              :key="name"
+              :name="name"
+              tabindex="0"
+              :class="{
+                'bg-purple-400 fill-white text-white': name === boardName,
+                'text-gray-400 fill-gray-400': name !== boardName
+              }"
+            />
+          </ul>
+          <p v-else class="px-4 text-gray-400 text-center">
+            There are no boards to display
+          </p>
           <board-label
             @click="isAddBoardDialogShown = true"
             @keydown.enter="isAddBoardDialogShown = true"
-            name="Create New Board"
+            name="+ Create New Board"
             tabindex="0"
             class="text-purple-400 fill-purple-400"
           />
-        </ul>
-        <div v-else class="grid my-auto gap-8">
-          <p class="px-4 text-gray-400 text-center">
-            There are no boards to display
-          </p>
-          <button
-            @click="isAddBoardDialogShown = true"
-            @keydown.enter="isAddBoardDialogShown = true"
-            class="create-board"
-          >
-            + Create New Board
-          </button>
         </div>
         <div>
           <theme-toggle

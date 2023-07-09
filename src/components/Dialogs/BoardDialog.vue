@@ -51,15 +51,17 @@ import TextInput from '../shared/Inputs/TextInput.vue'
 import MultiOption from './elements/MultiOption.vue'
 import TheButton from '../../components/shared/TheButton.vue'
 import { useBoardsNewStore } from '../../stores/boardsNew'
-import { ref, Ref } from 'vue'
+import { ref } from 'vue'
+
 defineProps<{
   action: 'add' | 'edit'
   selectedMultiOptionItems?: BoardColumn['name'][]
 }>()
-defineEmits(['close-dialog'])
+const emits = defineEmits(['close-dialog'])
 
 const { addNewBoard } = useBoardsNewStore()
-const formData: Ref<Record<'name' | 'columns', string | string[]>> = ref({
+
+const formData = ref<Record<'name' | 'columns', string | string[]>>({
   name: '',
   columns: ['Todo', 'Doing']
 })
@@ -70,6 +72,8 @@ const submit = async () => {
     [formData.value.name, ...formData.value.columns].some((item) => item === '')
   )
     return
+
+  emits('close-dialog')
 
   await addNewBoard(
     formData.value.name as string,

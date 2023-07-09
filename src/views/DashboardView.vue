@@ -2,8 +2,11 @@
 <template>
   <div class="main-container">
     <div v-if="isLoading" class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+    <transition name="popup">
+      <confirmation-popup v-if="isConfirmationPopupShown" :isError="boardErrors.add" action="add" element="board" />
+    </transition>
 
-    <boards-navbar @toggle-sidebar="toggleSidebar" v-bind="boardsNavbarProps" />
+    <boards-navbar v-if="!isLoading" @toggle-sidebar="toggleSidebar" v-bind="boardsNavbarProps" />
 
     <main-navbar
       v-if="!isDashboardEmpty"
@@ -63,6 +66,7 @@ import BoardsNavbar from '../components/Navbar/BoardsNavbar.vue'
 import EmptyInfo from '../components/EmptyInfo.vue'
 import BoardsColumn from '../components/BoardsColumn.vue'
 import UserOptions from '../components/UserOptions.vue'
+import ConfirmationPopup from '../components/shared/ConfirmationPopup.vue'
 import { useUserStore } from '../stores/user'
 import { useBoardsNewStore } from '../stores/boardsNew'
 import { ref, toRefs, computed, onMounted } from 'vue'
@@ -74,12 +78,17 @@ const isDark = useDark()
 const { logout } = useUserStore()
 const isLoading = ref(true)
 
-const { boards } = toRefs(useBoardsNewStore())
+const { boards, isConfirmationPopupShown } = toRefs(useBoardsNewStore())
 const boardColumns = ref<Board['columns']>([])
 const isDashboardEmpty = computed(() =>
   boards.value.length === 0 ? true : false
 )
 const isBoardEmpty = ref(false)
+const boardErrors = ref({
+  add: false,
+  edit: false,
+  delete: false
+})
 onMounted(async () => {
   const { lastLoginAt } = JSON.parse(localStorage.getItem('user') || '{}')
   const dateNumber = parseInt(lastLoginAt)
@@ -104,7 +113,7 @@ onMounted(async () => {
       boardColumns.value = boards.value.map((board) => board.columns).flat()
       isLoading.value = false
     } catch (err) {
-      return false
+      throw new Error()
     }
   })
 })
