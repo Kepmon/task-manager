@@ -50,15 +50,15 @@ import DialogsTemplate from './DialogsTemplate.vue'
 import TextInput from '../shared/Inputs/TextInput.vue'
 import MultiOption from './elements/MultiOption.vue'
 import TheButton from '../../components/shared/TheButton.vue'
+import { useBoardsNewStore } from '../../stores/boardsNew'
 import { ref, Ref } from 'vue'
-import { db, colRef } from '../../firebase'
-import { getDocs, doc, updateDoc, query, where } from 'firebase/firestore'
 defineProps<{
   action: 'add' | 'edit'
   selectedMultiOptionItems?: BoardColumn['name'][]
 }>()
 defineEmits(['close-dialog'])
 
+const { addNewBoard } = useBoardsNewStore()
 const formData: Ref<Record<'name' | 'columns', string | string[]>> = ref({
   name: '',
   columns: ['Todo', 'Doing']
@@ -71,22 +71,9 @@ const submit = async () => {
   )
     return
 
-  const { uid } = JSON.parse(localStorage.getItem('user') || '{}')
-  const requiredDocRef = query(colRef, where('userID', '==', uid))
-  const docSnap = await getDocs(requiredDocRef)
-  const docID = docSnap.docs[0].id
-  const docRef = doc(db, 'users', docID)
-  const boardColumns = (formData.value.columns as string[]).map((column) => ({
-    name: column,
-    tasks: []
-  }))
-  await updateDoc(docRef, {
-    boards: [
-      {
-        name: formData.value.name,
-        columns: boardColumns
-      }
-    ]
-  })
+  await addNewBoard(
+    formData.value.name as string,
+    formData.value.columns as string[]
+  )
 }
 </script>

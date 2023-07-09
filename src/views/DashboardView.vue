@@ -39,7 +39,7 @@
       <boards-column
         v-if="!isDashboardEmpty"
         :selectedMultiOptionItems="['Todo', 'Doing']"
-        :columns="boardsColumns"
+        :columns="boardColumns"
         :logo="isLogoShown"
       />
       <empty-info
@@ -64,7 +64,8 @@ import EmptyInfo from '../components/EmptyInfo.vue'
 import BoardsColumn from '../components/BoardsColumn.vue'
 import UserOptions from '../components/UserOptions.vue'
 import { useUserStore } from '../stores/user'
-import { ref, computed, onMounted } from 'vue'
+import { useBoardsNewStore } from '../stores/boardsNew'
+import { ref, toRefs, computed, onMounted } from 'vue'
 import { useDark, useWindowSize } from '@vueuse/core'
 import { onSnapshot } from 'firebase/firestore'
 import { colRef } from '../firebase'
@@ -73,8 +74,8 @@ const isDark = useDark()
 const { logout } = useUserStore()
 const isLoading = ref(true)
 
-const boards = ref<Board[]>([])
-const boardsColumns = ref<Board['columns']>([])
+const { boards } = toRefs(useBoardsNewStore())
+const boardColumns = ref<Board['columns']>([])
 const isDashboardEmpty = computed(() =>
   boards.value.length === 0 ? true : false
 )
@@ -100,7 +101,7 @@ onMounted(async () => {
         user.userID === uid ? user : null
       )[0]
       boards.value = currentUser['boards'] ? currentUser['boards'] : []
-      boardsColumns.value = boards.value.map((board) => board.columns).flat()
+      boardColumns.value = boards.value.map((board) => board.columns).flat()
       isLoading.value = false
     } catch (err) {
       return false
