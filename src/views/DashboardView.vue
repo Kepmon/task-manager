@@ -16,7 +16,6 @@
       :theme="isDark"
       :isBoardEmpty="isBoardEmpty"
       :width="windowWidth"
-      :boardName="boardName"
       :areOptionsShown="areBoardOptionsShown"
       :navOpen="isNavOpen"
     />
@@ -51,7 +50,7 @@
         :isLoading="isLoading"
       />
       <user-options
-        v-if="isDashboardEmpty"
+        v-if="isDashboardEmpty && !isLoading"
         :isDashboardEmpty="isDashboardEmpty"
         class="absolute bottom-8 right-8 scale-125"
       />
@@ -78,7 +77,9 @@ const isDark = useDark()
 const { logout } = useUserStore()
 const isLoading = ref(true)
 
-const { boards, isConfirmationPopupShown } = toRefs(useBoardsNewStore())
+const { boards, currentBoard, isConfirmationPopupShown } = toRefs(
+  useBoardsNewStore()
+)
 const boardColumns = ref<Board['columns']>([])
 const isDashboardEmpty = computed(() =>
   boards.value.length === 0 ? true : false
@@ -110,6 +111,7 @@ onMounted(async () => {
         user.userID === uid ? user : null
       )[0]
       boards.value = currentUser['boards'] ? currentUser['boards'] : []
+      currentBoard.value = boards.value[0]
       boardColumns.value = boards.value.map((board) => board.columns).flat()
       isLoading.value = false
     } catch (err) {

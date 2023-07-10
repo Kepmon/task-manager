@@ -21,7 +21,7 @@
 <script setup lang="ts">
 defineProps<{
   label?: string
-  isError: boolean
+  isError?: boolean
   placeholder?: string
   modelValue: string
 }>()

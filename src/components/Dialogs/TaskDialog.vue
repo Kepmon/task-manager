@@ -5,21 +5,13 @@
     </template>
 
     <template #main-content>
-      <input-text
+      <text-input
+        v-model="taskTitle"
         label="Title"
         :placeholder="action === 'add' ? 'e.g. Take coffee break' : ''"
-        :customValue="action === 'edit' ? 'Add authentication endpoints' : ''"
-        :formType="action"
-        name="title"
-        type="text"
       />
 
-      <input-text
-        label="Description"
-        :formType="action"
-        type="textarea"
-        name="description"
-      />
+      <description-field label="Description" />
 
       <multi-option
         modifiedItem="task"
@@ -48,12 +40,14 @@
 </template>
 
 <script setup lang="ts">
-import type { Subtask } from '../../api/boardsTypes'
+import type { BoardColumn, Subtask } from '../../api/boardsTypes'
 import DialogsTemplate from './DialogsTemplate.vue'
-import InputText from '../shared/InputText.vue'
+import TextInput from '../shared/Inputs/TextInput.vue'
+import DescriptionField from '../shared/Inputs/DescriptionField.vue'
 import MultiOption from './elements/MultiOption.vue'
 import TheButton from '../../components/shared/TheButton.vue'
-import { useBoardsStore } from '../../stores/boards'
+import { useBoardsNewStore } from '../../stores/boardsNew'
+import { ref, toRefs, onMounted } from 'vue'
 
 defineProps<{
   action: 'add' | 'edit'
@@ -61,6 +55,10 @@ defineProps<{
 }>()
 defineEmits(['close-dialog'])
 
-const { columns } = useBoardsStore()
-const statusItems = columns.map((column) => column.name)
+const taskTitle = ref('')
+const statusItems = ref<BoardColumn['name'][]>([])
+onMounted(() => {
+  const { currentBoard } = toRefs(useBoardsNewStore())
+  statusItems.value = currentBoard.value.columns.map((column) => column.name)
+})
 </script>

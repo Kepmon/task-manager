@@ -28,7 +28,7 @@
             class="py-4 font-bold xs:text-lg"
             :class="{ 'pl-6': isLogo && width >= 640 }"
           >
-            {{ boardName }}
+            {{ currentBoard.name }}
           </h1>
           <svg
             v-if="width < 640"
@@ -122,8 +122,8 @@ import BoardDialog from '../Dialogs/BoardDialog.vue'
 import LogoIcon from '../Svgs/LogoIcon.vue'
 import UserOptions from '../UserOptions.vue'
 import moreOptionsPopup from '../../composables/moreOptionsPopup'
-import { useBoardsStore } from '../../stores/boards'
-import { ref, Ref } from 'vue'
+import { useBoardsNewStore } from '../../stores/boardsNew'
+import { ref, Ref, toRefs } from 'vue'
 
 defineProps<{
   sidebar: boolean
@@ -131,7 +131,6 @@ defineProps<{
   theme: boolean
   isBoardEmpty: boolean
   width: number
-  boardName: string
   navOpen: boolean
 }>()
 defineEmits(['toggle-boards-nav'])
@@ -141,8 +140,22 @@ const isAddTaskDialogShown = ref(false)
 const isDeleteBoardDialogShown = ref(false)
 const isEditBoardDialogShown = ref(false)
 
-const { columns } = useBoardsStore()
-const selectedMultiOptionItems = columns.map((column) => column.name)
+const { currentBoard } = toRefs(useBoardsNewStore())
+const subtasks = ref([
+  {
+    title: 'Settings - Account page',
+    isCompleted: true
+  },
+  {
+    title: 'Settings - Billing page',
+    isCompleted: true
+  },
+  {
+    title: 'Search page',
+    isCompleted: false
+  }
+])
+const selectedMultiOptionItems = subtasks.value.map((subtask) => subtask.title)
 
 const { toggleOptions, closeOptions } = moreOptionsPopup
 const handleMoreOptionsFn = (

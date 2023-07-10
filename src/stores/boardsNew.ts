@@ -6,6 +6,7 @@ import { getDocs, doc, updateDoc, query, where } from 'firebase/firestore'
 
 export const useBoardsNewStore = defineStore('boardsNew', () => {
   const boards = ref<Board[]>([])
+  const currentBoard = ref([])
   const isConfirmationPopupShown = ref(false)
   const { uid } = JSON.parse(localStorage.getItem('user') || '{}')
 
@@ -41,6 +42,7 @@ export const useBoardsNewStore = defineStore('boardsNew', () => {
   return {
     boards,
     addNewBoard,
-    isConfirmationPopupShown
+    isConfirmationPopupShown,
+    currentBoard
   }
 })

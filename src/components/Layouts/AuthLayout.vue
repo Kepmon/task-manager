@@ -14,9 +14,9 @@
         <header class="xs:text-lg first-letter:uppercase">
           <h2>{{ currentAccountLink.action }}</h2>
         </header>
-        <input-text label="Email" name="email" type="email" />
-        <input-text label="Password" name="password" type="password" />
-        <input-text
+        <auth-input label="Email" name="email" type="email" />
+        <auth-input label="Password" name="password" type="password" />
+        <auth-input
           v-if="route.path === '/sign-up'"
           label="Repeat Password"
           name="repeatPassword"
@@ -68,7 +68,7 @@
 </template>
 
 <script setup lang="ts">
-import InputText from '../../components/shared/InputText.vue'
+import AuthInput from '../../components/shared/Inputs/AuthInput.vue'
 import TheButton from '../../components/shared/TheButton.vue'
 import ThemeToggle from '../../components/shared/ThemeToggle.vue'
 import ConfirmationPopup from '../../components/shared/ConfirmationPopup.vue'
