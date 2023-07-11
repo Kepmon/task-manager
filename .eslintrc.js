@@ -26,7 +26,10 @@ module.exports = {
     'tsconfig*'
   ],
   rules: {
-    'prettier/prettier': 2,
+    'prettier/prettier': [
+      2,
+      { singleQuote: true, trailingComma: 'none', semi: false }
+    ],
     'no-warning-comments': [1, { terms: ['todo', 'fixme'] }],
     'no-trailing-spaces': ['error', { skipBlankLines: true }],
     'comma-dangle': ['error', 'never'],
