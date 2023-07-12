@@ -8,9 +8,6 @@
 
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
-import { useDark } from '@vueuse/core'
-
-const isDark = useDark()
 </script>
 
 <style>
@@ -52,7 +49,7 @@ button {
   @apply after:right-4 after:bottom-1/2 after:translate-y-1/2;
 }
 
-[tabindex="0"] {
+[tabindex='0'] {
   @apply outline outline-transparent;
 }
 

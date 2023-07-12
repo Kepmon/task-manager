@@ -8,7 +8,7 @@
       :condition="areBoardOptionsShown"
       element="board"
     />
-    <nav aria-label="main navigation" class="main-nav">
+    <nav aria-label="main navigation" class="main-nav w-full">
       <div class="flex items-center gap-2 h-full">
         <svg width="24" height="25" class="sm:hidden" aria-label="The app logo">
           <g fill="#635FC7" fill-rule="evenodd">
@@ -17,24 +17,20 @@
             <rect opacity=".5" x="18" width="6" height="25" rx="2" />
           </g>
         </svg>
-        <div v-if="isLogo && width >= 640" class="main-nav__logo">
+        <div v-if="isLogo" class="main-nav__logo hidden sm:flex">
           <logo-icon aria-label="The app logo" class="mr-8" />
         </div>
         <div
           @click="$emit('toggle-boards-nav')"
           class="flex items-center gap-2"
         >
-          <h1
-            class="py-4 font-bold xs:text-lg"
-            :class="{ 'pl-6': isLogo && width >= 640 }"
-          >
-            {{ currentBoard.name }}
+          <h1 class="py-4 font-bold xs:text-lg" :class="{ 'sm:pl-6': isLogo }">
+            {{ (currentBoard || {}).name }}
           </h1>
           <svg
-            v-if="width < 640"
             width="10"
             height="7"
-            class="transition-transform duration-500"
+            class="transition-transform duration-500 hidden sm:block"
             :class="{ 'rotate-180': navOpen }"
           >
             <path
@@ -50,17 +46,14 @@
         <the-button
           @click="isAddTaskDialogShown = true"
           :regularButton="width >= 768 ? true : false"
-          class="gap-[2px] purple-class"
+          class="gap-[2px] purple-class px-4 py-[2px] rounded-2xl md:p-0 md:rounded-none"
           :class="{
             'opacity-25 cursor-not-allowed': isBoardEmpty,
-            'cursor-pointer': !isBoardEmpty,
-            'px-4 py-[2px] rounded-2xl': width < 768
+            'cursor-pointer': !isBoardEmpty
           }"
         >
-          <span class="leading-none" :class="{ 'text-2xl': width < 768 }"
-            >+</span
-          >
-          <span v-if="width >= 768">Add New Task</span>
+          <span class="leading-none text-2xl md:text-base">+</span>
+          <span class="hidden md:block">Add New Task</span>
         </the-button>
         <the-button
           @click.prevent="areBoardOptionsShown = !areBoardOptionsShown"
@@ -124,16 +117,17 @@ import UserOptions from '../UserOptions.vue'
 import moreOptionsPopup from '../../composables/moreOptionsPopup'
 import { useBoardsNewStore } from '../../stores/boardsNew'
 import { ref, Ref, toRefs } from 'vue'
+import { useWindowSize } from '@vueuse/core'
 
 defineProps<{
   sidebar: boolean
   isLogo: boolean
-  theme: boolean
   isBoardEmpty: boolean
-  width: number
   navOpen: boolean
 }>()
 defineEmits(['toggle-boards-nav'])
+
+const { width } = useWindowSize()
 
 const areBoardOptionsShown = ref(false)
 const isAddTaskDialogShown = ref(false)

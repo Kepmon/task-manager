@@ -13,9 +13,7 @@
       @toggle-boards-nav="toggleBoardsNav"
       :sidebar="isSidebarShown"
       :isLogo="isLogoShown"
-      :theme="isDark"
       :isBoardEmpty="isBoardEmpty"
-      :width="windowWidth"
       :areOptionsShown="areBoardOptionsShown"
       :navOpen="isNavOpen"
     />
@@ -45,9 +43,9 @@
         :logo="isLogoShown"
       />
       <empty-info
+        v-if="!isLoading"
         :emptyDashboard="isDashboardEmpty"
         :emptyBoard="isBoardEmpty"
-        :isLoading="isLoading"
       />
       <user-options
         v-if="isDashboardEmpty && !isLoading"
@@ -69,11 +67,10 @@ import ConfirmationPopup from '../components/shared/ConfirmationPopup.vue'
 import { useUserStore } from '../stores/user'
 import { useBoardsNewStore } from '../stores/boardsNew'
 import { ref, toRefs, computed, onMounted } from 'vue'
-import { useDark, useWindowSize } from '@vueuse/core'
+import { useWindowSize } from '@vueuse/core'
 import { onSnapshot } from 'firebase/firestore'
 import { colRef } from '../firebase'
 
-const isDark = useDark()
 const { logout } = useUserStore()
 const isLoading = ref(true)
 
@@ -111,7 +108,10 @@ onMounted(async () => {
         user.userID === uid ? user : null
       )[0]
       boards.value = currentUser['boards'] ? currentUser['boards'] : []
-      currentBoard.value = boards.value[0]
+
+      if (boards.value.length > 0) {
+        currentBoard.value = boards.value[0]
+      }
       boardColumns.value = boards.value.map((board) => board.columns).flat()
       isLoading.value = false
     } catch (err) {
@@ -124,8 +124,6 @@ const boardName = ''
 const areBoardOptionsShown = ref(false)
 const boardsNavbarProps = computed(() => ({
   condition: windowWidth.value < 640 ? isNavOpen.value : isSidebarShown.value,
-  width: windowWidth.value,
-  theme: isDark.value,
   boards: boards.value,
   boardName
 }))
