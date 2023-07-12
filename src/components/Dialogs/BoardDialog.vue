@@ -68,10 +68,7 @@ const formData = ref<Record<'name' | 'columns', string | string[]>>({
 const formNameError = ref(false)
 
 const submit = async () => {
-  if (
-    [formData.value.name, ...formData.value.columns].some((item) => item === '')
-  )
-    return
+  if (formData.value.name === '') return
 
   emits('close-dialog')
 

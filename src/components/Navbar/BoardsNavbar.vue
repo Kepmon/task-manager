@@ -21,8 +21,8 @@
         <div>
           <ul v-if="boards">
             <board-label
-              v-for="{ name } in boards"
-              :key="name"
+              v-for="({ name }, index) in boards"
+              :key="index"
               :name="name"
               tabindex="0"
               :class="{
@@ -81,7 +81,7 @@ defineProps<{
   width: number
   theme: boolean
   boards: Board[] | null
-  boardName: Board['name'] | ''
+  boardName: Board['name']
 }>()
 defineEmits(['toggle-sidebar'])
 
