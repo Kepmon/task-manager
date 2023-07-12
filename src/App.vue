@@ -1,12 +1,25 @@
 <template>
-  <RouterView />
+  <router-view v-slot="{ Component }">
+    <transition name="pages" mode="out-in">
+      <component :is="Component" />
+    </transition>
+  </router-view>
 </template>
 
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
+import { useDark } from '@vueuse/core'
+
+const isDark = useDark()
 </script>
 
 <style>
+@supports (scrollbar-width: thin) {
+  * {
+    scrollbar-width: thin;
+  }
+}
+
 html {
   @apply bg-gray-200 text-black;
 }
@@ -17,6 +30,58 @@ html.dark {
 
 body {
   @apply min-h-screen text-base font-semibold;
+  @apply scrollbar-visibleLight dark:scrollbar-visibleDark;
+}
+
+#app {
+  @apply overflow-hidden;
+}
+
+button {
+  @apply border-none cursor-pointer;
+}
+
+[tabindex="0"] {
+  @apply outline outline-transparent;
+}
+
+.purple-class {
+  @apply bg-purple-400 hover:bg-purple-600 focus-visible:bg-purple-600;
+  @apply text-white outline outline-transparent transition-colors duration-300;
+}
+
+.white-button {
+  @apply text-purple-400 bg-purple-320 dark:bg-white;
+  @apply hover:bg-purple-200 focus-visible:bg-purple-200;
+  @apply transition-colors duration-300 outline outline-transparent;
+}
+
+.auth-main {
+  @apply grid place-items-center content-center gap-5;
+}
+
+.options-container {
+  @apply absolute grid bg-white dark:bg-gray-800 rounded-lg shadow-xs z-10;
+}
+
+.option {
+  @apply block py-[7px] s:py-[10px] pl-3 pr-16 w-[max-content] text-start text-sm text-gray-400;
+  @apply hover:bg-gray-200 dark:hover:bg-gray-500 focus-visible:bg-gray-200 dark:focus-visible:bg-gray-500;
+  @apply outline-transparent transition-colors duration-300;
+}
+
+.option--delete {
+  @apply rounded-b-lg text-red-400;
+}
+
+.options-enter-from,
+.options-leave-to {
+  @apply opacity-0 scale-0 origin-top-right sm:origin-top;
+}
+
+.options-enter-active,
+.options-leave-active {
+  @apply transition-all duration-500;
 }
 
 ::-webkit-scrollbar-corner {
@@ -77,5 +142,18 @@ body {
 .dialog-enter-active,
 .dialog-leave-active {
   @apply transition-opacity duration-300;
+}
+
+.pages-enter-from {
+  @apply translate-x-40 opacity-0;
+}
+
+.pages-leave-to {
+  @apply -translate-x-40 opacity-0;
+}
+
+.pages-enter-active,
+.pages-leave-active {
+  @apply transition-all duration-300;
 }
 </style>

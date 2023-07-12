@@ -1,55 +1,46 @@
 <template>
-    <dialogs-template
-        :closeDialog="closeDialog"
-    >
-        <template v-slot:form-title>
-            <h2>{{ action }} {{ action === 'add' ? 'New' : '' }} Board</h2>
-        </template>
+  <dialogs-template @close-dialog="$emit('close-dialog')">
+    <template #form-title>
+      <h2>{{ action }} {{ action === 'add' ? 'New' : '' }} Board</h2>
+    </template>
 
-        <template v-slot:main-content>
-            <input-text
-                label="Board Name"
-                :placeholder="action === 'add' ? 'e.g. Web Design' : ''"
-                :inputValue="action === 'edit' ? 'Platform Launch' : ''"
-                :formType="action"
-                type="input"
-            />
+    <template #main-content>
+      <input-text
+        label="Board Name"
+        :placeholder="action === 'add' ? 'e.g. Web Design' : ''"
+        :customValue="action === 'edit' ? 'Platform Launch' : ''"
+        :formType="action"
+        name="boardName"
+        type="text"
+      />
 
-            <multi-option
-                modifiedItem="board"
-                :formType="action"
-                :selectedMultiOptionItems="selectedMultiOptionItems"
-            />
+      <multi-option
+        modifiedItem="board"
+        :formType="action"
+        :selectedMultiOptionItems="selectedMultiOptionItems"
+      />
 
-            <the-button
-                :regularButton="true"
-                :isInForm="true"
-                class="text-purple-400 bg-purple-320 dark:bg-white"
-            >
-                + Add New Column
-            </the-button>
+      <the-button :regularButton="true" :isInForm="true" class="white-button">
+        + Add New Column
+      </the-button>
 
-            <the-button
-                :regularButton="true"
-                :isInForm="true"
-                class="hover:bg-purple-100 transition-all duration-300 text-white bg-purple-400"
-            >
-                {{ action === 'add' ? 'Create New Board' : 'Save Changes' }}
-            </the-button>
-        </template>
-    </dialogs-template>
+      <the-button :regularButton="true" :isInForm="true" class="purple-class">
+        {{ action === 'add' ? 'Create New Board' : 'Save Changes' }}
+      </the-button>
+    </template>
+  </dialogs-template>
 </template>
 
 <script setup lang="ts">
 import type { BoardColumn } from '../../api/boardsTypes'
 import DialogsTemplate from './DialogsTemplate.vue'
-import InputText from './elements/InputText.vue'
+import InputText from '../shared/InputText.vue'
 import MultiOption from './elements/MultiOption.vue'
 import TheButton from '../../components/shared/TheButton.vue'
 
 defineProps<{
-    action: 'add' | 'edit',
-    selectedMultiOptionItems: string[] | BoardColumn['name'][]
-    closeDialog: () => void,
+  action: 'add' | 'edit'
+  selectedMultiOptionItems: string[] | BoardColumn['name'][]
 }>()
+defineEmits(['close-dialog'])
 </script>

@@ -10,6 +10,11 @@ module.exports = {
   ],
   theme: {
     extend: {
+      screens: {
+        'xs': '350px',
+        's': '512px',
+        'lg': '896px'
+      },
       fontFamily: {
         sans: ['Plus Jakarta Sans', ...defaultTheme.fontFamily.sans]
       },
@@ -25,22 +30,25 @@ module.exports = {
         },
         gray: {
           200: 'hsl(0 0% 91%)',
+          300: 'hsl(0 0% 85%)',
           400: 'hsl(216 15% 57%)',
           500: 'hsl(237 16% 32%)',
           600: 'hsl(237 12% 27%)',
           680: 'hsl(237 12% 19% / .8)',
           700: 'hsl(237 12% 19%)',
           800: 'hsl(237 16% 15%)',
-          880: 'hsl(0 0% 0% / .8)'
+          880: 'hsl(0 0% 0% / .8)',
+          900: 'hsl(237 16% 10%)'
         },
         green: {
-          400: 'hsl(155 75% 70%)'
+          400: 'hsl(155 75% 70%)',
+          600: 'hsl(88, 60%, 50%)'
         },
         purple: {
-          100: 'hsl(242 100% 82%)',
           320: 'hsl(242 48% 58% / .2)',
           330: 'hsl(242 48% 58% / .3)',
-          400: 'hsl(242 48% 58%)'
+          400: 'hsl(242 48% 58%)',
+          500: 'hsl(242 48% 52%)'
         },
         red: {
           200: 'hsl(0 100% 73%)',
@@ -51,8 +59,11 @@ module.exports = {
         xs: ['12px', '15px'],
         sm: ['13px', '16px'],
         base: ['15px', '19px'],
+        baseFluid: 'clamp(0.81rem, calc(0.78rem + 0.21vw), 0.94rem)',
         lg: ['18px', '23px'],
+        lgFluid: 'clamp(0.88rem, calc(0.80rem + 0.42vw), 1.13rem)',
         xl: ['24px', '30px'],
+        xlFluid: 'clamp(1.25rem, calc(1.07rem + 1.04vw), 1.88rem)'
       },
       boxShadow: {
         xs: '0 0 2px -1px hsl(0 0% 59%)',
@@ -62,6 +73,9 @@ module.exports = {
       },
       content: {
         'checked': 'url("/img/icon-check.svg")'
+      },
+      animation: {
+        'ping-once': 'ping 1s ease-in-out forwards'
       }
     },
     scrollbar: {
