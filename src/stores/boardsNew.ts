@@ -1,14 +1,15 @@
+import type { ActiveUser } from '../api/boardsTypes'
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { useUserStore } from './user'
+import { ref, toRefs } from 'vue'
 import type { Board } from '../api/boardsTypes'
 import { db, colRef } from '../firebase'
 import { getDocs, doc, updateDoc, query, where } from 'firebase/firestore'
 
 export const useBoardsNewStore = defineStore('boardsNew', () => {
   const boards = ref<Board[]>([])
-  const currentBoard = ref([])
+  const currentBoard = ref<Board | null>(null)
   const isConfirmationPopupShown = ref(false)
-  const { uid } = JSON.parse(localStorage.getItem('user') || '{}')
 
   const showPopup = () => {
     isConfirmationPopupShown.value = true
@@ -18,6 +19,9 @@ export const useBoardsNewStore = defineStore('boardsNew', () => {
   }
 
   const addNewBoard = async (name: string, columns: string[]) => {
+    const { activeUser } = toRefs(useUserStore())
+    const uid = (activeUser.value as ActiveUser).userID
+
     const requiredDocRef = query(colRef, where('userID', '==', uid))
     const docSnap = await getDocs(requiredDocRef)
     const docID = docSnap.docs[0].id
@@ -29,6 +33,7 @@ export const useBoardsNewStore = defineStore('boardsNew', () => {
 
     await updateDoc(docRef, {
       boards: [
+        ...boards.value,
         {
           name,
           columns: boardColumns

@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="selectedMultiOptionItems.length !== 0">
     <p class="mb-2 text-xs">
       {{ modifiedItem === 'task' ? 'Subtasks' : 'Board Columns' }}
     </p>

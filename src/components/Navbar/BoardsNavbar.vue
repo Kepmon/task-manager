@@ -15,8 +15,8 @@
         <div>
           <ul v-if="boards != null">
             <board-label
-              v-for="{ name } in boards"
-              :key="name"
+              v-for="({ name }, index) in boards"
+              :key="index"
               :name="name"
               tabindex="0"
               :class="{
@@ -72,7 +72,7 @@ import { ref } from 'vue'
 defineProps<{
   condition: boolean
   boards: Board[] | null
-  boardName: Board['name'] | ''
+  boardName: Board['name']
 }>()
 defineEmits(['toggle-sidebar'])
 

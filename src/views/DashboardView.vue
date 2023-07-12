@@ -19,11 +19,11 @@
     />
 
     <div
-      v-show="isLogoShown && windowWidth >= 640"
+      v-show="isLogoShown"
       @click="toggleSidebar"
       @keydown.enter="toggleSidebar"
       tabindex="0"
-      class="show-sidebar purple-class"
+      class="show-sidebar purple-class hidden sm:block"
     >
       <img src="/img/icon-show-sidebar.svg" alt="show sidebar" />
     </div>
@@ -57,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Board } from '../api/boardsTypes'
+import type { ActiveUser, Board } from '../api/boardsTypes'
 import MainNavbar from '../components/Navbar/MainNavbar.vue'
 import BoardsNavbar from '../components/Navbar/BoardsNavbar.vue'
 import EmptyInfo from '../components/EmptyInfo.vue'
@@ -66,12 +66,13 @@ import UserOptions from '../components/UserOptions.vue'
 import ConfirmationPopup from '../components/shared/ConfirmationPopup.vue'
 import { useUserStore } from '../stores/user'
 import { useBoardsNewStore } from '../stores/boardsNew'
-import { ref, toRefs, computed, onMounted } from 'vue'
+import { ref, toRefs, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useWindowSize } from '@vueuse/core'
+import { User } from 'firebase/auth'
 import { onSnapshot } from 'firebase/firestore'
-import { colRef } from '../firebase'
+import { auth, colRef } from '../firebase'
 
-const { logout } = useUserStore()
 const isLoading = ref(true)
 
 const { boards, currentBoard, isConfirmationPopupShown } = toRefs(
@@ -81,51 +82,58 @@ const boardColumns = ref<Board['columns']>([])
 const isDashboardEmpty = computed(() =>
   boards.value.length === 0 ? true : false
 )
-const isBoardEmpty = ref(false)
+const isBoardEmpty = computed(() =>
+  boardColumns.value.length === 0 ? true : false
+)
 const boardErrors = ref({
   add: false,
   edit: false,
   delete: false
 })
-onMounted(async () => {
-  const { lastLoginAt } = JSON.parse(localStorage.getItem('user') || '{}')
-  const dateNumber = parseInt(lastLoginAt)
-  const lastLoggedIn = new Date(dateNumber)
-  const currentDate = new Date()
-  if (
-    (currentDate.getTime() - lastLoggedIn.getTime()) / 1000 / 60 / 60 / 24 >=
-    30
-  ) {
-    await logout()
-    return
-  }
 
-  const { uid } = JSON.parse(localStorage.getItem('user') || '{}')
-  onSnapshot(colRef, async (snapshot) => {
-    try {
-      const allUsers = snapshot.docs.map((doc) => doc.data())
-      const currentUser = allUsers.filter((user) =>
-        user.userID === uid ? user : null
-      )[0]
-      boards.value = currentUser['boards'] ? currentUser['boards'] : []
+const { logout } = useUserStore()
+const router = useRouter()
+onSnapshot(colRef, async (snapshot) => {
+  try {
+    const user = auth.currentUser as User
+    const lastLoggedIn = user.metadata.lastSignInTime
 
-      if (boards.value.length > 0) {
-        currentBoard.value = boards.value[0]
-      }
-      boardColumns.value = boards.value.map((board) => board.columns).flat()
-      isLoading.value = false
-    } catch (err) {
-      throw new Error()
+    const lastLoggedInDate = new Date(lastLoggedIn as string)
+    const currentDate = new Date()
+
+    if (
+      (currentDate.getTime() - lastLoggedInDate.getTime()) /
+        1000 /
+        60 /
+        60 /
+        24 >=
+      30
+    ) {
+      await logout()
+      router.push('/')
+      return
     }
-  })
+
+    const allUsers = snapshot.docs.map((doc) => doc.data())
+    const currentUser = allUsers.find(
+      (eachUser) => eachUser.userID === user.uid
+    ) as ActiveUser
+    boards.value = currentUser['boards']
+    if (boards.value.length !== 0) {
+      currentBoard.value = boards.value[0]
+      boardColumns.value = currentBoard.value.columns
+    }
+    isLoading.value = false
+  } catch (err) {
+    throw new Error()
+  }
 })
 
-const boardName = ''
 const areBoardOptionsShown = ref(false)
 const boardsNavbarProps = computed(() => ({
   condition: windowWidth.value < 640 ? isNavOpen.value : isSidebarShown.value,
   boards: boards.value,
-  boardName
+  boardName: currentBoard.value ? currentBoard.value.name : ''
 }))
 
 const isSidebarShown = ref(true)

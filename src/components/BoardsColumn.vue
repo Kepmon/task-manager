@@ -1,5 +1,9 @@
 <template>
-  <div class="columns-container" :class="{ 'columns-container--sizes': !logo }">
+  <div
+    v-if="columns?.length !== 0"
+    class="columns-container"
+    :class="{ 'columns-container--sizes': !logo }"
+  >
     <div class="flex gap-6 h-full">
       <div
         v-for="(column, index) in columns"
@@ -9,7 +13,7 @@
         <div class="flex items-center gap-2 mb-8 min-w-[280px]">
           <div
             class="h-[15px] w-[15px] rounded-full"
-            :class="circleColor(column)"
+            :class="circleColor ? circleColor(column) : ''"
           ></div>
           <p class="text-xs text-gray-400 uppercase">
             {{ column.name }} ({{ column.tasks?.length || 0 }})
@@ -67,17 +71,20 @@ import TaskDialog from '../components/Dialogs/TaskDialog.vue'
 import { computed, ref } from 'vue'
 
 const props = defineProps<{
-  columns: BoardColumn[]
+  columns: BoardColumn[] | null
   logo: boolean
   selectedMultiOptionItems: string[]
 }>()
 
 const circleColor = computed(() => {
-  return (column: BoardColumn) => ({
-    'bg-blue-600': props.columns.indexOf(column) % 3 === 0,
-    'bg-blue-500': props.columns.indexOf(column) % 3 === 1,
-    'bg-green-400': props.columns.indexOf(column) % 3 === 2
-  })
+  if (props.columns != null) {
+    return (column: BoardColumn) => ({
+      'bg-blue-600': (props.columns as BoardColumn[]).indexOf(column) % 3 === 0,
+      'bg-blue-500': (props.columns as BoardColumn[]).indexOf(column) % 3 === 1,
+      'bg-green-400': (props.columns as BoardColumn[]).indexOf(column) % 3 === 2
+    })
+  }
+  return null
 })
 
 const clickedTitle = ref<null | Task['title']>(null)
