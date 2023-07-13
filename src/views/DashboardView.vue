@@ -59,7 +59,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ActiveUser, Board } from '../api/boardsTypes'
+import type { ActiveUser } from '../api/boardsTypes'
 import MainNavbar from '../components/Navbar/MainNavbar.vue'
 import BoardsNavbar from '../components/Navbar/BoardsNavbar.vue'
 import EmptyInfo from '../components/EmptyInfo.vue'
@@ -78,15 +78,14 @@ import { auth, colRef } from '../firebase'
 const isDark = useDark()
 const isLoading = ref(true)
 
-const { boards, currentBoard, isConfirmationPopupShown } = toRefs(
+const { boards, currentBoard, boardColumns, isConfirmationPopupShown } = toRefs(
   useBoardsNewStore()
 )
-const boardColumns = ref<Board['columns']>([])
 const isDashboardEmpty = computed(() =>
   boards.value.length === 0 ? true : false
 )
 const isBoardEmpty = computed(() =>
-  boardColumns.value.length === 0 ? true : false
+  boardColumns.value && boardColumns.value.length === 0 ? true : false
 )
 const boardErrors = ref({
   add: false,
@@ -121,11 +120,17 @@ onSnapshot(colRef, async (snapshot) => {
     const currentUser = allUsers.find(
       (eachUser) => eachUser.userID === user.uid
     ) as ActiveUser
+
     boards.value = currentUser['boards']
-    if (boards.value.length !== 0) {
+    if (boards.value.length) {
       currentBoard.value = boards.value[0]
-      boardColumns.value = currentBoard.value.columns
     }
+
+    const savedBoard = JSON.parse(localStorage.getItem('currentBoard') || '{}')
+    if (savedBoard) {
+      currentBoard.value = savedBoard
+    }
+
     isLoading.value = false
   } catch (err) {
     throw new Error()

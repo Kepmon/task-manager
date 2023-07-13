@@ -1,7 +1,7 @@
 import type { ActiveUser } from '../api/boardsTypes'
 import { defineStore } from 'pinia'
 import { useUserStore } from './user'
-import { ref, toRefs } from 'vue'
+import { ref, toRefs, computed } from 'vue'
 import type { Board } from '../api/boardsTypes'
 import { db, colRef } from '../firebase'
 import { getDocs, doc, updateDoc, query, where } from 'firebase/firestore'
@@ -9,6 +9,9 @@ import { getDocs, doc, updateDoc, query, where } from 'firebase/firestore'
 export const useBoardsNewStore = defineStore('boardsNew', () => {
   const boards = ref<Board[]>([])
   const currentBoard = ref<Board | null>(null)
+  const boardColumns = computed(() =>
+    currentBoard.value ? currentBoard.value.columns : null
+  )
   const isConfirmationPopupShown = ref(false)
 
   const showPopup = () => {
@@ -48,6 +51,7 @@ export const useBoardsNewStore = defineStore('boardsNew', () => {
     boards,
     addNewBoard,
     isConfirmationPopupShown,
-    currentBoard
+    currentBoard,
+    boardColumns
   }
 })

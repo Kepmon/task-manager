@@ -3,6 +3,7 @@ import DashboardView from '../views/DashboardView.vue'
 import LoginView from '../views/LoginView.vue'
 import SignUpView from '../views/SignUpView.vue'
 import PrivacyPolicyView from '../views/PrivacyPolicyView.vue'
+import { useUserStore } from '../stores/user'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -32,8 +33,10 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const user = localStorage.getItem('user')
+  const { logout } = useUserStore()
 
   if (to.path === '/dashboard' && !user) {
+    logout()
     next('/')
     return
   }
