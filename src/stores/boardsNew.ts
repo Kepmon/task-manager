@@ -1,14 +1,20 @@
+import type { ActiveUser, Board, BoardColumn } from '../api/boardsTypes'
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
-import type { Board } from '../api/boardsTypes'
+import { useUserStore } from './user'
+import { ref, toRefs, computed } from 'vue'
 import { db, colRef } from '../firebase'
 import { getDocs, doc, updateDoc, query, where } from 'firebase/firestore'
 
 export const useBoardsNewStore = defineStore('boardsNew', () => {
   const boards = ref<Board[]>([])
-  const currentBoard = ref([])
+  const currentBoard = ref<Board | null>(null)
+  const boardColumns = computed(() =>
+    currentBoard.value ? currentBoard.value.columns : null
+  )
+  const boardColumnsNames = computed(() =>
+    boardColumns.value?.map((column) => column.name)
+  )
   const isConfirmationPopupShown = ref(false)
-  const { uid } = JSON.parse(localStorage.getItem('user') || '{}')
 
   const showPopup = () => {
     isConfirmationPopupShown.value = true
@@ -17,7 +23,10 @@ export const useBoardsNewStore = defineStore('boardsNew', () => {
     }, 2000)
   }
 
-  const addNewBoard = async (name: string, columns: string[]) => {
+  const getBoardsData = async (columns: string[]) => {
+    const { activeUser } = toRefs(useUserStore())
+    const uid = (activeUser.value as ActiveUser).userID
+
     const requiredDocRef = query(colRef, where('userID', '==', uid))
     const docSnap = await getDocs(requiredDocRef)
     const docID = docSnap.docs[0].id
@@ -27,8 +36,15 @@ export const useBoardsNewStore = defineStore('boardsNew', () => {
       tasks: []
     }))
 
+    return { docRef, boardColumns }
+  }
+
+  const addNewBoard = async (name: string, columns: string[]) => {
+    const { docRef, boardColumns } = await getBoardsData(columns)
+
     await updateDoc(docRef, {
       boards: [
+        ...boards.value,
         {
           name,
           columns: boardColumns
@@ -39,10 +55,31 @@ export const useBoardsNewStore = defineStore('boardsNew', () => {
     showPopup()
   }
 
+  const editBoard = async (name: string, columns: string[]) => {
+    const { docRef, boardColumns } = await getBoardsData(columns)
+
+    const otherBoards = ref(
+      boards.value.filter((board) => board !== currentBoard.value)
+    )
+
+    await updateDoc(docRef, {
+      boards: [
+        ...otherBoards.value,
+        {
+          name,
+          columns: boardColumns
+        }
+      ]
+    })
+  }
+
   return {
     boards,
+    currentBoard,
+    boardColumns,
+    boardColumnsNames,
     addNewBoard,
-    isConfirmationPopupShown,
-    currentBoard
+    editBoard,
+    isConfirmationPopupShown
   }
 })

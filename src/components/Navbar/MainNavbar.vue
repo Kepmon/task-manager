@@ -28,7 +28,7 @@
             class="py-4 font-bold xs:text-lg"
             :class="{ 'pl-6': isLogo && width >= 640 }"
           >
-            {{ currentBoard.name }}
+            {{ currentBoard ? currentBoard.name : '' }}
           </h1>
           <svg
             v-if="width < 640"

@@ -20,7 +20,7 @@
       <board-dialog
         v-if="isBoardDialogShown"
         @close-dialog="isBoardDialogShown = false"
-        action="add"
+        :action="emptyDashboard ? 'add' : 'edit'"
       />
     </transition>
   </div>
