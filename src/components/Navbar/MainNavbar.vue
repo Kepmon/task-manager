@@ -8,7 +8,7 @@
       :condition="areBoardOptionsShown"
       element="board"
     />
-    <nav aria-label="main navigation" class="main-nav">
+    <nav aria-label="main navigation" class="main-nav w-full">
       <div class="flex items-center gap-2 h-full">
         <svg width="24" height="25" class="sm:hidden" aria-label="The app logo">
           <g fill="#635FC7" fill-rule="evenodd">
@@ -17,24 +17,20 @@
             <rect opacity=".5" x="18" width="6" height="25" rx="2" />
           </g>
         </svg>
-        <div v-if="isLogo && width >= 640" class="main-nav__logo">
+        <div v-if="isLogo" class="main-nav__logo hidden sm:flex">
           <logo-icon aria-label="The app logo" class="mr-8" />
         </div>
         <div
           @click="$emit('toggle-boards-nav')"
           class="flex items-center gap-2"
         >
-          <h1
-            class="py-4 font-bold xs:text-lg"
-            :class="{ 'pl-6': isLogo && width >= 640 }"
-          >
-            {{ currentBoard ? currentBoard.name : '' }}
+          <h1 class="py-4 font-bold xs:text-lg" :class="{ 'sm:pl-6': isLogo }">
+            {{ currentBoard?.name }}
           </h1>
           <svg
-            v-if="width < 640"
             width="10"
             height="7"
-            class="transition-transform duration-500"
+            class="transition-transform duration-500 block sm:hidden"
             :class="{ 'rotate-180': navOpen }"
           >
             <path
@@ -47,24 +43,19 @@
         </div>
       </div>
       <div class="flex items-center gap-2 ml-auto sm:gap-3 text-white">
-        <the-button
+        <button
           @click="isAddTaskDialogShown = true"
-          :regularButton="width >= 768 ? true : false"
-          class="gap-[2px] purple-class"
+          class="gap-[2px] purple-class px-4 py-[2px] rounded-2xl md:p-0 regular-button"
           :class="{
             'opacity-25 cursor-not-allowed': isBoardEmpty,
-            'cursor-pointer': !isBoardEmpty,
-            'px-4 py-[2px] rounded-2xl': width < 768
+            'cursor-pointer': !isBoardEmpty
           }"
         >
-          <span class="leading-none" :class="{ 'text-2xl': width < 768 }"
-            >+</span
-          >
-          <span v-if="width >= 768">Add New Task</span>
-        </the-button>
-        <the-button
+          <span class="leading-none text-2xl md:text-base">+</span>
+          <span class="hidden md:block">Add New Task</span>
+        </button>
+        <button
           @click.prevent="areBoardOptionsShown = !areBoardOptionsShown"
-          :regularButton="false"
           data-ellipsis
           aria-label="click here to see more options"
           class="px-3 py-2 rounded-md focus-visible:outline outline-[3px] outline-gray-400"
@@ -76,12 +67,12 @@
               <circle cx="2.308" cy="17.692" r="2.308" />
             </g>
           </svg>
-        </the-button>
+        </button>
       </div>
-      <Teleport v-if="width < 512" to="body">
-        <user-options class="absolute bottom-8 right-8 scale-125" />
-      </Teleport>
-      <user-options v-else class="static ml-2 sm:ml-3" />
+      <user-options
+        class="fixed sm:static bottom-8 right-8 scale-125 sm:scale-100"
+        :class="{ 'sm:fixed sm:scale-125': currentBoard == null }"
+      />
     </nav>
     <transition name="dialog">
       <task-dialog
@@ -114,7 +105,6 @@
 </template>
 
 <script setup lang="ts">
-import TheButton from '../shared/TheButton.vue'
 import MoreOptions from '../shared/MoreOptions.vue'
 import TaskDialog from '../Dialogs/TaskDialog.vue'
 import ConfirmationDialog from '../Dialogs/ConfirmationDialog.vue'
@@ -128,9 +118,7 @@ import { ref, Ref, toRefs } from 'vue'
 defineProps<{
   sidebar: boolean
   isLogo: boolean
-  theme: boolean
   isBoardEmpty: boolean
-  width: number
   navOpen: boolean
 }>()
 defineEmits(['toggle-boards-nav'])
@@ -166,7 +154,12 @@ const handleMoreOptionsFn = (
 }
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
+@screen md {
+  .regular-button {
+    @apply flex items-center grow justify-center gap-2 py-[10px] px-4 rounded-3xl;
+  }
+}
 .main-nav {
   @apply flex items-center relative px-3;
   @apply xs:px-6 shadow-xs bg-white dark:bg-gray-700;

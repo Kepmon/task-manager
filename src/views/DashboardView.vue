@@ -13,19 +13,17 @@
       @toggle-boards-nav="toggleBoardsNav"
       :sidebar="isSidebarShown"
       :isLogo="isLogoShown"
-      :theme="isDark"
       :isBoardEmpty="isBoardEmpty"
-      :width="windowWidth"
       :areOptionsShown="areBoardOptionsShown"
       :navOpen="isNavOpen"
     />
 
     <div
-      v-show="isLogoShown && windowWidth >= 640"
+      v-show="isLogoShown"
       @click="toggleSidebar"
       @keydown.enter="toggleSidebar"
       tabindex="0"
-      class="show-sidebar purple-class"
+      class="show-sidebar purple-class hidden sm:block"
     >
       <img src="/img/icon-show-sidebar.svg" alt="show sidebar" />
     </div>
@@ -45,9 +43,9 @@
         :logo="isLogoShown"
       />
       <empty-info
+        v-if="!isLoading"
         :emptyDashboard="isDashboardEmpty"
         :emptyBoard="isBoardEmpty"
-        :isLoading="isLoading"
       />
       <user-options
         v-if="isDashboardEmpty && !isLoading"
@@ -70,13 +68,12 @@ import { useUserStore } from '../stores/user'
 import { useBoardsNewStore } from '../stores/boardsNew'
 import { ref, toRefs, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useDark, useWindowSize } from '@vueuse/core'
+import { useWindowSize } from '@vueuse/core'
 import { User } from 'firebase/auth'
 import { onSnapshot } from 'firebase/firestore'
 import Spinner from '../components/Spinner.vue'
 import { auth, colRef } from '../firebase'
 
-const isDark = useDark()
 const isLoading = ref(true)
 
 const { boards, currentBoard, boardColumns, isConfirmationPopupShown } = toRefs(
@@ -141,8 +138,6 @@ onSnapshot(colRef, async (snapshot) => {
 const areBoardOptionsShown = ref(false)
 const boardsNavbarProps = computed(() => ({
   condition: windowWidth.value < 640 ? isNavOpen.value : isSidebarShown.value,
-  width: windowWidth.value,
-  theme: isDark.value,
   boards: boards.value,
   boardName: currentBoard.value ? currentBoard.value.name : ''
 }))
