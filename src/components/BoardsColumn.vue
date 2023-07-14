@@ -1,26 +1,30 @@
 <template>
   <div
-    v-if="columns"
+    v-if="columns?.length !== 0"
     class="columns-container"
     :class="{ 'columns-container--sizes': !logo }"
   >
-    <div class="flex gap-6 h-max">
-      <div v-for="column in columns" :key="column.name" class="flex flex-col">
-        <div class="flex items-center gap-2 mb-8">
+    <div class="flex gap-6 h-full">
+      <div
+        v-for="(column, index) in columns"
+        :key="index"
+        class="flex flex-col"
+      >
+        <div class="flex items-center gap-2 mb-8 min-w-[280px]">
           <div
             class="h-[15px] w-[15px] rounded-full"
-            :class="circleColor(column)"
+            :class="circleColor ? circleColor(column) : ''"
           ></div>
           <p class="text-xs text-gray-400 uppercase">
-            {{ column.name }} ({{ column.tasks.length }})
+            {{ column.name }} ({{ column.tasks?.length || 0 }})
           </p>
         </div>
         <task-card
           @change="(title) => (clickedTitle = title)"
           v-for="{ title } in column.tasks"
           :key="title"
-          :howManyCompleted="returnNumberOfCompletedSubtasks(subtasks)"
-          :howManySubtasks="subtasks.length"
+          :howManyCompleted="0"
+          :howManySubtasks="0"
           :title="title"
           :isClickedTask="clickedTitle === title"
         />
@@ -64,28 +68,29 @@ import TaskCard from './TaskCard.vue'
 import SeeTaskDialog from './Dialogs/SeeTaskDialog.vue'
 import ConfirmationDialog from '../components/Dialogs/ConfirmationDialog.vue'
 import TaskDialog from '../components/Dialogs/TaskDialog.vue'
-import { useBoardsStore } from '../stores/boards'
-import { computed, ref, Ref } from 'vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps<{
-  columns: BoardColumn[]
+  columns: BoardColumn[] | null
   logo: boolean
+  selectedMultiOptionItems: string[]
 }>()
 
 const circleColor = computed(() => {
-  return (column: BoardColumn) => ({
-    'bg-blue-600': props.columns.indexOf(column) % 3 === 0,
-    'bg-blue-500': props.columns.indexOf(column) % 3 === 1,
-    'bg-green-400': props.columns.indexOf(column) % 3 === 2
-  })
+  if (props.columns != null) {
+    return (column: BoardColumn) => ({
+      'bg-blue-600': (props.columns as BoardColumn[]).indexOf(column) % 3 === 0,
+      'bg-blue-500': (props.columns as BoardColumn[]).indexOf(column) % 3 === 1,
+      'bg-green-400': (props.columns as BoardColumn[]).indexOf(column) % 3 === 2
+    })
+  }
+  return null
 })
 
-const clickedTitle: Ref<null | Task['title']> = ref(null)
+const clickedTitle = ref<null | Task['title']>(null)
 
 const isEditTaskDialogShown = ref(false)
 const isDeleteTaskDialogShown = ref(false)
-const { subtasks, returnNumberOfCompletedSubtasks } = useBoardsStore()
-const selectedMultiOptionItems = subtasks.map((subtask) => subtask.title)
 
 const closeSeeTask = () => {
   clickedTitle.value = null
@@ -114,7 +119,7 @@ const showDeleteForm = () => {
 }
 
 .new-column {
-  @apply flex items-center justify-center mt-[44px]  min-w-[280px] shadow-column;
+  @apply flex items-center justify-center mt-[44px] min-w-[280px] shadow-column;
   @apply bg-gradient-to-b from-blue-100 to-blue-80 cursor-pointer;
   @apply dark:from-gray-700 dark:to-gray-680;
 }

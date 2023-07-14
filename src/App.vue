@@ -8,9 +8,6 @@
 
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
-import { useDark } from '@vueuse/core'
-
-const isDark = useDark()
 </script>
 
 <style>
@@ -41,8 +38,23 @@ button {
   @apply border-none cursor-pointer;
 }
 
-[tabindex="0"] {
+.input {
+  @apply py-3 px-4 w-full bg-transparent rounded-[4px] text-sm font-normal;
+  @apply outline outline-transparent border;
+}
+
+.input-error {
+  @apply relative after:content-['Can\'t_be_empty'] after:text-sm;
+  @apply after:text-red-400 after:font-normal after:absolute;
+  @apply after:right-4 after:bottom-1/2 after:translate-y-1/2;
+}
+
+[tabindex='0'] {
   @apply outline outline-transparent;
+}
+
+::selection {
+  @apply bg-purple-400;
 }
 
 .purple-class {

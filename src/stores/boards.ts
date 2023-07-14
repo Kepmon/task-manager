@@ -1,10 +1,9 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { Ref } from 'vue'
 import type { Board, Subtask } from '../api/boardsTypes'
 
 export const useBoardsStore = defineStore('boards', () => {
-  const boards: Ref<Board[]> = ref([
+  const boards = ref<Board[]>([
     {
       name: 'Platform Launch',
       columns: [

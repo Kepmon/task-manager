@@ -5,27 +5,49 @@
     </template>
 
     <template #main-content>
-      <input-text
+      <text-input
+        v-model="taskTitle"
         label="Title"
         :placeholder="action === 'add' ? 'e.g. Take coffee break' : ''"
-        :customValue="action === 'edit' ? 'Add authentication endpoints' : ''"
-        :formType="action"
-        name="title"
-        type="text"
       />
 
-      <input-text
-        label="Description"
-        :formType="action"
-        type="textarea"
-        name="description"
-      />
+      <description-field label="Description" />
 
-      <multi-option
-        modifiedItem="task"
-        :formType="action"
-        :selectedMultiOptionItems="selectedMultiOptionItems"
-      />
+      <div>
+        <p class="mb-2 text-xs">Subtasks</p>
+        <div class="grid gap-3">
+          <div
+            v-for="(item, index) in boardColumnsNames"
+            :key="index"
+            class="flex items-center"
+          >
+            <text-input
+              :key="index"
+              :modelValue="item"
+              :placeholder="action === 'add' ? item : ''"
+              :class="{ 'after:content-none': item !== '' }"
+              class="input-error grow"
+            ></text-input>
+            <button
+              class="p-2 box-content"
+              aria-label="click here to close off this field"
+              type="button"
+            >
+              <svg width="15" height="15">
+                <g
+                  :class="{
+                    'fill-red-400': item === '',
+                    'fill-gray-400': item !== ''
+                  }"
+                >
+                  <path d="m12.728 0 2.122 2.122L2.122 14.85 0 12.728z" />
+                  <path d="M0 2.122 2.122 0 14.85 12.728l-2.122 2.122z" />
+                </g>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
 
       <the-button :regularButton="true" :isInForm="true" class="white-button">
         + Add New Subtask
@@ -48,12 +70,13 @@
 </template>
 
 <script setup lang="ts">
-import type { Subtask } from '../../api/boardsTypes'
+import type { BoardColumn, Subtask } from '../../api/boardsTypes'
 import DialogsTemplate from './DialogsTemplate.vue'
-import InputText from '../shared/InputText.vue'
-import MultiOption from './elements/MultiOption.vue'
+import TextInput from '../shared/Inputs/TextInput.vue'
+import DescriptionField from '../shared/Inputs/DescriptionField.vue'
 import TheButton from '../../components/shared/TheButton.vue'
-import { useBoardsStore } from '../../stores/boards'
+import { useBoardsNewStore } from '../../stores/boardsNew'
+import { ref, toRefs } from 'vue'
 
 defineProps<{
   action: 'add' | 'edit'
@@ -61,6 +84,7 @@ defineProps<{
 }>()
 defineEmits(['close-dialog'])
 
-const { columns } = useBoardsStore()
-const statusItems = columns.map((column) => column.name)
+const taskTitle = ref('')
+const statusItems = ref<BoardColumn['name'][]>([])
+const { boardColumnsNames } = toRefs(useBoardsNewStore())
 </script>

@@ -1,26 +1,29 @@
+<!-- eslint-disable prettier/prettier -->
 <template>
   <div class="main-container">
-    <boards-navbar @toggle-sidebar="toggleSidebar" v-bind="boardsNavbarProps" />
+    <spinner v-if="isLoading" />
+    <transition name="popup">
+      <confirmation-popup v-if="isConfirmationPopupShown" :isError="boardErrors.add" action="add" element="board" />
+    </transition>
+
+    <boards-navbar v-if="!isLoading" @toggle-sidebar="toggleSidebar" v-bind="boardsNavbarProps" />
 
     <main-navbar
       v-if="!isDashboardEmpty"
       @toggle-boards-nav="toggleBoardsNav"
       :sidebar="isSidebarShown"
       :isLogo="isLogoShown"
-      :theme="isDark"
       :isBoardEmpty="isBoardEmpty"
-      :width="windowWidth"
-      :boardName="boardName"
       :areOptionsShown="areBoardOptionsShown"
       :navOpen="isNavOpen"
     />
 
     <div
-      v-show="isLogoShown && windowWidth >= 640"
+      v-show="isLogoShown"
       @click="toggleSidebar"
       @keydown.enter="toggleSidebar"
       tabindex="0"
-      class="show-sidebar purple-class"
+      class="show-sidebar purple-class hidden sm:block"
     >
       <img src="/img/icon-show-sidebar.svg" alt="show sidebar" />
     </div>
@@ -33,13 +36,19 @@
         'sm:row-start-1 sm:row-span-2': isDashboardEmpty
       }"
     >
-      <boards-column :columns="columns" :logo="isLogoShown" />
+      <boards-column
+        v-if="!isDashboardEmpty"
+        :selectedMultiOptionItems="['Todo', 'Doing']"
+        :columns="boardColumns"
+        :logo="isLogoShown"
+      />
       <empty-info
+        v-if="!isLoading"
         :emptyDashboard="isDashboardEmpty"
         :emptyBoard="isBoardEmpty"
       />
       <user-options
-        v-if="isDashboardEmpty"
+        v-if="isDashboardEmpty && !isLoading"
         :isDashboardEmpty="isDashboardEmpty"
         class="absolute bottom-8 right-8 scale-125"
       />
@@ -48,49 +57,89 @@
 </template>
 
 <script setup lang="ts">
+import type { ActiveUser } from '../api/boardsTypes'
 import MainNavbar from '../components/Navbar/MainNavbar.vue'
 import BoardsNavbar from '../components/Navbar/BoardsNavbar.vue'
 import EmptyInfo from '../components/EmptyInfo.vue'
 import BoardsColumn from '../components/BoardsColumn.vue'
 import UserOptions from '../components/UserOptions.vue'
-import { useBoardsNewStore } from '../stores/boardsNew'
+import ConfirmationPopup from '../components/shared/ConfirmationPopup.vue'
 import { useUserStore } from '../stores/user'
-import { ref, computed, onMounted } from 'vue'
-import { useDark, useWindowSize } from '@vueuse/core'
+import { useBoardsNewStore } from '../stores/boardsNew'
+import { ref, toRefs, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useWindowSize } from '@vueuse/core'
+import { User } from 'firebase/auth'
+import { onSnapshot } from 'firebase/firestore'
+import Spinner from '../components/Spinner.vue'
+import { auth, colRef } from '../firebase'
 
-const isDark = useDark()
-const { getBoardsData, boards } = useBoardsNewStore()
+const isLoading = ref(true)
+
+const { boards, currentBoard, boardColumns, isConfirmationPopupShown } = toRefs(
+  useBoardsNewStore()
+)
+const isDashboardEmpty = computed(() =>
+  boards.value.length === 0 ? true : false
+)
+const isBoardEmpty = computed(() =>
+  boardColumns.value && boardColumns.value.length === 0 ? true : false
+)
+const boardErrors = ref({
+  add: false,
+  edit: false,
+  delete: false
+})
+
 const { logout } = useUserStore()
+const router = useRouter()
+onSnapshot(colRef, async (snapshot) => {
+  try {
+    const user = auth.currentUser as User
+    const lastLoggedIn = user.metadata.lastSignInTime
 
-const isDashboardEmpty = ref(false)
-const isBoardEmpty = ref(false)
-onMounted(async () => {
-  const { lastLoginAt } = JSON.parse(localStorage.getItem('user') || '{}')
-  const dateNumber = parseInt(lastLoginAt)
-  const lastLoggedIn = new Date(dateNumber)
-  const currentDate = new Date()
-  if (
-    (currentDate.getTime() - lastLoggedIn.getTime()) / 1000 / 60 / 60 / 24 >=
-    30
-  ) {
-    await logout()
-    return
-  }
-  await getBoardsData()
+    const lastLoggedInDate = new Date(lastLoggedIn as string)
+    const currentDate = new Date()
 
-  if (boards.length === 0) {
-    isDashboardEmpty.value = true
+    if (
+      (currentDate.getTime() - lastLoggedInDate.getTime()) /
+        1000 /
+        60 /
+        60 /
+        24 >=
+      30
+    ) {
+      await logout()
+      router.push('/')
+      return
+    }
+
+    const allUsers = snapshot.docs.map((doc) => doc.data())
+    const currentUser = allUsers.find(
+      (eachUser) => eachUser.userID === user.uid
+    ) as ActiveUser
+
+    boards.value = currentUser['boards']
+    if (boards.value.length) {
+      currentBoard.value = boards.value[0]
+    }
+
+    const savedBoard = JSON.parse(localStorage.getItem('currentBoard') || '{}')
+    if (savedBoard) {
+      currentBoard.value = savedBoard
+    }
+
+    isLoading.value = false
+  } catch (err) {
+    throw new Error()
   }
 })
 
-const boardName = ''
 const areBoardOptionsShown = ref(false)
 const boardsNavbarProps = computed(() => ({
   condition: windowWidth.value < 640 ? isNavOpen.value : isSidebarShown.value,
-  width: windowWidth.value,
-  theme: isDark.value,
-  boards: null,
-  boardName
+  boards: boards.value,
+  boardName: currentBoard.value ? currentBoard.value.name : ''
 }))
 
 const isSidebarShown = ref(true)

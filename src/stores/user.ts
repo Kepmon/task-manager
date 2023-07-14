@@ -1,3 +1,4 @@
+import type { ActiveUser } from '../api/boardsTypes'
 import { defineStore } from 'pinia'
 import { auth, colRef } from '../firebase'
 import {
@@ -6,12 +7,15 @@ import {
   signOut,
   onAuthStateChanged
 } from 'firebase/auth'
-import { addDoc } from 'firebase/firestore'
+import { addDoc, getDocs } from 'firebase/firestore'
+import { ref } from 'vue'
 
 export const useUserStore = defineStore('user', () => {
   type Method =
     | typeof createUserWithEmailAndPassword
     | typeof signInWithEmailAndPassword
+
+  const activeUser = ref<ActiveUser | null>(null)
 
   const handleAuth = async (
     method: Method,
@@ -23,7 +27,7 @@ export const useUserStore = defineStore('user', () => {
       const response = await method(auth, email, password)
 
       if (response && currentPath === '/sign-up') {
-        await addDoc(colRef, { userID: response.user.uid })
+        await addDoc(colRef, { userID: response.user.uid, boards: [] })
         await logout()
       }
 
@@ -44,17 +48,26 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  onAuthStateChanged(auth, (user) => {
+  onAuthStateChanged(auth, async (user) => {
     if (user != null) {
+      const allUsersRef = await getDocs(colRef)
+      const allUsers = allUsersRef.docs.map((doc) => doc.data())
+      const currentUser = allUsers.find(
+        (eachUser) => eachUser.userID === user.uid
+      )
+
       localStorage.setItem('user', JSON.stringify(user))
+      activeUser.value = currentUser as ActiveUser
       return
     }
 
+    activeUser.value = null
     localStorage.removeItem('user')
   })
 
   return {
     handleAuth,
-    logout
+    logout,
+    activeUser
   }
 })
