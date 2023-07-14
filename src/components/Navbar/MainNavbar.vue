@@ -25,7 +25,7 @@
           class="flex items-center gap-2"
         >
           <h1 class="py-4 font-bold xs:text-lg" :class="{ 'sm:pl-6': isLogo }">
-            {{ (currentBoard || {}).name }}
+            {{ currentBoard?.name }}
           </h1>
           <svg
             width="10"

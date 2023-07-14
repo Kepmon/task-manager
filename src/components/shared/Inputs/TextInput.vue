@@ -12,7 +12,8 @@
       class="input"
       :class="{
         'border-red-400': isError,
-        'border-blue-40 focus:border-purple-400': !isError
+        'border-blue-40 focus:border-purple-400': !isError ,
+        'placeholder:text-inherit': whitePlaceholder
       }"
     />
   </div>
@@ -23,6 +24,7 @@ defineProps<{
   label?: string
   isError?: boolean
   placeholder?: string
+  whitePlaceholder?: boolean
   modelValue: string
 }>()
 defineEmits(['handle-blur', 'update:modelValue'])

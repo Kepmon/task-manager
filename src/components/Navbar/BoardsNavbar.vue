@@ -15,13 +15,14 @@
         <div>
           <ul v-if="boards != null">
             <board-label
-              v-for="({ name }, index) in boards"
+              @click="() => changeCurrentBoard(board)"
+              v-for="(board, index) in boards"
               :key="index"
-              :name="name"
+              :name="board.name"
               tabindex="0"
               :class="{
-                'bg-purple-400 fill-white text-white': name === boardName,
-                'text-gray-400 fill-gray-400': name !== boardName
+                'bg-purple-400 fill-white text-white': board.name === boardName,
+                'text-gray-400 fill-gray-400': board.name !== boardName
               }"
             />
           </ul>
@@ -67,7 +68,8 @@ import ThemeToggle from '../shared/ThemeToggle.vue'
 import BoardLabel from './BoardLabel.vue'
 import BoardDialog from '../Dialogs/BoardDialog.vue'
 import LogoIcon from '../Svgs/LogoIcon.vue'
-import { ref } from 'vue'
+import { useBoardsNewStore } from '../../stores/boardsNew'
+import { ref, toRefs } from 'vue'
 
 defineProps<{
   condition: boolean
@@ -77,6 +79,12 @@ defineProps<{
 defineEmits(['toggle-sidebar'])
 
 const isAddBoardDialogShown = ref(false)
+const { currentBoard } = toRefs(useBoardsNewStore())
+
+const changeCurrentBoard = (board: Board) => {
+  currentBoard.value = board
+  localStorage.setItem('currentBoard', JSON.stringify(currentBoard.value))
+}
 </script>
 
 <style lang="postcss" scoped>

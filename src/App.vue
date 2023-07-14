@@ -53,6 +53,10 @@ button {
   @apply outline outline-transparent;
 }
 
+::selection {
+  @apply bg-purple-400;
+}
+
 .purple-class {
   @apply bg-purple-400 hover:bg-purple-600 focus-visible:bg-purple-600;
   @apply text-white outline outline-transparent transition-colors duration-300;

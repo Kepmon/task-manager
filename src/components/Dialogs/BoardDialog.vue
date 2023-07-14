@@ -15,17 +15,49 @@
         :modelValue="(formData.name as string)"
         :isError="formNameError"
         label="Board Name"
-        :placeholder="action === 'add' ? 'e.g. Web Design' : ''"
+        :placeholder="action === 'add' ? 'e.g. Web Design' : currentBoard?.name"
+        :whitePlaceholder="action === 'add' ? false : true"
         :class="{ 'input-error after:translate-y-full': formNameError }"
       />
 
-      <multi-option
-        @handle-blur="(data) => (formData.columns = data)"
-        @remove-input="(index) => (formData.columns as string[]).splice(index, 1)"
-        modifiedItem="board"
-        :formType="action"
-        :selectedMultiOptionItems="(formData.columns as string[])"
-      />
+      <div v-if="formData.columns.length">
+        <p class="mb-2 text-xs">Board Columns</p>
+        <div class="grid gap-3">
+          <div
+            v-for="(item, index) in formData.columns"
+            :key="index"
+            class="flex items-center"
+          >
+            <text-input
+              @update:model-value="(newValue: string) => ((formData.columns as string[])[index] = newValue)"
+              :key="index"
+              :modelValue="item"
+              :placeholder="action === 'add' ? item : ''"
+              :isError="formData.columns[index] === ''"
+              :class="{ 'after:content-none': item !== '' }"
+              class="input-error grow"
+            ></text-input>
+            <button
+              @click="() => (formData.columns as string[]).splice(index, 1)"
+              class="p-2 box-content"
+              aria-label="click here to close off this field"
+              type="button"
+            >
+              <svg width="15" height="15">
+                <g
+                  :class="{
+                    'fill-red-400': item === '',
+                    'fill-gray-400': item !== ''
+                  }"
+                >
+                  <path d="m12.728 0 2.122 2.122L2.122 14.85 0 12.728z" />
+                  <path d="M0 2.122 2.122 0 14.85 12.728l-2.122 2.122z" />
+                </g>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
 
       <the-button
         @click="() => (formData.columns as string[]).push('')"
@@ -48,22 +80,25 @@
 import type { BoardColumn } from '../../api/boardsTypes'
 import DialogsTemplate from './DialogsTemplate.vue'
 import TextInput from '../shared/Inputs/TextInput.vue'
-import MultiOption from './elements/MultiOption.vue'
 import TheButton from '../../components/shared/TheButton.vue'
 import { useBoardsNewStore } from '../../stores/boardsNew'
-import { ref } from 'vue'
+import { ref, toRefs } from 'vue'
 
-defineProps<{
+const props = defineProps<{
   action: 'add' | 'edit'
   selectedMultiOptionItems?: BoardColumn['name'][]
 }>()
 const emits = defineEmits(['close-dialog'])
 
-const { addNewBoard } = useBoardsNewStore()
+const { addNewBoard, editBoard } = useBoardsNewStore()
+const { currentBoard, boardColumnsNames } = toRefs(useBoardsNewStore())
 
 const formData = ref<Record<'name' | 'columns', string | string[]>>({
-  name: '',
-  columns: ['Todo', 'Doing']
+  name: props.action === 'add' ? '' : (currentBoard.value?.name as string),
+  columns:
+    props.action === 'add'
+      ? ['Todo', 'Doing']
+      : (boardColumnsNames.value as string[])
 })
 const formNameError = ref(false)
 
@@ -72,7 +107,15 @@ const submit = async () => {
 
   emits('close-dialog')
 
-  await addNewBoard(
+  if (props.action === 'add') {
+    await addNewBoard(
+      formData.value.name as string,
+      formData.value.columns as string[]
+    )
+    return
+  }
+
+  await editBoard(
     formData.value.name as string,
     formData.value.columns as string[]
   )
