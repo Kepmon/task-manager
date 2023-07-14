@@ -13,16 +13,17 @@
     "lint-fix": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
   },
   "dependencies": {
+    "@vee-validate/yup": "^4.9.6",
     "@vueuse/integrations": "^10.2.0",
     "firebase": "^9.22.2",
     "focus-trap": "^7.4.3",
+    "nanoid": "^4.0.2",
     "pinia": "^2.0.32",
+    "prettier": "^2.8.8",
+    "vee-validate": "^4.9.6",
     "vue": "^3.2.47",
     "vue-router": "^4.1.6",
-    "vue-select": "^4.0.0-beta.6",
-    "@vee-validate/yup": "^4.9.6",
-    "vee-validate": "^4.9.6",
-    "prettier": "^2.8.8"
+    "vue-select": "^4.0.0-beta.6"
   },
   "devDependencies": {
     "@gradin/tailwindcss-scrollbar": "^3.0.1",

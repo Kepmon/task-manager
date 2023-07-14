@@ -57,22 +57,15 @@
 </template>
 
 <script setup lang="ts">
-import type { ActiveUser } from '../api/boardsTypes'
 import MainNavbar from '../components/Navbar/MainNavbar.vue'
 import BoardsNavbar from '../components/Navbar/BoardsNavbar.vue'
 import EmptyInfo from '../components/EmptyInfo.vue'
 import BoardsColumn from '../components/BoardsColumn.vue'
 import UserOptions from '../components/UserOptions.vue'
 import ConfirmationPopup from '../components/shared/ConfirmationPopup.vue'
-import { useUserStore } from '../stores/user'
 import { useBoardsNewStore } from '../stores/boardsNew'
 import { ref, toRefs, computed } from 'vue'
-import { useRouter } from 'vue-router'
 import { useWindowSize } from '@vueuse/core'
-import { User } from 'firebase/auth'
-import { onSnapshot } from 'firebase/firestore'
-import Spinner from '../components/Spinner.vue'
-import { auth, colRef } from '../firebase'
 
 const isLoading = ref(true)
 
@@ -89,50 +82,6 @@ const boardErrors = ref({
   add: false,
   edit: false,
   delete: false
-})
-
-const { logout } = useUserStore()
-const router = useRouter()
-onSnapshot(colRef, async (snapshot) => {
-  try {
-    const user = auth.currentUser as User
-    const lastLoggedIn = user.metadata.lastSignInTime
-
-    const lastLoggedInDate = new Date(lastLoggedIn as string)
-    const currentDate = new Date()
-
-    if (
-      (currentDate.getTime() - lastLoggedInDate.getTime()) /
-        1000 /
-        60 /
-        60 /
-        24 >=
-      30
-    ) {
-      await logout()
-      router.push('/')
-      return
-    }
-
-    const allUsers = snapshot.docs.map((doc) => doc.data())
-    const currentUser = allUsers.find(
-      (eachUser) => eachUser.userID === user.uid
-    ) as ActiveUser
-
-    boards.value = currentUser['boards']
-    if (boards.value.length) {
-      currentBoard.value = boards.value[0]
-    }
-
-    const savedBoard = JSON.parse(localStorage.getItem('currentBoard') || '{}')
-    if (savedBoard) {
-      currentBoard.value = savedBoard
-    }
-
-    isLoading.value = false
-  } catch (err) {
-    throw new Error()
-  }
 })
 
 const areBoardOptionsShown = ref(false)

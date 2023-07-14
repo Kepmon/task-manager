@@ -6,7 +6,6 @@
 
     <template #main-content>
       <text-input
-        @update:model-value="(newValue: string) => (formData.name = newValue)"
         @handle-blur="
           formData.name === ''
             ? (formNameError = true)
@@ -93,7 +92,7 @@ const emits = defineEmits(['close-dialog'])
 const { addNewBoard, editBoard } = useBoardsNewStore()
 const { currentBoard, boardColumnsNames } = toRefs(useBoardsNewStore())
 
-const formData = ref<Record<'name' | 'columns', string | string[]>>({
+const formData = ref<{ name: string; columns: string[] }>({
   name: props.action === 'add' ? '' : (currentBoard.value?.name as string),
   columns:
     props.action === 'add'
@@ -108,10 +107,10 @@ const submit = async () => {
   emits('close-dialog')
 
   if (props.action === 'add') {
-    await addNewBoard(
-      formData.value.name as string,
-      formData.value.columns as string[]
-    )
+    await addNewBoard({
+      name: formData.value.name,
+      columns: formData.value.columns.map((name) => ({ name, tasks: [] }))
+    })
     return
   }
 

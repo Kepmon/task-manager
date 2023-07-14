@@ -9,6 +9,9 @@ import {
 } from 'firebase/auth'
 import { addDoc, getDocs } from 'firebase/firestore'
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import type { User } from 'firebase/auth'
+import { onSnapshot } from 'firebase/firestore'
 
 export const useUserStore = defineStore('user', () => {
   type Method =
@@ -16,6 +19,8 @@ export const useUserStore = defineStore('user', () => {
     | typeof signInWithEmailAndPassword
 
   const activeUser = ref<ActiveUser | null>(null)
+
+  const router = useRouter()
 
   const handleAuth = async (
     method: Method,
@@ -35,7 +40,7 @@ export const useUserStore = defineStore('user', () => {
 
       return true
     } catch (err) {
-      return err.code
+      return err
     }
   }
 
@@ -65,9 +70,43 @@ export const useUserStore = defineStore('user', () => {
     localStorage.removeItem('user')
   })
 
+  async function getUser() {
+    return onSnapshot(colRef, async (snapshot) => {
+      try {
+        const user = auth.currentUser as User
+        const lastLoggedIn = user.metadata.lastSignInTime
+
+        const lastLoggedInDate = new Date(lastLoggedIn as string)
+        const currentDate = new Date()
+
+        if (
+          (currentDate.getTime() - lastLoggedInDate.getTime()) /
+            1000 /
+            60 /
+            60 /
+            24 >=
+          30
+        ) {
+          await logout()
+          router.push('/')
+          return
+        }
+
+        const allUsers = snapshot.docs.map((doc) => doc.data())
+
+        activeUser.value = allUsers.find(
+          (eachUser) => eachUser.userID === user.uid
+        ) as ActiveUser
+      } catch (err) {
+        throw new Error()
+      }
+    })
+  }
+
   return {
     handleAuth,
     logout,
-    activeUser
+    activeUser,
+    getUser
   }
 })

@@ -5,6 +5,7 @@ export interface ActiveUser {
 }
 
 export interface Board {
+  id: string
   name: string
   columns: BoardColumn[]
 }

@@ -1,11 +1,13 @@
-import type { ActiveUser, Board, BoardColumn } from '../api/boardsTypes'
+import type { Board } from '../api/boardsTypes'
+import { nanoid } from 'nanoid'
 import { defineStore } from 'pinia'
 import { useUserStore } from './user'
-import { ref, toRefs, computed } from 'vue'
+import { ref, computed } from 'vue'
 import { db, colRef } from '../firebase'
 import { getDocs, doc, updateDoc, query, where } from 'firebase/firestore'
 
 export const useBoardsNewStore = defineStore('boardsNew', () => {
+  const userStore = useUserStore()
   const boards = ref<Board[]>([])
   const currentBoard = ref<Board | null>(null)
   const boardColumns = computed(() =>
@@ -23,31 +25,36 @@ export const useBoardsNewStore = defineStore('boardsNew', () => {
     }, 2000)
   }
 
-  const getBoardsData = async (columns: string[]) => {
-    const { activeUser } = toRefs(useUserStore())
-    const uid = (activeUser.value as ActiveUser).userID
+  const getBoardsData = async () => {
+    if (userStore.activeUser == null) {
+      await userStore.getUser()
+    }
 
-    const requiredDocRef = query(colRef, where('userID', '==', uid))
+    if (!userStore.activeUser) {
+      throw Error('Failed to retrive user')
+    }
+
+    const requiredDocRef = query(
+      colRef,
+      where('userID', '==', userStore.activeUser.userID)
+    )
     const docSnap = await getDocs(requiredDocRef)
-    const docID = docSnap.docs[0].id
-    const docRef = doc(db, 'users', docID)
-    const boardColumns = columns.map((column) => ({
-      name: column,
-      tasks: []
-    }))
+    const [documentRef] = docSnap.docs
+    const docRef = doc(db, 'users', documentRef.id)
 
-    return { docRef, boardColumns }
+    return { docRef, boards: userStore.activeUser.boards }
   }
 
-  const addNewBoard = async (name: string, columns: string[]) => {
-    const { docRef, boardColumns } = await getBoardsData(columns)
+  const addNewBoard = async (board: Omit<Board, 'id'>) => {
+    const { docRef, boards } = await getBoardsData()
 
     await updateDoc(docRef, {
       boards: [
-        ...boards.value,
+        ...boards,
         {
-          name,
-          columns: boardColumns
+          id: nanoid(),
+          name: board.name,
+          columns: board.columns
         }
       ]
     })
@@ -56,7 +63,7 @@ export const useBoardsNewStore = defineStore('boardsNew', () => {
   }
 
   const editBoard = async (name: string, columns: string[]) => {
-    const { docRef, boardColumns } = await getBoardsData(columns)
+    const { docRef, boards } = await getBoardsData()
 
     const otherBoards = ref(
       boards.value.filter((board) => board !== currentBoard.value)
