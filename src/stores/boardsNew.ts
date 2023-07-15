@@ -31,6 +31,14 @@ export const useBoardsNewStore = defineStore('boardsNew', () => {
 
       onSnapshot(userBoardsColRef, async (snapshot) => {
         boards.value = snapshot.docs.map((doc) => doc.data())
+
+        const savedBoard = JSON.parse(
+          localStorage.getItem('currentBoard') || '{}'
+        )
+        if (savedBoard) {
+          currentBoard.value = savedBoard
+          return
+        }
         currentBoard.value = boards.value[0]
       })
     }
