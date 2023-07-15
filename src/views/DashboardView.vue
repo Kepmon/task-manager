@@ -74,20 +74,16 @@ import UserOptions from '../components/UserOptions.vue'
 import ConfirmationPopup from '../components/shared/ConfirmationPopup.vue'
 import Spinner from '../components/Spinner.vue'
 import { useBoardsNewStore } from '../stores/boardsNew'
+import { useUserStore } from '../stores/user'
 import { ref, toRefs, computed } from 'vue'
 import { useWindowSize } from '@vueuse/core'
 
-const isLoading = ref(true)
+const isLoading = ref(false)
 
+const { userID } = toRefs(useUserStore())
 const { boards, currentBoard, boardColumns, isConfirmationPopupShown } = toRefs(
   useBoardsNewStore()
 )
-const { getBoardsData } = useBoardsNewStore()
-
-;(async () => {
-  await getBoardsData()
-  isLoading.value = false
-})()
 
 const isDashboardEmpty = computed(() =>
   boards.value.length === 0 ? true : false

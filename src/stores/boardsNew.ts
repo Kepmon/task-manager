@@ -3,12 +3,10 @@ import { nanoid } from 'nanoid'
 import { defineStore } from 'pinia'
 import { useUserStore } from './user'
 import { ref, toRefs, computed } from 'vue'
-import { db, colRef } from '../firebase'
+import { db, boardsColRef } from '../firebase'
 import { getDocs, doc, updateDoc, query, where } from 'firebase/firestore'
 
 export const useBoardsNewStore = defineStore('boardsNew', () => {
-  const { activeUser } = toRefs(useUserStore())
-  const { getUser } = useUserStore()
   const boards = ref<Board[]>([])
   const currentBoard = ref<Board | null>(null)
   const boardColumns = computed(() =>
@@ -18,6 +16,7 @@ export const useBoardsNewStore = defineStore('boardsNew', () => {
     boardColumns.value?.map((column) => column.name)
   )
   const isConfirmationPopupShown = ref(false)
+  const { userID } = toRefs(useUserStore())
 
   const showPopup = () => {
     isConfirmationPopupShown.value = true
@@ -27,22 +26,13 @@ export const useBoardsNewStore = defineStore('boardsNew', () => {
   }
 
   const getBoardsData = async () => {
-    if (activeUser.value == null) {
-      await getUser()
-    }
-
-    if (!activeUser.value) {
-      throw Error('Failed to retrieve user')
-    }
-
     const requiredDocRef = query(
-      colRef,
-      where('userID', '==', activeUser.value.userID)
+      boardsColRef,
+      where('userID', '==', userID.value)
     )
     const docSnap = await getDocs(requiredDocRef)
     const [documentRef] = docSnap.docs
     const docRef = doc(db, 'users', documentRef.id)
-    boards.value = activeUser.value.boards
 
     return { docRef }
   }
