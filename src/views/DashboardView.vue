@@ -1,12 +1,21 @@
-<!-- eslint-disable prettier/prettier -->
 <template>
   <div class="main-container">
-    <spinner v-if="isLoading" />
+    <Spinner v-if="isLoading" />
+
     <transition name="popup">
-      <confirmation-popup v-if="isConfirmationPopupShown" :isError="boardErrors.add" action="add" element="board" />
+      <confirmation-popup
+        v-if="isConfirmationPopupShown"
+        :isError="boardErrors.add"
+        action="add"
+        element="board"
+      />
     </transition>
 
-    <boards-navbar v-if="!isLoading" @toggle-sidebar="toggleSidebar" v-bind="boardsNavbarProps" />
+    <boards-navbar
+      v-if="!isLoading"
+      @toggle-sidebar="toggleSidebar"
+      v-bind="boardsNavbarProps"
+    />
 
     <main-navbar
       v-if="!isDashboardEmpty"
@@ -63,6 +72,7 @@ import EmptyInfo from '../components/EmptyInfo.vue'
 import BoardsColumn from '../components/BoardsColumn.vue'
 import UserOptions from '../components/UserOptions.vue'
 import ConfirmationPopup from '../components/shared/ConfirmationPopup.vue'
+import Spinner from '../components/Spinner.vue'
 import { useBoardsNewStore } from '../stores/boardsNew'
 import { ref, toRefs, computed } from 'vue'
 import { useWindowSize } from '@vueuse/core'
@@ -72,6 +82,13 @@ const isLoading = ref(true)
 const { boards, currentBoard, boardColumns, isConfirmationPopupShown } = toRefs(
   useBoardsNewStore()
 )
+const { getBoardsData } = useBoardsNewStore()
+
+;(async () => {
+  await getBoardsData()
+  isLoading.value = false
+})()
+
 const isDashboardEmpty = computed(() =>
   boards.value.length === 0 ? true : false
 )

@@ -70,8 +70,8 @@ export const useUserStore = defineStore('user', () => {
     localStorage.removeItem('user')
   })
 
-  async function getUser() {
-    return onSnapshot(colRef, async (snapshot) => {
+  const getUser = async () => {
+    onSnapshot(colRef, async (snapshot) => {
       try {
         const user = auth.currentUser as User
         const lastLoggedIn = user.metadata.lastSignInTime
