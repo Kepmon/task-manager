@@ -11,7 +11,7 @@
             ? (formNameError = true)
             : (formNameError = false)
         "
-        :modelValue="(formData.name as string)"
+        v-model="formData.name"
         :isError="formNameError"
         label="Board Name"
         :placeholder="action === 'add' ? 'e.g. Web Design' : currentBoard?.name"
@@ -80,6 +80,7 @@ import type { BoardColumn } from '../../api/boardsTypes'
 import DialogsTemplate from './DialogsTemplate.vue'
 import TextInput from '../shared/Inputs/TextInput.vue'
 import TheButton from '../../components/shared/TheButton.vue'
+import { useUserStore } from '../../stores/user'
 import { useBoardsNewStore } from '../../stores/boardsNew'
 import { ref, toRefs } from 'vue'
 
@@ -87,9 +88,10 @@ const props = defineProps<{
   action: 'add' | 'edit'
   selectedMultiOptionItems?: BoardColumn['name'][]
 }>()
-const emits = defineEmits(['close-dialog'])
+const emits = defineEmits(['update:modelValue', 'close-dialog'])
 
-const { addNewBoard, editBoard } = useBoardsNewStore()
+const { userID } = toRefs(useUserStore())
+const { addNewBoard } = useBoardsNewStore()
 const { currentBoard, boardColumnsNames } = toRefs(useBoardsNewStore())
 
 const formData = ref<{ name: string; columns: string[] }>({
@@ -108,15 +110,11 @@ const submit = async () => {
 
   if (props.action === 'add') {
     await addNewBoard({
+      userID: userID.value,
       name: formData.value.name,
       columns: formData.value.columns.map((name) => ({ name, tasks: [] }))
     })
     return
   }
-
-  await editBoard(
-    formData.value.name as string,
-    formData.value.columns as string[]
-  )
 }
 </script>

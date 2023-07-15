@@ -1,5 +1,4 @@
 export interface Board {
-  id: string
   userID: string
   name: string
   columns: BoardColumn[]

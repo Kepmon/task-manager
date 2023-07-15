@@ -12,8 +12,8 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 const props = defineProps<{
-  isError: boolean
-  errorMessage?: string | null
+  isError?: boolean
+  errorMessage?: string
   action?: 'add' | 'edit' | 'delete'
   element?: 'task' | 'board'
 }>()

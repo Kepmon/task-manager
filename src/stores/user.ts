@@ -6,6 +6,7 @@ import {
   signOut,
   onAuthStateChanged
 } from 'firebase/auth'
+import { useBoardsNewStore } from './boardsNew'
 import { ref } from 'vue'
 
 export const useUserStore = defineStore('user', () => {
@@ -14,6 +15,7 @@ export const useUserStore = defineStore('user', () => {
     | typeof signInWithEmailAndPassword
 
   const userID = ref('')
+  const { getBoardsData } = useBoardsNewStore()
 
   const handleAuth = async (
     method: Method,
@@ -46,12 +48,11 @@ export const useUserStore = defineStore('user', () => {
   }
 
   onAuthStateChanged(auth, async (user) => {
-    if (user != null) {
-      if (user) {
-        localStorage.setItem('user', JSON.stringify(user))
-        userID.value = user.uid
-        return
-      }
+    if (user) {
+      localStorage.setItem('user', JSON.stringify(user))
+      userID.value = user.uid
+      await getBoardsData(user.uid)
+      return
     }
 
     localStorage.removeItem('user')

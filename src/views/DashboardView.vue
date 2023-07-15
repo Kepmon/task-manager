@@ -5,7 +5,6 @@
     <transition name="popup">
       <confirmation-popup
         v-if="isConfirmationPopupShown"
-        :isError="boardErrors.add"
         action="add"
         element="board"
       />
@@ -74,28 +73,19 @@ import UserOptions from '../components/UserOptions.vue'
 import ConfirmationPopup from '../components/shared/ConfirmationPopup.vue'
 import Spinner from '../components/Spinner.vue'
 import { useBoardsNewStore } from '../stores/boardsNew'
-import { useUserStore } from '../stores/user'
 import { ref, toRefs, computed } from 'vue'
 import { useWindowSize } from '@vueuse/core'
 
-const isLoading = ref(false)
-
-const { userID } = toRefs(useUserStore())
 const { boards, currentBoard, boardColumns, isConfirmationPopupShown } = toRefs(
   useBoardsNewStore()
 )
-
+const isLoading = computed(() => (boards.value.length ? false : true))
 const isDashboardEmpty = computed(() =>
   boards.value.length === 0 ? true : false
 )
 const isBoardEmpty = computed(() =>
   boardColumns.value && boardColumns.value.length === 0 ? true : false
 )
-const boardErrors = ref({
-  add: false,
-  edit: false,
-  delete: false
-})
 
 const areBoardOptionsShown = ref(false)
 const boardsNavbarProps = computed(() => ({
