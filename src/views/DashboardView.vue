@@ -5,7 +5,7 @@
     <transition name="popup">
       <confirmation-popup
         v-if="isConfirmationPopupShown"
-        action="add"
+        :action="action"
         element="board"
       />
     </transition>
@@ -81,7 +81,8 @@ const {
   currentBoard,
   boardColumns,
   isLoading,
-  isConfirmationPopupShown
+  isConfirmationPopupShown,
+  action
 } = toRefs(useBoardsNewStore())
 const isDashboardEmpty = computed(() =>
   boards.value.length === 0 ? true : false

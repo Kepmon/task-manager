@@ -8,8 +8,8 @@
       :condition="areBoardOptionsShown"
       element="board"
     />
-    <nav aria-label="main navigation" class="main-nav w-full">
-      <div class="flex items-center gap-2 h-full">
+    <nav aria-label="main navigation" class="main-nav">
+      <div class="flex items-center gap-2">
         <svg width="24" height="25" class="sm:hidden" aria-label="The app logo">
           <g fill="#635FC7" fill-rule="evenodd">
             <rect width="6" height="25" rx="2" />
@@ -70,7 +70,7 @@
         </button>
       </div>
       <user-options
-        class="fixed sm:static bottom-8 right-8 scale-125 sm:scale-100"
+        class="fixed ml-3 sm:static bottom-8 right-8 scale-125 sm:scale-100"
         :class="{ 'sm:fixed sm:scale-125': currentBoard == null }"
       />
     </nav>

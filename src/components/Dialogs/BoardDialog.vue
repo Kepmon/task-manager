@@ -103,23 +103,24 @@ const formData = ref<{ name: string; columns: string[] }>({
 })
 const formNameError = ref(false)
 
-const submit = async () => {
-  if (formData.value.name === '') return
-
-  emits('close-dialog')
-
-  if (props.action === 'add') {
-    await addNewBoard({
+const submitFunctions = {
+  add: () =>
+    addNewBoard({
       userID: userID.value,
       name: formData.value.name,
       columns: formData.value.columns.map((name) => ({ name, tasks: [] }))
+    }),
+  edit: () =>
+    editBoard({
+      name: formData.value.name,
+      columns: formData.value.columns.map((name) => ({ name, tasks: [] }))
     })
-    return
-  }
+}
 
-  await editBoard({
-    name: formData.value.name,
-    columns: formData.value.columns.map((name) => ({ name, tasks: [] }))
-  })
+const submit = () => {
+  if (formData.value.name === '') return
+
+  emits('close-dialog')
+  submitFunctions[props.action as keyof typeof submitFunctions]()
 }
 </script>

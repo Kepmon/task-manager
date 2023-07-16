@@ -10,11 +10,22 @@
       </p>
 
       <div class="flex flex-col s:flex-row gap-4">
-        <the-button :regularButton="true" :isInForm="true" class="red-button">
+        <the-button
+          @click="submit"
+          :regularButton="true"
+          :isInForm="true"
+          class="red-button"
+        >
           Delete
         </the-button>
 
-        <the-button :regularButton="true" :isInForm="true" class="white-button">
+        <the-button
+          @click="$emit('close-dialog')"
+          :regularButton="true"
+          :isInForm="true"
+          type="button"
+          class="white-button"
+        >
           Cancel
         </the-button>
       </div>
@@ -26,12 +37,13 @@
 import DialogsTemplate from './DialogsTemplate.vue'
 import TheButton from '../shared/TheButton.vue'
 import { computed } from 'vue'
+import { useBoardsNewStore } from '../../stores/boardsNew'
 
 const props = defineProps<{
   elementToDelete: 'board' | 'task'
   elementName: string
 }>()
-defineEmits(['close-dialog'])
+const emits = defineEmits(['close-dialog'])
 
 const message = computed(() => {
   const prefix = `Are you sure you want to delete the '${props.elementName}'`
@@ -45,6 +57,12 @@ const message = computed(() => {
   }?
     ${suffix}`
 })
+
+const { deleteBoard } = useBoardsNewStore()
+const submit = () => {
+  emits('close-dialog')
+  deleteBoard()
+}
 </script>
 
 <style scoped>
