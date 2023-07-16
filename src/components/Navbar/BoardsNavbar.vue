@@ -79,11 +79,11 @@ defineProps<{
 defineEmits(['toggle-sidebar'])
 
 const isAddBoardDialogShown = ref(false)
-const { currentBoard } = toRefs(useBoardsNewStore())
+const { chosenBoard } = toRefs(useBoardsNewStore())
 
 const changeCurrentBoard = (board: Board) => {
-  currentBoard.value = board
-  localStorage.setItem('currentBoard', JSON.stringify(currentBoard.value))
+  chosenBoard.value = board
+  localStorage.setItem('currentBoard', JSON.stringify(chosenBoard.value))
 }
 </script>
 

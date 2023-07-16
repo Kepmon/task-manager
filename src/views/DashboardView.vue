@@ -76,10 +76,13 @@ import { useBoardsNewStore } from '../stores/boardsNew'
 import { ref, toRefs, computed } from 'vue'
 import { useWindowSize } from '@vueuse/core'
 
-const { boards, currentBoard, boardColumns, isConfirmationPopupShown } = toRefs(
-  useBoardsNewStore()
-)
-const isLoading = computed(() => (boards.value.length ? false : true))
+const {
+  boards,
+  currentBoard,
+  boardColumns,
+  isLoading,
+  isConfirmationPopupShown
+} = toRefs(useBoardsNewStore())
 const isDashboardEmpty = computed(() =>
   boards.value.length === 0 ? true : false
 )

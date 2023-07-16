@@ -91,7 +91,7 @@ const props = defineProps<{
 const emits = defineEmits(['update:modelValue', 'close-dialog'])
 
 const { userID } = toRefs(useUserStore())
-const { addNewBoard } = useBoardsNewStore()
+const { addNewBoard, editBoard } = useBoardsNewStore()
 const { currentBoard, boardColumnsNames } = toRefs(useBoardsNewStore())
 
 const formData = ref<{ name: string; columns: string[] }>({
@@ -116,5 +116,10 @@ const submit = async () => {
     })
     return
   }
+
+  await editBoard({
+    name: formData.value.name,
+    columns: formData.value.columns.map((name) => ({ name, tasks: [] }))
+  })
 }
 </script>

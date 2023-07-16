@@ -1,4 +1,6 @@
 export interface Board {
+  docID: string
+  createdAt: string
   userID: string
   name: string
   columns: BoardColumn[]
