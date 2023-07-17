@@ -11,9 +11,9 @@
       <p class="all-boards">
         all boards <span v-if="boards">({{ boards.length }})</span>
       </p>
-      <div class="sm:flex sm:flex-col sm:justify-between sm:grow">
+      <div class="sm:flex sm:flex-col grow">
         <div>
-          <ul v-if="boards != null">
+          <ul v-if="boards != null" class="grid">
             <board-label
               @click="() => changeCurrentBoard(board)"
               v-for="(board, index) in boards"
@@ -37,7 +37,7 @@
             class="text-purple-400 fill-purple-400"
           />
         </div>
-        <div>
+        <div class="mt-auto">
           <theme-toggle
             class="mt-4 w-[90%] bg-blue-200 dark:bg-gray-800 rounded-md"
           />

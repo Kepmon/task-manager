@@ -47,11 +47,11 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  onAuthStateChanged(auth, async (user) => {
+  onAuthStateChanged(auth, (user) => {
     if (user) {
       localStorage.setItem('user', JSON.stringify(user))
       userID.value = user.uid
-      await getBoardsData(user.uid)
+      getBoardsData(user.uid)
       return
     }
 

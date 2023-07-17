@@ -48,7 +48,7 @@ export const useBoardsNewStore = defineStore('boardsNew', () => {
     }, 2000)
   }
 
-  const getBoardsData = async (userID: Board['userID']) => {
+  const getBoardsData = (userID: Board['userID']) => {
     if (userID) {
       userBoardsColRef.value = query(
         boardsColRef,
@@ -56,7 +56,7 @@ export const useBoardsNewStore = defineStore('boardsNew', () => {
         orderBy('createdAt', 'desc')
       )
 
-      onSnapshot(userBoardsColRef.value, async (snapshot) => {
+      onSnapshot(userBoardsColRef.value, (snapshot) => {
         boards.value = snapshot.docs.map((doc) => {
           return {
             docID: doc.id,
@@ -67,7 +67,7 @@ export const useBoardsNewStore = defineStore('boardsNew', () => {
         const savedBoard = JSON.parse(
           localStorage.getItem('currentBoard') || '{}'
         )
-        if (savedBoard) {
+        if (Object.keys(savedBoard).length !== 0) {
           chosenBoard.value = savedBoard
         }
       })
