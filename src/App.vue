@@ -1,13 +1,16 @@
 <template>
   <router-view v-slot="{ Component }">
     <transition name="pages" mode="out-in">
-      <component :is="Component" />
+      <with-auth>
+        <component :is="Component" />
+      </with-auth>
     </transition>
   </router-view>
 </template>
 
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
+import WithAuth from './components/auth/WithAuth.vue'
 </script>
 
 <style>

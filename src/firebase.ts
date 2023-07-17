@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
-import { getFirestore, collection } from 'firebase/firestore'
+import { getFirestore } from 'firebase/firestore'
 
 const env = import.meta.env
 
@@ -13,7 +13,6 @@ const firebaseConfig = {
   appId: env.VITE_APP_ID
 }
 
-export const app = initializeApp(firebaseConfig)
-export const auth = getAuth()
-export const db = getFirestore()
-export const colRef = collection(db, 'users')
+export const firebaseApp = initializeApp(firebaseConfig)
+export const firebaseAuth = getAuth()
+export const db = getFirestore(firebaseApp)

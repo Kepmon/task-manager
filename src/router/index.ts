@@ -5,47 +5,44 @@ import SignUpView from '../views/SignUpView.vue'
 import PrivacyPolicyView from '../views/PrivacyPolicyView.vue'
 import { useUserStore } from '../stores/user'
 
+const protectedRoutes = [
+  {
+    path: '/',
+    name: 'login',
+    component: LoginView
+  },
+  {
+    path: '/sign-up',
+    name: 'sign-up',
+    component: SignUpView
+  },
+  {
+    path: '/privacy-policy',
+    name: 'privacy-policy',
+    component: PrivacyPolicyView
+  }
+]
+const publicRoutes = [
+  {
+    path: '/dashboard',
+    name: 'dashboard',
+    component: DashboardView
+  }
+]
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [
-    {
-      path: '/',
-      name: 'login',
-      component: LoginView
-    },
-    {
-      path: '/sign-up',
-      name: 'sign-up',
-      component: SignUpView
-    },
-    {
-      path: '/privacy-policy',
-      name: 'privacy-policy',
-      component: PrivacyPolicyView
-    },
-    {
-      path: '/dashboard',
-      name: 'dashboard',
-      component: DashboardView
-    }
-  ]
+  routes: [...publicRoutes, ...protectedRoutes]
 })
 
 router.beforeEach((to, from, next) => {
-  const user = localStorage.getItem('user')
-  const { logout } = useUserStore()
-
-  if (to.path === '/dashboard' && !user) {
-    logout()
-    next('/')
-    return
+  const userStore = useUserStore()
+  if (
+    protectedRoutes.find((route) => route.path === to.path) &&
+    userStore.isAuthenticated === false
+  ) {
+    return next({ name: 'login' })
   }
-
-  if ((to.path === '/' || to.path === '/sign-up') && user) {
-    next('/dashboard')
-    return
-  }
-
   next()
 })
 

@@ -36,7 +36,7 @@
           element="task"
         />
 
-        <p class="text-gray-400 text-xs xs::text-sm">
+        <!-- <p class="text-gray-400 text-xs xs::text-sm">
           {{ description }}
         </p>
 
@@ -66,17 +66,17 @@
               </span>
             </label>
           </div>
-        </div>
+        </div> -->
 
         <div>
           <p class="mb-2 text-xs text-gray-400 dark:text-white">
             Current Status
           </p>
-          <v-select
+          <!-- <v-select
             :options="statusItems"
             :searchable="false"
             placeholder="Doing"
-          ></v-select>
+          ></v-select> -->
         </div>
       </div>
     </template>
@@ -93,9 +93,9 @@ import { ref, Ref } from 'vue'
 
 defineEmits(['close-dialog', 'show-edit-form', 'show-delete-form'])
 
-const { columns, description, subtasks, returnNumberOfCompletedSubtasks } =
-  useBoardsStore()
-const statusItems = columns.map((column) => column.name)
+// const { columns, description, subtasks, returnNumberOfCompletedSubtasks } =
+//   useBoardsStore()
+// const statusItems = columns.map((column) => column.name)
 const areTaskOptionsShown = ref(false)
 
 const { toggleOptions, closeOptions } = moreOptionsPopup

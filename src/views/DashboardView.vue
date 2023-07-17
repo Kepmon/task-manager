@@ -76,18 +76,14 @@ import Spinner from '../components/Spinner.vue'
 import { useBoardsNewStore } from '../stores/boardsNew'
 import { ref, toRefs, computed } from 'vue'
 import { useWindowSize } from '@vueuse/core'
+import { useUserStore } from '../stores/user'
 
 const isLoading = ref(true)
 
 const { boards, currentBoard, boardColumns, isConfirmationPopupShown } = toRefs(
   useBoardsNewStore()
 )
-const { getBoardsData } = useBoardsNewStore()
-
-;(async () => {
-  await getBoardsData()
-  isLoading.value = false
-})()
+const userStore = useUserStore()
 
 const isDashboardEmpty = computed(() =>
   boards.value.length === 0 ? true : false

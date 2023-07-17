@@ -10,7 +10,7 @@
         aria-label="The app logo"
         class="mb-4 scale-125 sm:scale-150"
       />
-      <form @submit.prevent="handleAuth" class="form">
+      <form @submit.prevent="onSubmit" class="form">
         <header class="xs:text-lg first-letter:uppercase">
           <h2>{{ currentAccountLink.action }}</h2>
         </header>
@@ -26,7 +26,7 @@
           :regularButton="true"
           :isInForm="true"
           class="purple-class"
-          :disabled="form.isSubmitting.value"
+          :disabled="form.meta.value.valid === false"
         >
           {{ currentAccountLink.action }}
         </the-button>
@@ -74,9 +74,8 @@ import ThemeToggle from '../../components/shared/ThemeToggle.vue'
 import ConfirmationPopup from '../../components/shared/ConfirmationPopup.vue'
 import PrivacyPolicyLayout from './PrivacyPolicyLayout.vue'
 import LogoIcon from '../Svgs/LogoIcon.vue'
-import { useDark } from '@vueuse/core'
 import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '../../stores/user'
 import {
   isAuthError,
@@ -90,10 +89,12 @@ import {
 import { useForm } from 'vee-validate'
 import * as Yup from 'yup'
 import { toTypedSchema } from '@vee-validate/yup'
+import { db, firebaseAuth } from '../../firebase'
 
-const isDark = useDark()
+const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+
 const currentPath = route.path
 const isPrivacyPolicyShown = ref(false)
 
@@ -141,26 +142,59 @@ const form = useForm({
   )
 })
 
-const errorMessage = ref(null)
-const handleAuth = form.handleSubmit(async (values) => {
-  const method =
-    currentPath === '/'
-      ? signInWithEmailAndPassword
-      : createUserWithEmailAndPassword
+const errorMessage = ref<string | null>(null)
+const onSubmit = form.handleSubmit(async (values) => {
+  if (route.path === '/') {
+    const request = await signInWithEmailAndPassword(
+      firebaseAuth,
+      values.email,
+      values.password
+    )
 
-  const response = await userStore.handleAuth(
-    method,
-    values.email,
-    values.password,
-    currentPath
-  )
+    if (['reauthenticate', 'signIn'].includes(request.operationType)) {
+      // TODO: show succes toast
+    }
 
-  if (response !== true) {
-    errorMessage.value = response
+    // TODO: if request has failed show error toast
+  } else {
+    // register
+    try {
+      const res = await createUserWithEmailAndPassword(
+        firebaseAuth,
+        values.email,
+        values.password
+      )
+      // TODO: write user to db
+      await userStore.init(res.user.uid)
+    } catch (error) {
+      // TODO: show error toast
+    }
   }
 
-  handleAuthResponse(response)
+  if (userStore.isAuthenticated) {
+    router.push('/dashboard')
+  }
 })
+
+// const handleAuth = form.handleSubmit(async (values) => {
+//   const method =
+//     currentPath === '/'
+//       ? signInWithEmailAndPassword
+//       : createUserWithEmailAndPassword
+
+//   const response = await userStore.handleAuth(
+//     method
+//     values.email,
+//     values.password,
+//     currentPath
+//   )
+
+//   if (response !== true) {
+//     errorMessage.value = response as string
+//   }
+
+//   handleAuthResponse(response)
+// })
 </script>
 
 <style scoped>
@@ -174,6 +208,7 @@ const handleAuth = form.handleSubmit(async (values) => {
   @apply after:absolute after:-bottom-1 after:left-0 after:h-[2px];
   @apply after:w-full after:bg-purple-400 after:scale-0 hover:after:scale-100 focus-visible:after:scale-100;
   @apply after:origin-left after:transition-transform after:duration-300 outline outline-transparent;
+  @apply disabled:cursor-default disabled:hover:after:scale-0;
 }
 
 .privacy-policy-enter-from,
