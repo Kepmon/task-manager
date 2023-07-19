@@ -1,20 +1,16 @@
 <template>
   <div class="main-container">
-    <Spinner v-if="isLoading" />
+    <Spinner v-if="boardsNewStore.isLoading" />
 
     <transition name="popup">
       <confirmation-popup
-        v-if="isConfirmationPopupShown"
-        :action="action"
+        v-if="boardsNewStore.isConfirmationPopupShown"
+        :action="boardsNewStore.action"
         element="board"
       />
     </transition>
 
-    <boards-navbar
-      v-if="!isLoading"
-      @toggle-sidebar="toggleSidebar"
-      v-bind="boardsNavbarProps"
-    />
+    <boards-navbar @toggle-sidebar="toggleSidebar" v-bind="boardsNavbarProps" />
 
     <main-navbar
       v-if="!isDashboardEmpty"
@@ -47,16 +43,16 @@
       <boards-column
         v-if="!isDashboardEmpty"
         :selectedMultiOptionItems="['Todo', 'Doing']"
-        :columns="boardColumns"
+        :columns="boardsNewStore.boardColumns"
         :logo="isLogoShown"
       />
       <empty-info
-        v-if="!isLoading"
+        v-if="!boardsNewStore.isLoading"
         :emptyDashboard="isDashboardEmpty"
         :emptyBoard="isBoardEmpty"
       />
       <user-options
-        v-if="isDashboardEmpty && !isLoading"
+        v-if="isDashboardEmpty && !boardsNewStore.isLoading"
         :isDashboardEmpty="isDashboardEmpty"
         class="absolute bottom-8 right-8 scale-125"
       />
@@ -73,29 +69,24 @@ import UserOptions from '../components/UserOptions.vue'
 import ConfirmationPopup from '../components/shared/ConfirmationPopup.vue'
 import Spinner from '../components/Spinner.vue'
 import { useBoardsNewStore } from '../stores/boardsNew'
-import { ref, toRefs, computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useWindowSize } from '@vueuse/core'
 
-const {
-  boards,
-  currentBoard,
-  boardColumns,
-  isLoading,
-  isConfirmationPopupShown,
-  action
-} = toRefs(useBoardsNewStore())
+const boardsNewStore = useBoardsNewStore()
 const isDashboardEmpty = computed(() =>
-  boards.value.length === 0 ? true : false
+  boardsNewStore.boards.length === 0 ? true : false
 )
 const isBoardEmpty = computed(() =>
-  boardColumns.value && boardColumns.value.length === 0 ? true : false
+  boardsNewStore.boardColumns && boardsNewStore.boardColumns.length === 0
+    ? true
+    : false
 )
 
 const areBoardOptionsShown = ref(false)
 const boardsNavbarProps = computed(() => ({
   condition: windowWidth.value < 640 ? isNavOpen.value : isSidebarShown.value,
-  boards: boards.value,
-  boardName: currentBoard.value ? currentBoard.value.name : ''
+  boards: boardsNewStore.boards,
+  boardName: boardsNewStore.currentBoard?.name || ''
 }))
 
 const isSidebarShown = ref(true)
@@ -120,7 +111,7 @@ const toggleBoardsNav = () => {
 const { width: windowWidth } = useWindowSize()
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .main-container {
   @apply grid grid-rows-[80px_calc(100vh-80px)];
   @apply sm:grid-cols-[33%_67%] lg:grid-cols-[25%_75%] xl:grid-cols-[20%_80%];

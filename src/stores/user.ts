@@ -15,7 +15,7 @@ export const useUserStore = defineStore('user', () => {
     | typeof signInWithEmailAndPassword
 
   const userID = ref('')
-  const { getBoardsData } = useBoardsNewStore()
+  const boardsNewStore = useBoardsNewStore()
 
   const handleAuth = async (
     method: Method,
@@ -51,7 +51,7 @@ export const useUserStore = defineStore('user', () => {
     if (user) {
       localStorage.setItem('user', JSON.stringify(user))
       userID.value = user.uid
-      getBoardsData(user.uid)
+      boardsNewStore.getBoardsData(user.uid)
       return
     }
 

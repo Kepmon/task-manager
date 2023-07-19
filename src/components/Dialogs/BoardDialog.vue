@@ -14,7 +14,11 @@
         v-model="formData.name"
         :isError="formNameError"
         label="Board Name"
-        :placeholder="action === 'add' ? 'e.g. Web Design' : currentBoard?.name"
+        :placeholder="
+          action === 'add'
+            ? 'e.g. Web Design'
+            : boardsNewStore.currentBoard?.name
+        "
         :whitePlaceholder="action === 'add' ? false : true"
         :class="{ 'input-error after:translate-y-full': formNameError }"
       />
@@ -82,7 +86,7 @@ import TextInput from '../shared/Inputs/TextInput.vue'
 import TheButton from '../../components/shared/TheButton.vue'
 import { useUserStore } from '../../stores/user'
 import { useBoardsNewStore } from '../../stores/boardsNew'
-import { ref, toRefs } from 'vue'
+import { ref } from 'vue'
 
 const props = defineProps<{
   action: 'add' | 'edit'
@@ -90,28 +94,28 @@ const props = defineProps<{
 }>()
 const emits = defineEmits(['update:modelValue', 'close-dialog'])
 
-const { userID } = toRefs(useUserStore())
-const { addNewBoard, editBoard } = useBoardsNewStore()
-const { currentBoard, boardColumnsNames } = toRefs(useBoardsNewStore())
+const userStore = useUserStore()
+const boardsNewStore = useBoardsNewStore()
 
 const formData = ref<{ name: string; columns: string[] }>({
-  name: props.action === 'add' ? '' : (currentBoard.value?.name as string),
+  name:
+    props.action === 'add' ? '' : (boardsNewStore.currentBoard?.name as string),
   columns:
     props.action === 'add'
       ? ['Todo', 'Doing']
-      : (boardColumnsNames.value as string[])
+      : (boardsNewStore.boardColumnsNames as string[])
 })
 const formNameError = ref(false)
 
 const submitFunctions = {
   add: () =>
-    addNewBoard({
-      userID: userID.value,
+    boardsNewStore.addNewBoard({
+      userID: userStore.userID,
       name: formData.value.name,
       columns: formData.value.columns.map((name) => ({ name, tasks: [] }))
     }),
   edit: () =>
-    editBoard({
+    boardsNewStore.editBoard({
       name: formData.value.name,
       columns: formData.value.columns.map((name) => ({ name, tasks: [] }))
     })

@@ -161,7 +161,7 @@ const handleAuth = form.handleSubmit(async (values) => {
 })
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .form {
   @apply flex flex-col gap-6 relative p-6 w-[90%] sm:w-[480px];
   @apply rounded-md bg-white dark:bg-gray-700;

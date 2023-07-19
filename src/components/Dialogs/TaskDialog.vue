@@ -17,7 +17,7 @@
         <p class="mb-2 text-xs">Subtasks</p>
         <div class="grid gap-3">
           <div
-            v-for="(item, index) in boardColumnsNames"
+            v-for="(item, index) in boardsNewStore.boardColumnsNames"
             :key="index"
             class="flex items-center"
           >
@@ -76,7 +76,7 @@ import TextInput from '../shared/Inputs/TextInput.vue'
 import DescriptionField from '../shared/Inputs/DescriptionField.vue'
 import TheButton from '../../components/shared/TheButton.vue'
 import { useBoardsNewStore } from '../../stores/boardsNew'
-import { ref, toRefs } from 'vue'
+import { ref } from 'vue'
 
 defineProps<{
   action: 'add' | 'edit'
@@ -86,5 +86,5 @@ defineEmits(['close-dialog'])
 
 const taskTitle = ref('')
 const statusItems = ref<BoardColumn['name'][]>([])
-const { boardColumnsNames } = toRefs(useBoardsNewStore())
+const boardsNewStore = useBoardsNewStore()
 </script>

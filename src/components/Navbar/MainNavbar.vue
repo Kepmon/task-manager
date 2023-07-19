@@ -25,7 +25,7 @@
           class="flex items-center gap-2"
         >
           <h1 class="py-4 font-bold xs:text-lg" :class="{ 'sm:pl-6': isLogo }">
-            {{ currentBoard?.name }}
+            {{ boardsNewStore.currentBoard?.name }}
           </h1>
           <svg
             width="10"
@@ -71,7 +71,9 @@
       </div>
       <user-options
         class="fixed ml-3 sm:static bottom-8 right-8 scale-125 sm:scale-100"
-        :class="{ 'sm:fixed sm:scale-125': currentBoard == null }"
+        :class="{
+          'sm:fixed sm:scale-125': boardsNewStore.currentBoard == null
+        }"
       />
     </nav>
     <transition name="dialog">
@@ -113,7 +115,7 @@ import LogoIcon from '../Svgs/LogoIcon.vue'
 import UserOptions from '../UserOptions.vue'
 import moreOptionsPopup from '../../composables/moreOptionsPopup'
 import { useBoardsNewStore } from '../../stores/boardsNew'
-import { ref, Ref, toRefs } from 'vue'
+import { ref, Ref } from 'vue'
 
 defineProps<{
   sidebar: boolean
@@ -128,7 +130,7 @@ const isAddTaskDialogShown = ref(false)
 const isDeleteBoardDialogShown = ref(false)
 const isEditBoardDialogShown = ref(false)
 
-const { currentBoard } = toRefs(useBoardsNewStore())
+const boardsNewStore = useBoardsNewStore()
 const subtasks = ref([
   {
     title: 'Settings - Account page',

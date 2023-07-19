@@ -7,7 +7,7 @@
   </svg>
 </template>
 
-<style scoped>
+<style lang="postcss" scoped>
 svg {
   @apply h-6 w-6 s:h-8 s:w-8;
 }

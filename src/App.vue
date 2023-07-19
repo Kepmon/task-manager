@@ -8,9 +8,12 @@
 
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
+import { useDark } from '@vueuse/core'
+
+const isDark = useDark()
 </script>
 
-<style>
+<style lang="postcss">
 @supports (scrollbar-width: thin) {
   * {
     scrollbar-width: thin;

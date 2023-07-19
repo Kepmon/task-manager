@@ -58,14 +58,14 @@ const message = computed(() => {
     ${suffix}`
 })
 
-const { deleteBoard } = useBoardsNewStore()
+const boardsNewStore = useBoardsNewStore()
 const submit = () => {
   emits('close-dialog')
-  deleteBoard()
+  boardsNewStore.deleteBoard()
 }
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .red-button {
   @apply text-white bg-red-400 hover:bg-red-200 focus-visible:bg-red-200;
   @apply transition-colors duration-300 outline outline-transparent;

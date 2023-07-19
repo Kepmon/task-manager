@@ -107,7 +107,7 @@ const handleMoreOptionsFn = (
 }
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .checkbox {
   @apply appearance-none after:flex after:items-center after:justify-center;
   @apply after:h-3 after:w-3 after:bg-white after:shadow-option after:rounded-[2px];

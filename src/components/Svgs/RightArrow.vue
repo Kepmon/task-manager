@@ -15,7 +15,7 @@
   </div>
 </template>
 
-<style scoped>
+<style lang="postcss" scoped>
 div {
   @apply hidden xs:block w-[max-content];
 }
