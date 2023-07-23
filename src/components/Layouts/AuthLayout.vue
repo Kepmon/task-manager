@@ -74,7 +74,6 @@ import ThemeToggle from '../../components/shared/ThemeToggle.vue'
 import ConfirmationPopup from '../../components/shared/ConfirmationPopup.vue'
 import PrivacyPolicyLayout from './PrivacyPolicyLayout.vue'
 import LogoIcon from '../Svgs/LogoIcon.vue'
-import { useDark } from '@vueuse/core'
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useUserStore } from '../../stores/user'
@@ -91,7 +90,6 @@ import { useForm } from 'vee-validate'
 import * as Yup from 'yup'
 import { toTypedSchema } from '@vee-validate/yup'
 
-const isDark = useDark()
 const route = useRoute()
 const userStore = useUserStore()
 const currentPath = route.path
@@ -141,7 +139,7 @@ const form = useForm({
   )
 })
 
-const errorMessage = ref(null)
+const errorMessage = ref<string>('')
 const handleAuth = form.handleSubmit(async (values) => {
   const method =
     currentPath === '/'
@@ -163,7 +161,7 @@ const handleAuth = form.handleSubmit(async (values) => {
 })
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .form {
   @apply flex flex-col gap-6 relative p-6 w-[90%] sm:w-[480px];
   @apply rounded-md bg-white dark:bg-gray-700;

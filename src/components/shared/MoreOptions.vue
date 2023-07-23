@@ -45,7 +45,7 @@ const target = ref(null)
 onClickOutside(target, (e: Event) => emits('close-more-options', e))
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .option--edit {
   @apply rounded-t-lg;
 }

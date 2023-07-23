@@ -39,7 +39,7 @@
   </svg>
 </template>
 
-<style scoped>
+<style lang="postcss" scoped>
 svg > g {
   @apply fill-black dark:fill-white;
 }

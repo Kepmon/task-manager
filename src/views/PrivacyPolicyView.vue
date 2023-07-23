@@ -12,10 +12,10 @@ import PrivacyPolicyLayout from '../components/Layouts/PrivacyPolicyLayout.vue'
 import { useUserStore } from '../stores/user'
 import { computed } from 'vue'
 
-const { user } = useUserStore()
+const userStore = useUserStore()
 
 const link = computed(() => {
-  return user
+  return userStore.userID
     ? {
         path: '/dashboard',
         text: 'Dashboard'
@@ -27,7 +27,7 @@ const link = computed(() => {
 })
 </script>
 
-<style>
+<style lang="postcss">
 .link {
   @apply block px-6 py-3 mx-auto w-[max-content] rounded-b-3xl;
   @apply bg-white dark:bg-gray-700 outline outline-transparent;

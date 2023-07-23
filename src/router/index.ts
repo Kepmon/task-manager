@@ -33,10 +33,10 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const user = localStorage.getItem('user')
-  const { logout } = useUserStore()
+  const userStore = useUserStore()
 
   if (to.path === '/dashboard' && !user) {
-    logout()
+    userStore.logout()
     next('/')
     return
   }

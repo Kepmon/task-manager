@@ -16,4 +16,4 @@ const firebaseConfig = {
 export const app = initializeApp(firebaseConfig)
 export const auth = getAuth()
 export const db = getFirestore()
-export const colRef = collection(db, 'users')
+export const boardsColRef = collection(db, 'boards')

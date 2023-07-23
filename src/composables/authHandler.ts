@@ -3,7 +3,7 @@ import router from '../router'
 
 export const isAuthError = ref(false)
 export const isPopupShown = ref(false)
-export const handleAuthResponse = (response: boolean) => {
+export const handleAuthResponse = (response: boolean | string) => {
   if (response !== true) {
     isAuthError.value = true
   }

@@ -30,7 +30,7 @@ defineEmits(['close-popup'])
 const currentPath = useRoute().path
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .privacy-policy-popup {
   @apply grid absolute inset-x-0 inset-y-6 s:inset-x-10 py-12 px-4 s:px-8 s:py-8;
   @apply mt-10 mx-auto max-w-[1200px] font-normal rounded-3xl;

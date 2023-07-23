@@ -57,7 +57,7 @@ const target = ref(null)
 onClickOutside(target, () => (areUserOptionsShown.value = false))
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .options-enter-from,
 .options-leave-to {
   @apply origin-bottom-right s:origin-top-right;

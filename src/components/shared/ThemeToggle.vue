@@ -26,7 +26,7 @@ const isDark = useDark()
 const toggleDark = useToggle(isDark)
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .theme-toggle-move {
   @apply transition-all duration-300;
 }
