@@ -1,21 +1,10 @@
 import { ref } from 'vue'
-import router from '../router'
 
 export const isAuthError = ref(false)
 export const isPopupShown = ref(false)
-export const handleAuthResponse = (response: boolean | string) => {
-  if (response !== true) {
-    isAuthError.value = true
-  }
 
-  if (response === true) {
-    isAuthError.value = false
-    setTimeout(() => {
-      router.push(
-        `${router.currentRoute.value.path === '/' ? '/dashboard' : '/'}`
-      )
-    }, 3000)
-  }
+export const handleAuthResponse = (response: boolean | string) => {
+  response === true ? (isAuthError.value = false) : (isAuthError.value = true)
 
   isPopupShown.value = true
   setTimeout(() => {

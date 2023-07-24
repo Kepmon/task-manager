@@ -63,6 +63,7 @@ button {
 .purple-class {
   @apply bg-purple-400 hover:bg-purple-600 focus-visible:bg-purple-600;
   @apply text-white outline outline-transparent transition-colors duration-300;
+  @apply disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-purple-400;
 }
 
 .white-button {
