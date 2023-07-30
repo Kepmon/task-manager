@@ -37,10 +37,10 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  const user = localStorage.getItem('user')
+  const userStore = useUserStore()
+  const user = userStore.authUser
 
   if (to.path === '/dashboard' && !user) {
-    const userStore = useUserStore()
     userStore.logout()
     return next('/')
   }

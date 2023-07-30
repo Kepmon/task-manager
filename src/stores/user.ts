@@ -5,29 +5,32 @@ import {
   signInWithEmailAndPassword,
   signOut
 } from 'firebase/auth'
-import { addDoc } from 'firebase/firestore'
+import { doc, addDoc, updateDoc, DocumentReference } from 'firebase/firestore'
 import { colRef, firebaseAuth } from '../firebase'
-import { useRouter } from 'vue-router'
+import { ref } from 'vue'
 
 export const useUserStore = defineStore('user', () => {
   const { isAuthenticated, user: authUser } = useAuth(firebaseAuth)
-  const register = async (email: string, password: string) => {
-    const router = useRouter()
 
+  const docID = ref<null | DocumentReference['id']>(null)
+
+  const register = async (email: string, password: string) => {
     try {
       await createUserWithEmailAndPassword(firebaseAuth, email, password)
 
       if (!authUser.value) throw new Error()
 
       if (authUser.value) {
-        await addDoc(colRef, {
+        const response = await addDoc(colRef, {
           userID: authUser.value?.uid,
           boards: []
         })
 
-        setTimeout(() => {
-          router.push('/')
-        }, 3000)
+        docID.value = response.id
+        const docRef = doc(colRef, response.id)
+        await updateDoc(docRef, {
+          docID: response.id
+        })
 
         await logout()
       }
@@ -39,7 +42,6 @@ export const useUserStore = defineStore('user', () => {
   }
 
   const logIn = async (email: string, password: string) => {
-    const router = useRouter()
     try {
       await signInWithEmailAndPassword(firebaseAuth, email, password)
 
@@ -47,9 +49,6 @@ export const useUserStore = defineStore('user', () => {
 
       if (authUser.value) {
         localStorage.setItem('user', JSON.stringify(authUser.value))
-        setTimeout(() => {
-          router.push('/dashboard')
-        }, 3000)
       }
 
       return true
