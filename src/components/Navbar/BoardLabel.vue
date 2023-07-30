@@ -27,7 +27,7 @@ defineProps<{
 }>()
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .board-label {
   @apply flex items-center gap-2 h-12 w-[90%] px-3 xs:px-6;
   @apply rounded-r-[100px] cursor-pointer sm:pr-11;

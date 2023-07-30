@@ -11,7 +11,7 @@
   </div>
 </template>
 
-<style scoped>
+<style lang="postcss" scoped>
 .lds-roller {
   @apply absolute inset-0 m-auto w-20 aspect-square;
 }

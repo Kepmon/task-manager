@@ -39,16 +39,24 @@ import {
 } from '../composables/authHandler'
 import { onClickOutside } from '@vueuse/core'
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 defineProps<{
   isDashboardEmpty?: true
 }>()
 
 const userStore = useUserStore()
+const router = useRouter()
 const areUserOptionsShown = ref(false)
 
 const logout = async () => {
   const response = await userStore.logout()
+
+  if (response) {
+    setTimeout(() => {
+      router.push('/')
+    }, 3000)
+  }
 
   handleAuthResponse(response)
 }
@@ -57,7 +65,7 @@ const target = ref(null)
 onClickOutside(target, () => (areUserOptionsShown.value = false))
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .options-enter-from,
 .options-leave-to {
   @apply origin-bottom-right s:origin-top-right;

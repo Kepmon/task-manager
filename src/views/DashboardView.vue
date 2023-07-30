@@ -1,12 +1,16 @@
-<!-- eslint-disable prettier/prettier -->
 <template>
   <div class="main-container">
-    <spinner v-if="isLoading" />
+    <Spinner v-if="boardsNewStore.isLoading" />
+
     <transition name="popup">
-      <confirmation-popup v-if="isConfirmationPopupShown" :isError="boardErrors.add" action="add" element="board" />
+      <confirmation-popup
+        v-if="boardsNewStore.isConfirmationPopupShown"
+        :action="boardsNewStore.action"
+        element="board"
+      />
     </transition>
 
-    <boards-navbar v-if="!isLoading" @toggle-sidebar="toggleSidebar" v-bind="boardsNavbarProps" />
+    <boards-navbar @toggle-sidebar="toggleSidebar" v-bind="boardsNavbarProps" />
 
     <main-navbar
       v-if="!isDashboardEmpty"
@@ -39,16 +43,16 @@
       <boards-column
         v-if="!isDashboardEmpty"
         :selectedMultiOptionItems="['Todo', 'Doing']"
-        :columns="boardColumns"
+        :columns="boardsNewStore.boardColumns"
         :logo="isLogoShown"
       />
       <empty-info
-        v-if="!isLoading"
+        v-if="!boardsNewStore.isLoading"
         :emptyDashboard="isDashboardEmpty"
         :emptyBoard="isBoardEmpty"
       />
       <user-options
-        v-if="isDashboardEmpty && !isLoading"
+        v-if="isDashboardEmpty && !boardsNewStore.isLoading"
         :isDashboardEmpty="isDashboardEmpty"
         class="absolute bottom-8 right-8 scale-125"
       />
@@ -57,89 +61,33 @@
 </template>
 
 <script setup lang="ts">
-import type { ActiveUser } from '../api/boardsTypes'
 import MainNavbar from '../components/Navbar/MainNavbar.vue'
 import BoardsNavbar from '../components/Navbar/BoardsNavbar.vue'
 import EmptyInfo from '../components/EmptyInfo.vue'
 import BoardsColumn from '../components/BoardsColumn.vue'
 import UserOptions from '../components/UserOptions.vue'
 import ConfirmationPopup from '../components/shared/ConfirmationPopup.vue'
-import { useUserStore } from '../stores/user'
-import { useBoardsNewStore } from '../stores/boardsNew'
-import { ref, toRefs, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { useWindowSize } from '@vueuse/core'
-import { User } from 'firebase/auth'
-import { onSnapshot } from 'firebase/firestore'
 import Spinner from '../components/Spinner.vue'
-import { auth, colRef } from '../firebase'
+import { useBoardsNewStore } from '../stores/boardsNew'
+import { ref, computed } from 'vue'
+import { useWindowSize } from '@vueuse/core'
 
-const isLoading = ref(true)
+const boardsNewStore = useBoardsNewStore()
 
-const { boards, currentBoard, boardColumns, isConfirmationPopupShown } = toRefs(
-  useBoardsNewStore()
-)
 const isDashboardEmpty = computed(() =>
-  boards.value.length === 0 ? true : false
+  boardsNewStore.boards.length === 0 ? true : false
 )
 const isBoardEmpty = computed(() =>
-  boardColumns.value && boardColumns.value.length === 0 ? true : false
+  boardsNewStore.boardColumns && boardsNewStore.boardColumns.length === 0
+    ? true
+    : false
 )
-const boardErrors = ref({
-  add: false,
-  edit: false,
-  delete: false
-})
-
-const { logout } = useUserStore()
-const router = useRouter()
-onSnapshot(colRef, async (snapshot) => {
-  try {
-    const user = auth.currentUser as User
-    const lastLoggedIn = user.metadata.lastSignInTime
-
-    const lastLoggedInDate = new Date(lastLoggedIn as string)
-    const currentDate = new Date()
-
-    if (
-      (currentDate.getTime() - lastLoggedInDate.getTime()) /
-        1000 /
-        60 /
-        60 /
-        24 >=
-      30
-    ) {
-      await logout()
-      router.push('/')
-      return
-    }
-
-    const allUsers = snapshot.docs.map((doc) => doc.data())
-    const currentUser = allUsers.find(
-      (eachUser) => eachUser.userID === user.uid
-    ) as ActiveUser
-
-    boards.value = currentUser['boards']
-    if (boards.value.length) {
-      currentBoard.value = boards.value[0]
-    }
-
-    const savedBoard = JSON.parse(localStorage.getItem('currentBoard') || '{}')
-    if (savedBoard) {
-      currentBoard.value = savedBoard
-    }
-
-    isLoading.value = false
-  } catch (err) {
-    throw new Error()
-  }
-})
 
 const areBoardOptionsShown = ref(false)
 const boardsNavbarProps = computed(() => ({
   condition: windowWidth.value < 640 ? isNavOpen.value : isSidebarShown.value,
-  boards: boards.value,
-  boardName: currentBoard.value ? currentBoard.value.name : ''
+  boards: boardsNewStore.boards,
+  boardName: boardsNewStore.currentBoard?.name || ''
 }))
 
 const isSidebarShown = ref(true)
@@ -164,7 +112,7 @@ const toggleBoardsNav = () => {
 const { width: windowWidth } = useWindowSize()
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .main-container {
   @apply grid grid-rows-[80px_calc(100vh-80px)];
   @apply sm:grid-cols-[33%_67%] lg:grid-cols-[25%_75%] xl:grid-cols-[20%_80%];

@@ -8,9 +8,13 @@
 
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
+import { useDark } from '@vueuse/core'
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const isDark = useDark()
 </script>
 
-<style>
+<style lang="postcss">
 @supports (scrollbar-width: thin) {
   * {
     scrollbar-width: thin;
@@ -60,6 +64,7 @@ button {
 .purple-class {
   @apply bg-purple-400 hover:bg-purple-600 focus-visible:bg-purple-600;
   @apply text-white outline outline-transparent transition-colors duration-300;
+  @apply disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-purple-400;
 }
 
 .white-button {

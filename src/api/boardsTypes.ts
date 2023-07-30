@@ -1,10 +1,7 @@
-export interface ActiveUser {
-  userID: string
-  lastLoggedIn: string
-  boards: Board[]
-}
-
 export interface Board {
+  docID: string
+  createdAt: string
+  userID: string
   name: string
   columns: BoardColumn[]
 }

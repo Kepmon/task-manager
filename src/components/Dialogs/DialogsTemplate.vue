@@ -36,7 +36,7 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .semitransparent-bg {
   @apply flex items-center justify-center absolute z-10 p-4;
   @apply inset-0 bg-gray-880;

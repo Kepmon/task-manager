@@ -1,41 +1,66 @@
-import type { ActiveUser } from '../api/boardsTypes'
 import { defineStore } from 'pinia'
-import { auth, colRef } from '../firebase'
 import {
+  onAuthStateChanged,
+  User,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  onAuthStateChanged
+  AuthError
 } from 'firebase/auth'
-import { addDoc, getDocs } from 'firebase/firestore'
+import { addDoc } from 'firebase/firestore'
+import { auth, colRef } from '../firebase'
 import { ref } from 'vue'
 
 export const useUserStore = defineStore('user', () => {
-  type Method =
-    | typeof createUserWithEmailAndPassword
-    | typeof signInWithEmailAndPassword
+  const currentUser = ref<null | User>(null)
 
-  const activeUser = ref<ActiveUser | null>(null)
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      currentUser.value = null
+      localStorage.removeItem('user')
+      return
+    }
 
-  const handleAuth = async (
-    method: Method,
-    email: string,
-    password: string,
-    currentPath: string
-  ) => {
+    localStorage.setItem('user', JSON.stringify(user))
+    currentUser.value = user
+  })
+
+  const register = async (email: string, password: string) => {
     try {
-      const response = await method(auth, email, password)
+      const authResponse = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      )
 
-      if (response && currentPath === '/sign-up') {
-        await addDoc(colRef, { userID: response.user.uid, boards: [] })
-        await logout()
-      }
+      if (!authResponse) throw new Error()
 
-      if (!response) throw new Error()
+      await addDoc(colRef, {
+        userID: (currentUser.value as User).uid,
+        boards: []
+      })
+
+      await logout()
 
       return true
     } catch (err) {
-      return err.code
+      return (err as AuthError).code
+    }
+  }
+
+  const logIn = async (email: string, password: string) => {
+    try {
+      const authResponse = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      )
+
+      if (!authResponse) throw new Error()
+
+      return true
+    } catch (err) {
+      return (err as AuthError).code
     }
   }
 
@@ -48,26 +73,10 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  onAuthStateChanged(auth, async (user) => {
-    if (user != null) {
-      const allUsersRef = await getDocs(colRef)
-      const allUsers = allUsersRef.docs.map((doc) => doc.data())
-      const currentUser = allUsers.find(
-        (eachUser) => eachUser.userID === user.uid
-      )
-
-      localStorage.setItem('user', JSON.stringify(user))
-      activeUser.value = currentUser as ActiveUser
-      return
-    }
-
-    activeUser.value = null
-    localStorage.removeItem('user')
-  })
-
   return {
-    handleAuth,
-    logout,
-    activeUser
+    currentUser,
+    register,
+    logIn,
+    logout
   }
 })

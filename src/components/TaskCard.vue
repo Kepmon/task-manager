@@ -24,7 +24,7 @@ defineProps<{
 defineEmits(['change'])
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .task-card {
   @apply p-4 mb-[20px] w-[280px] text-left shadow-sm cursor-pointer rounded-lg;
   @apply bg-white dark:bg-gray-700;

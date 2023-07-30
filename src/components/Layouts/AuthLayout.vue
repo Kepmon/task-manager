@@ -10,14 +10,14 @@
         aria-label="The app logo"
         class="mb-4 scale-125 sm:scale-150"
       />
-      <form @submit.prevent="handleAuth" class="form">
+      <form @submit.prevent="onSubmit" class="form">
         <header class="xs:text-lg first-letter:uppercase">
           <h2>{{ currentAccountLink.action }}</h2>
         </header>
         <auth-input label="Email" name="email" type="email" />
         <auth-input label="Password" name="password" type="password" />
         <auth-input
-          v-if="route.path === '/sign-up'"
+          v-if="currentPath === '/sign-up'"
           label="Repeat Password"
           name="repeatPassword"
           type="password"
@@ -26,7 +26,7 @@
           :regularButton="true"
           :isInForm="true"
           class="purple-class"
-          :disabled="form.isSubmitting.value"
+          :disabled="form.meta.value.valid === false"
         >
           {{ currentAccountLink.action }}
         </the-button>
@@ -74,7 +74,6 @@ import ThemeToggle from '../../components/shared/ThemeToggle.vue'
 import ConfirmationPopup from '../../components/shared/ConfirmationPopup.vue'
 import PrivacyPolicyLayout from './PrivacyPolicyLayout.vue'
 import LogoIcon from '../Svgs/LogoIcon.vue'
-import { useDark } from '@vueuse/core'
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useUserStore } from '../../stores/user'
@@ -83,18 +82,12 @@ import {
   isPopupShown,
   handleAuthResponse
 } from '../../composables/authHandler'
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword
-} from 'firebase/auth'
 import { useForm } from 'vee-validate'
 import * as Yup from 'yup'
 import { toTypedSchema } from '@vee-validate/yup'
 
-const isDark = useDark()
-const route = useRoute()
+const { path: currentPath } = useRoute()
 const userStore = useUserStore()
-const currentPath = route.path
 const isPrivacyPolicyShown = ref(false)
 
 const havingAccountLink = computed(() => ({
@@ -141,29 +134,21 @@ const form = useForm({
   )
 })
 
-const errorMessage = ref(null)
-const handleAuth = form.handleSubmit(async (values) => {
-  const method =
-    currentPath === '/'
-      ? signInWithEmailAndPassword
-      : createUserWithEmailAndPassword
+const errorMessage = ref<string>('')
+const onSubmit = form.handleSubmit(async (values) => {
+  const method = currentPath === '/' ? userStore.logIn : userStore.register
 
-  const response = await userStore.handleAuth(
-    method,
-    values.email,
-    values.password,
-    currentPath
-  )
+  const response = await method(values.email, values.password)
 
   if (response !== true) {
     errorMessage.value = response
   }
 
-  handleAuthResponse(response)
+  handleAuthResponse(response, currentPath)
 })
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .form {
   @apply flex flex-col gap-6 relative p-6 w-[90%] sm:w-[480px];
   @apply rounded-md bg-white dark:bg-gray-700;

@@ -63,7 +63,7 @@
 import RightArrow from './Svgs/RightArrow.vue'
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 h2 {
   @apply mt-8;
 }
