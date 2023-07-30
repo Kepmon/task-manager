@@ -84,7 +84,6 @@ import type { BoardColumn } from '../../api/boardsTypes'
 import DialogsTemplate from './DialogsTemplate.vue'
 import TextInput from '../shared/Inputs/TextInput.vue'
 import TheButton from '../../components/shared/TheButton.vue'
-import { useUserStore } from '../../stores/user'
 import { useBoardsNewStore } from '../../stores/boardsNew'
 import { ref } from 'vue'
 
@@ -94,7 +93,6 @@ const props = defineProps<{
 }>()
 const emits = defineEmits(['update:modelValue', 'close-dialog'])
 
-const userStore = useUserStore()
 const boardsNewStore = useBoardsNewStore()
 
 const formData = ref<{ name: string; columns: string[] }>({
@@ -110,12 +108,6 @@ const formNameError = ref(false)
 const submitFunctions = {
   add: () =>
     boardsNewStore.addNewBoard({
-      userID: userStore.userID,
-      name: formData.value.name,
-      columns: formData.value.columns.map((name) => ({ name, tasks: [] }))
-    }),
-  edit: () =>
-    boardsNewStore.editBoard({
       name: formData.value.name,
       columns: formData.value.columns.map((name) => ({ name, tasks: [] }))
     })

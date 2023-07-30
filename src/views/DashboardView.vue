@@ -73,7 +73,6 @@ import { ref, computed } from 'vue'
 import { useWindowSize } from '@vueuse/core'
 
 const boardsNewStore = useBoardsNewStore()
-
 const isDashboardEmpty = computed(() =>
   boardsNewStore.boards.length === 0 ? true : false
 )

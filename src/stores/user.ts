@@ -7,7 +7,7 @@ import {
   signOut,
   AuthError
 } from 'firebase/auth'
-import { addDoc } from 'firebase/firestore'
+import { addDoc, updateDoc } from 'firebase/firestore'
 import { auth, colRef } from '../firebase'
 import { ref } from 'vue'
 
@@ -35,10 +35,16 @@ export const useUserStore = defineStore('user', () => {
 
       if (!authResponse) throw new Error()
 
-      await addDoc(colRef, {
+      const docResponse = await addDoc(colRef, {
         userID: (currentUser.value as User).uid,
         boards: []
       })
+
+      if (docResponse) {
+        updateDoc(docResponse, {
+          userDocID: docResponse.id
+        })
+      }
 
       await logout()
 

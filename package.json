@@ -17,6 +17,7 @@
     "@vueuse/integrations": "^10.2.0",
     "firebase": "^9.22.2",
     "focus-trap": "^7.4.3",
+    "nanoid": "^4.0.2",
     "pinia": "^2.0.32",
     "prettier": "^2.8.8",
     "vee-validate": "^4.9.6",
