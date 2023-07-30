@@ -36,16 +36,37 @@ const router = createRouter({
   routes: [...publicRoutes, ...protectedRoutes]
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore()
-  const user = userStore.authUser
+  const savedUser = JSON.parse(localStorage.getItem('user') || '{}')
 
-  if (to.path === '/dashboard' && !user) {
+  if (Object.keys(savedUser).length) {
+    const lastLoggedIn = savedUser.lastLoginAt
+    const lastLoggedInToNum = parseInt(lastLoggedIn)
+    const lastLoggedInDate = new Date(lastLoggedInToNum)
+    const currentDate = new Date()
+
+    if (
+      (currentDate.getTime() - lastLoggedInDate.getTime()) /
+        1000 /
+        60 /
+        60 /
+        24 >=
+      30
+    ) {
+      await userStore.logout()
+      router.push('/')
+      return
+    }
+    userStore.currentUser = savedUser
+  }
+
+  if (to.path === '/dashboard' && !userStore.currentUser) {
     userStore.logout()
     return next('/')
   }
 
-  if ((to.path === '/' || to.path === '/sign-up') && user) {
+  if ((to.path === '/' || to.path === '/sign-up') && userStore.currentUser) {
     return next('/dashboard')
   }
 

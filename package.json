@@ -14,7 +14,6 @@
   },
   "dependencies": {
     "@vee-validate/yup": "^4.9.6",
-    "@vueuse/firebase": "^10.2.1",
     "@vueuse/integrations": "^10.2.0",
     "firebase": "^9.22.2",
     "focus-trap": "^7.4.3",

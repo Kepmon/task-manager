@@ -10,6 +10,7 @@
 import { RouterView } from 'vue-router'
 import { useDark } from '@vueuse/core'
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const isDark = useDark()
 </script>
 

@@ -13,7 +13,7 @@ const firebaseConfig = {
   appId: env.VITE_APP_ID
 }
 
-export const firebaseApp = initializeApp(firebaseConfig)
-export const firebaseAuth = getAuth()
-export const db = getFirestore(firebaseApp)
+export const app = initializeApp(firebaseConfig)
+export const auth = getAuth()
+export const db = getFirestore(app)
 export const colRef = collection(db, 'users')

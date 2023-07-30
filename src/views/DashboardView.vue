@@ -1,6 +1,6 @@
 <template>
   <div class="main-container">
-    <Spinner v-if="isLoading" />
+    <Spinner v-if="boardsNewStore.isLoading" />
 
     <transition name="popup">
       <confirmation-popup
@@ -47,12 +47,12 @@
         :logo="isLogoShown"
       />
       <empty-info
-        v-if="!isLoading"
+        v-if="!boardsNewStore.isLoading"
         :emptyDashboard="isDashboardEmpty"
         :emptyBoard="isBoardEmpty"
       />
       <user-options
-        v-if="isDashboardEmpty && !isLoading"
+        v-if="isDashboardEmpty && !boardsNewStore.isLoading"
         :isDashboardEmpty="isDashboardEmpty"
         class="absolute bottom-8 right-8 scale-125"
       />
@@ -69,14 +69,11 @@ import UserOptions from '../components/UserOptions.vue'
 import ConfirmationPopup from '../components/shared/ConfirmationPopup.vue'
 import Spinner from '../components/Spinner.vue'
 import { useBoardsNewStore } from '../stores/boardsNew'
-import { useUserStore } from '../stores/user'
 import { ref, computed } from 'vue'
 import { useWindowSize } from '@vueuse/core'
 
-const userStore = useUserStore()
-const isLoading = computed(() => (userStore.isAuthenticated ? false : true))
-
 const boardsNewStore = useBoardsNewStore()
+
 const isDashboardEmpty = computed(() =>
   boardsNewStore.boards.length === 0 ? true : false
 )

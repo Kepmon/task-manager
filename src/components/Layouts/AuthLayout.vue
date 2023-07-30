@@ -75,7 +75,7 @@ import ConfirmationPopup from '../../components/shared/ConfirmationPopup.vue'
 import PrivacyPolicyLayout from './PrivacyPolicyLayout.vue'
 import LogoIcon from '../Svgs/LogoIcon.vue'
 import { ref, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useUserStore } from '../../stores/user'
 import {
   isAuthError,
@@ -134,24 +134,17 @@ const form = useForm({
   )
 })
 
-const router = useRouter()
 const errorMessage = ref<string>('')
 const onSubmit = form.handleSubmit(async (values) => {
   const method = currentPath === '/' ? userStore.logIn : userStore.register
 
   const response = await method(values.email, values.password)
 
-  if (response === true) {
-    setTimeout(() => {
-      router.push(`${currentPath === '/' ? '/dashboard' : '/'}`)
-    }, 3000)
-  }
-
   if (response !== true) {
     errorMessage.value = response
   }
 
-  handleAuthResponse(response)
+  handleAuthResponse(response, currentPath)
 })
 </script>
 
