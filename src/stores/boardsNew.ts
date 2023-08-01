@@ -9,6 +9,7 @@ import {
   doc,
   addDoc,
   updateDoc,
+  deleteDoc,
   CollectionReference,
   DocumentData,
   serverTimestamp
@@ -89,6 +90,18 @@ export const useBoardsNewStore = defineStore('boardsNew', () => {
     chosenBoard.value = boards.value.find(
       (board) => board.docID === (currentBoard.value as Board).docID
     ) as Board
+    localStorage.setItem('currentBoard', JSON.stringify(chosenBoard.value))
+  }
+
+  const deleteBoard = async () => {
+    const docToEditRef = doc(
+      boardsColRef.value as CollectionReference<DocumentData>,
+      currentBoard.value?.docID
+    )
+    await deleteDoc(docToEditRef)
+
+    chosenBoard.value = boards.value[0]
+    localStorage.setItem('currentBoard', JSON.stringify(chosenBoard.value))
   }
 
   return {
@@ -101,6 +114,7 @@ export const useBoardsNewStore = defineStore('boardsNew', () => {
     isConfirmationPopupShown,
     action,
     addNewBoard,
-    editBoard
+    editBoard,
+    deleteBoard
   }
 })

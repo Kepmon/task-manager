@@ -61,7 +61,10 @@ const message = computed(() => {
 const boardsNewStore = useBoardsNewStore()
 const submit = () => {
   emits('close-dialog')
-  boardsNewStore.deleteBoard()
+
+  if (props.elementToDelete === 'board') {
+    boardsNewStore.deleteBoard()
+  }
 }
 </script>
 
