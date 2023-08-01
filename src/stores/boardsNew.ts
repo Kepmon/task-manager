@@ -4,27 +4,28 @@ import { ref, computed } from 'vue'
 import {
   onSnapshot,
   query,
-  where,
-  doc,
-  updateDoc,
-  Query,
+  orderBy,
+  collection,
+  addDoc,
+  CollectionReference,
   DocumentData,
-  Timestamp
+  serverTimestamp
 } from 'firebase/firestore'
 import { db, colRef } from '../firebase'
 import { useUserStore } from './user'
-import { nanoid } from 'nanoid'
 
 export const useBoardsNewStore = defineStore('boardsNew', () => {
   const userStore = useUserStore()
-  const userDocRef = ref<null | Query<DocumentData>>(null)
-  const userDocID = ref('')
+  const boardsColRef = ref<null | CollectionReference<DocumentData>>(null)
   const boards = ref<Board[]>([])
-  const chosenBoard = ref<Board | null>(null)
-  const currentBoard = computed(() => {
-    if (boards.value.length === 0) return null
-
+  const chosenBoard = ref<null | Board>(null)
+  const currentBoard = computed<null | Board>(() => {
+    const savedBoard = JSON.parse(localStorage.getItem('currentBoard') || '{}')
     if (chosenBoard.value) return chosenBoard.value
+
+    if (Object.keys(savedBoard).length) return savedBoard
+
+    if (boards.value.length === 0) return null
 
     return boards.value[0]
   })
@@ -40,28 +41,27 @@ export const useBoardsNewStore = defineStore('boardsNew', () => {
   const action = ref<'add' | 'edit' | 'delete'>('add')
 
   const isLoading = ref(true)
-  if (userStore.currentUser) {
-    const userID = userStore.currentUser.uid
-    userDocRef.value = query(colRef, where('userID', '==', userID))
+  onSnapshot(colRef, (snapshot) => {
+    const userDocID = snapshot.docs.find(
+      (doc) => doc.data().userID === userStore.userID
+    )?.id
 
-    onSnapshot(userDocRef.value, (snapshot) => {
-      boards.value = snapshot.docs[0].data().boards
-      userDocID.value = snapshot.docs[0].id
+    boardsColRef.value = collection(db, `users/${userDocID}/boards`)
+    const boardsColRefOrdered = query(
+      boardsColRef.value as CollectionReference<DocumentData>,
+      orderBy('createdAt', 'desc')
+    )
+    onSnapshot(boardsColRefOrdered, (snapshot) => {
+      boards.value = snapshot.docs.map((doc) => doc.data() as Board)
     })
 
     isLoading.value = false
-  }
+  })
 
   const addNewBoard = async (board: Omit<Board, 'docID' | 'createdAt'>) => {
-    await updateDoc(doc(db, 'users', userDocID.value), {
-      boards: [
-        ...boards.value,
-        {
-          createdAt: Timestamp.now(),
-          docID: nanoid(),
-          ...board
-        }
-      ]
+    await addDoc(boardsColRef.value as CollectionReference<DocumentData>, {
+      createdAt: serverTimestamp(),
+      ...board
     })
 
     chosenBoard.value = boards.value[0]
@@ -70,7 +70,6 @@ export const useBoardsNewStore = defineStore('boardsNew', () => {
 
   return {
     isLoading,
-    userDocRef,
     boards,
     chosenBoard,
     currentBoard,

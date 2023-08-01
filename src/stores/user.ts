@@ -1,28 +1,26 @@
 import { defineStore } from 'pinia'
 import {
   onAuthStateChanged,
-  User,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
   AuthError
 } from 'firebase/auth'
-import { addDoc, updateDoc } from 'firebase/firestore'
+import { addDoc } from 'firebase/firestore'
 import { auth, colRef } from '../firebase'
 import { ref } from 'vue'
 
 export const useUserStore = defineStore('user', () => {
-  const currentUser = ref<null | User>(null)
+  const userID = ref<null | string>(null)
 
   onAuthStateChanged(auth, (user) => {
     if (!user) {
-      currentUser.value = null
       localStorage.removeItem('user')
       return
     }
 
+    userID.value = user.uid
     localStorage.setItem('user', JSON.stringify(user))
-    currentUser.value = user
   })
 
   const register = async (email: string, password: string) => {
@@ -35,16 +33,9 @@ export const useUserStore = defineStore('user', () => {
 
       if (!authResponse) throw new Error()
 
-      const docResponse = await addDoc(colRef, {
-        userID: (currentUser.value as User).uid,
-        boards: []
+      await addDoc(colRef, {
+        userID: userID.value
       })
-
-      if (docResponse) {
-        updateDoc(docResponse, {
-          userDocID: docResponse.id
-        })
-      }
 
       await logout()
 
@@ -80,7 +71,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
   return {
-    currentUser,
+    userID,
     register,
     logIn,
     logout
