@@ -105,18 +105,21 @@ const formData = ref<{ name: string; columns: string[] }>({
 })
 const formNameError = ref(false)
 
-const submitFunctions = {
-  add: () =>
-    boardsNewStore.addNewBoard({
-      name: formData.value.name,
-      columns: formData.value.columns.map((name) => ({ name, tasks: [] }))
-    })
-}
-
 const submit = () => {
   if (formData.value.name === '') return
 
   emits('close-dialog')
-  submitFunctions[props.action as keyof typeof submitFunctions]()
+  const submitFn =
+    props.action === 'add'
+      ? boardsNewStore.addNewBoard
+      : boardsNewStore.editBoard
+
+  submitFn({
+    name: formData.value.name,
+    columns: formData.value.columns.map((column) => ({
+      name: column,
+      tasks: []
+    }))
+  })
 }
 </script>

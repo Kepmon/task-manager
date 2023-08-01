@@ -6,12 +6,14 @@ import {
   query,
   orderBy,
   collection,
+  doc,
   addDoc,
+  updateDoc,
   CollectionReference,
   DocumentData,
   serverTimestamp
 } from 'firebase/firestore'
-import { db, colRef } from '../firebase'
+import { db, usersColRef } from '../firebase'
 import { useUserStore } from './user'
 
 export const useBoardsNewStore = defineStore('boardsNew', () => {
@@ -41,7 +43,7 @@ export const useBoardsNewStore = defineStore('boardsNew', () => {
   const action = ref<'add' | 'edit' | 'delete'>('add')
 
   const isLoading = ref(true)
-  onSnapshot(colRef, (snapshot) => {
+  onSnapshot(usersColRef, (snapshot) => {
     const userDocID = snapshot.docs.find(
       (doc) => doc.data().userID === userStore.userID
     )?.id
@@ -59,13 +61,34 @@ export const useBoardsNewStore = defineStore('boardsNew', () => {
   })
 
   const addNewBoard = async (board: Omit<Board, 'docID' | 'createdAt'>) => {
-    await addDoc(boardsColRef.value as CollectionReference<DocumentData>, {
-      createdAt: serverTimestamp(),
-      ...board
+    const addedDocRef = await addDoc(
+      boardsColRef.value as CollectionReference<DocumentData>,
+      {
+        createdAt: serverTimestamp(),
+        ...board
+      }
+    )
+
+    await updateDoc(addedDocRef, {
+      docID: addedDocRef.id
     })
 
     chosenBoard.value = boards.value[0]
     localStorage.setItem('currentBoard', JSON.stringify(chosenBoard.value))
+  }
+
+  const editBoard = async (board: Omit<Board, 'docID' | 'createdAt'>) => {
+    const docToEditRef = doc(
+      boardsColRef.value as CollectionReference<DocumentData>,
+      currentBoard.value?.docID
+    )
+    await updateDoc(docToEditRef, {
+      ...board
+    })
+
+    chosenBoard.value = boards.value.find(
+      (board) => board.docID === (currentBoard.value as Board).docID
+    ) as Board
   }
 
   return {
@@ -77,6 +100,7 @@ export const useBoardsNewStore = defineStore('boardsNew', () => {
     boardColumnsNames,
     isConfirmationPopupShown,
     action,
-    addNewBoard
+    addNewBoard,
+    editBoard
   }
 })

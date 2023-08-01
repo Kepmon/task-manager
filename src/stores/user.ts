@@ -7,7 +7,7 @@ import {
   AuthError
 } from 'firebase/auth'
 import { addDoc } from 'firebase/firestore'
-import { auth, colRef } from '../firebase'
+import { auth, usersColRef } from '../firebase'
 import { ref } from 'vue'
 
 export const useUserStore = defineStore('user', () => {
@@ -33,7 +33,7 @@ export const useUserStore = defineStore('user', () => {
 
       if (!authResponse) throw new Error()
 
-      await addDoc(colRef, {
+      await addDoc(usersColRef, {
         userID: userID.value
       })
 
@@ -64,6 +64,7 @@ export const useUserStore = defineStore('user', () => {
   const logout = async () => {
     try {
       await signOut(auth)
+      localStorage.removeItem('user')
       return true
     } catch (err) {
       return false
