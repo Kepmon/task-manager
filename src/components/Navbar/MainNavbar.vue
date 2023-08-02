@@ -2,8 +2,8 @@
   <div class="grid" :class="{ 'col-span-2': isLogo }">
     <more-options
       @toggle-options="(e: Event) => handleMoreOptionsFn(e, toggleOptions)"
-      @show-edit-form="isEditBoardDialogShown = true"
-      @show-delete-form="isDeleteBoardDialogShown = true"
+      @show-edit-form="isEditBoardModalShown = true"
+      @show-delete-form="isDeleteBoardModalShown = true"
       @close-more-options="(e: Event) => handleMoreOptionsFn(e, closeOptions)"
       :condition="areBoardOptionsShown"
       element="board"
@@ -25,7 +25,7 @@
           class="flex items-center gap-2"
         >
           <h1 class="py-4 font-bold xs:text-lg" :class="{ 'sm:pl-6': isLogo }">
-            {{ boardsNewStore.currentBoard?.name }}
+            {{ boardsStore.currentBoard?.name }}
           </h1>
           <svg
             width="10"
@@ -44,7 +44,7 @@
       </div>
       <div class="flex items-center gap-2 ml-auto sm:gap-3 text-white">
         <button
-          @click="isAddTaskDialogShown = true"
+          @click="isAddTaskModalShown = true"
           class="gap-[2px] purple-class px-4 py-[2px] rounded-2xl md:p-0 regular-button"
           :class="{
             'opacity-25 cursor-not-allowed': isBoardEmpty,
@@ -72,14 +72,14 @@
       <user-options
         class="fixed ml-3 sm:static bottom-8 right-8 scale-125 sm:scale-100"
         :class="{
-          'sm:fixed sm:scale-125': boardsNewStore.currentBoard == null
+          'sm:fixed sm:scale-125': boardsStore.currentBoard == null
         }"
       />
     </nav>
-    <transition name="dialog">
-      <task-dialog
-        v-if="isAddTaskDialogShown"
-        @close-dialog="isAddTaskDialogShown = false"
+    <transition name="modal">
+      <task-modal
+        v-if="isAddTaskModalShown"
+        @close-modal="isAddTaskModalShown = false"
         action="add"
         :selectedMultiOptionItems="[
           'e.g. Make coffee',
@@ -87,18 +87,18 @@
         ]"
       />
     </transition>
-    <transition name="dialog">
-      <confirmation-dialog
-        v-if="isDeleteBoardDialogShown"
-        @close-dialog="isDeleteBoardDialogShown = false"
+    <transition name="modal">
+      <confirmation-modal
+        v-if="isDeleteBoardModalShown"
+        @close-modal="isDeleteBoardModalShown = false"
         elementToDelete="board"
         elementName="Platform Launch"
       />
     </transition>
-    <transition name="dialog">
-      <board-dialog
-        v-if="isEditBoardDialogShown"
-        @close-dialog="isEditBoardDialogShown = false"
+    <transition name="modal">
+      <board-modal
+        v-if="isEditBoardModalShown"
+        @close-modal="isEditBoardModalShown = false"
         action="edit"
         :selectedMultiOptionItems="selectedMultiOptionItems"
       />
@@ -108,13 +108,13 @@
 
 <script setup lang="ts">
 import MoreOptions from '../shared/MoreOptions.vue'
-import TaskDialog from '../Dialogs/TaskDialog.vue'
-import ConfirmationDialog from '../Dialogs/ConfirmationDialog.vue'
-import BoardDialog from '../Dialogs/BoardDialog.vue'
+import TaskModal from '../Modals/TaskModal.vue'
+import ConfirmationModal from '../Modals/ConfirmationModal.vue'
+import BoardModal from '../Modals/BoardModal.vue'
 import LogoIcon from '../Svgs/LogoIcon.vue'
 import UserOptions from '../UserOptions.vue'
 import moreOptionsPopup from '../../composables/moreOptionsPopup'
-import { useBoardsNewStore } from '../../stores/boardsNew'
+import { useBoardsStore } from '../../stores/boards'
 import { ref, Ref } from 'vue'
 
 defineProps<{
@@ -126,11 +126,11 @@ defineProps<{
 defineEmits(['toggle-boards-nav'])
 
 const areBoardOptionsShown = ref(false)
-const isAddTaskDialogShown = ref(false)
-const isDeleteBoardDialogShown = ref(false)
-const isEditBoardDialogShown = ref(false)
+const isAddTaskModalShown = ref(false)
+const isDeleteBoardModalShown = ref(false)
+const isEditBoardModalShown = ref(false)
 
-const boardsNewStore = useBoardsNewStore()
+const boardsStore = useBoardsStore()
 const subtasks = ref([
   {
     title: 'Settings - Account page',

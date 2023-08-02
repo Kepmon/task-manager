@@ -34,27 +34,27 @@
       </div>
     </div>
     <Teleport to="body">
-      <transition name="dialog">
-        <see-task-dialog
+      <transition name="modal">
+        <see-task-modal
           v-if="clickedTitle != null"
-          @close-dialog="closeSeeTask"
+          @close-modal="closeSeeTask"
           @show-edit-form="showEditForm"
           @show-delete-form="showDeleteForm"
         />
       </transition>
     </Teleport>
-    <transition name="dialog">
-      <confirmation-dialog
-        v-if="isDeleteTaskDialogShown"
-        @close-dialog="isDeleteTaskDialogShown = false"
+    <transition name="modal">
+      <confirmation-modal
+        v-if="isDeleteTaskModalShown"
+        @close-modal="isDeleteTaskModalShown = false"
         elementToDelete="task"
         elementName="Research pricing points of various competitors and trial different business models"
       />
     </transition>
-    <transition name="dialog">
-      <task-dialog
-        v-if="isEditTaskDialogShown"
-        @close-dialog="isEditTaskDialogShown = false"
+    <transition name="modal">
+      <task-modal
+        v-if="isEditTaskModalShown"
+        @close-modal="isEditTaskModalShown = false"
         action="edit"
         :selectedMultiOptionItems="selectedMultiOptionItems"
       />
@@ -65,9 +65,9 @@
 <script setup lang="ts">
 import type { BoardColumn, Task } from '../api/boardsTypes'
 import TaskCard from './TaskCard.vue'
-import SeeTaskDialog from './Dialogs/SeeTaskDialog.vue'
-import ConfirmationDialog from '../components/Dialogs/ConfirmationDialog.vue'
-import TaskDialog from '../components/Dialogs/TaskDialog.vue'
+import SeeTaskModal from './Modals/SeeTaskModal.vue'
+import ConfirmationModal from '../components/Modals/ConfirmationModal.vue'
+import TaskModal from '../components/Modals/TaskModal.vue'
 import { computed, ref } from 'vue'
 
 const props = defineProps<{
@@ -89,20 +89,20 @@ const circleColor = computed(() => {
 
 const clickedTitle = ref<null | Task['title']>(null)
 
-const isEditTaskDialogShown = ref(false)
-const isDeleteTaskDialogShown = ref(false)
+const isEditTaskModalShown = ref(false)
+const isDeleteTaskModalShown = ref(false)
 
 const closeSeeTask = () => {
   clickedTitle.value = null
 }
 
 const showEditForm = () => {
-  isEditTaskDialogShown.value = true
+  isEditTaskModalShown.value = true
   closeSeeTask()
 }
 
 const showDeleteForm = () => {
-  isDeleteTaskDialogShown.value = true
+  isDeleteTaskModalShown.value = true
   closeSeeTask()
 }
 </script>

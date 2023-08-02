@@ -1,5 +1,5 @@
 <template>
-  <dialogs-template @close-dialog="$emit('close-dialog')">
+  <modals-template @close-modal="$emit('close-modal')">
     <template #form-title>
       <h2>{{ action }} {{ action === 'add' ? 'New' : '' }} Task</h2>
     </template>
@@ -17,7 +17,7 @@
         <p class="mb-2 text-xs">Subtasks</p>
         <div class="grid gap-3">
           <div
-            v-for="(item, index) in boardsNewStore.boardColumnsNames"
+            v-for="(item, index) in boardsStore.boardColumnsNames"
             :key="index"
             class="flex items-center"
           >
@@ -66,25 +66,23 @@
         {{ action === 'add' ? 'Create Task' : 'Save Changes' }}
       </the-button>
     </template>
-  </dialogs-template>
+  </modals-template>
 </template>
 
 <script setup lang="ts">
 import type { BoardColumn, Subtask } from '../../api/boardsTypes'
-import DialogsTemplate from './DialogsTemplate.vue'
+import ModalsTemplate from './ModalsTemplate.vue'
 import TextInput from '../shared/Inputs/TextInput.vue'
 import DescriptionField from '../shared/Inputs/DescriptionField.vue'
 import TheButton from '../../components/shared/TheButton.vue'
-import { useBoardsNewStore } from '../../stores/boardsNew'
 import { ref } from 'vue'
 
 defineProps<{
   action: 'add' | 'edit'
   selectedMultiOptionItems: Subtask['title'][] | string[]
 }>()
-defineEmits(['close-dialog'])
+defineEmits(['close-modal'])
 
 const taskTitle = ref('')
 const statusItems = ref<BoardColumn['name'][]>([])
-const boardsNewStore = useBoardsNewStore()
 </script>

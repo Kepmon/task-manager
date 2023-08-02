@@ -1,5 +1,5 @@
 <template>
-  <div @click.self="$emit('close-dialog')" class="semitransparent-bg">
+  <div @click.self="$emit('close-modal')" class="semitransparent-bg">
     <UseFocusTrap :options="{ immediate: true, allowOutsideClick: true }">
       <form @submit.prevent="$emit('submit-form')" class="form">
         <div class="flex items-center justify-between gap-2 xs:gap-4">
@@ -18,20 +18,20 @@
 import { UseFocusTrap } from '@vueuse/integrations/useFocusTrap/component'
 import { onMounted, onUnmounted } from 'vue'
 
-const emits = defineEmits(['close-dialog', 'submit-form'])
+const emits = defineEmits(['close-modal', 'submit-form'])
 
-const closeDialogOnEsc = (e: KeyboardEvent) => {
+const closeModalOnEsc = (e: KeyboardEvent) => {
   if (e.key === 'Escape') {
-    emits('close-dialog')
+    emits('close-modal')
   }
 }
 
 onMounted(() => {
-  window.addEventListener('keydown', (e: KeyboardEvent) => closeDialogOnEsc(e))
+  window.addEventListener('keydown', (e: KeyboardEvent) => closeModalOnEsc(e))
 })
 onUnmounted(() => {
   window.removeEventListener('keydown', (e: KeyboardEvent) =>
-    closeDialogOnEsc(e)
+    closeModalOnEsc(e)
   )
 })
 </script>

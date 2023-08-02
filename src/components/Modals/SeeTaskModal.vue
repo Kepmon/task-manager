@@ -1,5 +1,5 @@
 <template>
-  <dialogs-template @close-dialog="$emit('close-dialog')">
+  <modals-template @close-modal="$emit('close-modal')">
     <template #form-title>
       <h2>
         Research pricing points of various competitors and trial different
@@ -37,19 +37,15 @@
         />
 
         <p class="text-gray-400 text-xs xs::text-sm">
-          {{ description }}
+          {{ addTaskOptions.description }}
         </p>
 
-        <div v-if="subtasks.length">
+        <div v-if="addTaskOptions.subtasks.length">
           <p class="mb-4 text-xs text-gray-400 dark:text-white">
-            Subtasks (
-            {{ returnNumberOfCompletedSubtasks(subtasks) }}
-            of
-            {{ subtasks.length }}
-            )
+            Subtasks ( 2 of 4 )
           </p>
           <div
-            v-for="{ title, isCompleted } in subtasks"
+            v-for="{ title, isCompleted } in addTaskOptions.subtasks"
             :key="title"
             class="subtask"
           >
@@ -73,29 +69,42 @@
             Current Status
           </p>
           <v-select
-            :options="statusItems"
+            :options="addTaskOptions.status"
             :searchable="false"
             placeholder="Doing"
           ></v-select>
         </div>
       </div>
     </template>
-  </dialogs-template>
+  </modals-template>
 </template>
 
 <script setup lang="ts">
-import DialogsTemplate from './DialogsTemplate.vue'
+import ModalsTemplate from './ModalsTemplate.vue'
 import MoreOptions from '../shared/MoreOptions.vue'
 import TheButton from '../shared/TheButton.vue'
 import moreOptionsPopup from '../../composables/moreOptionsPopup'
 import { useBoardsStore } from '../../stores/boards'
 import { ref, Ref } from 'vue'
 
-defineEmits(['close-dialog', 'show-edit-form', 'show-delete-form'])
+defineEmits(['close-modal', 'show-edit-form', 'show-delete-form'])
 
-const { columns, description, subtasks, returnNumberOfCompletedSubtasks } =
-  useBoardsStore()
-const statusItems = columns.map((column) => column.name)
+const boardsStore = useBoardsStore()
+const addTaskOptions = {
+  title: 'e.g. Take coffee break',
+  description: '',
+  subtasks: [
+    {
+      title: 'e.g. Make coffee',
+      isCompleted: false
+    },
+    {
+      title: 'e.g. Drink coffee and smile',
+      isCompleted: false
+    }
+  ],
+  status: boardsStore.boardColumnsNames
+}
 const areTaskOptionsShown = ref(false)
 
 const { toggleOptions, closeOptions } = moreOptionsPopup
