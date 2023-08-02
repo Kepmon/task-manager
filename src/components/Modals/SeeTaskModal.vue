@@ -85,7 +85,8 @@ import MoreOptions from '../shared/MoreOptions.vue'
 import TheButton from '../shared/TheButton.vue'
 import moreOptionsPopup from '../../composables/moreOptionsPopup'
 import { useBoardsStore } from '../../stores/boards'
-import { ref, Ref } from 'vue'
+import type { Ref } from 'vue'
+import { ref } from 'vue'
 
 defineEmits(['close-modal', 'show-edit-form', 'show-delete-form'])
 

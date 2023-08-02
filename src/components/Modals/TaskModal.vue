@@ -75,6 +75,7 @@ import ModalsTemplate from './ModalsTemplate.vue'
 import TextInput from '../shared/Inputs/TextInput.vue'
 import DescriptionField from '../shared/Inputs/DescriptionField.vue'
 import TheButton from '../../components/shared/TheButton.vue'
+import { useBoardsStore } from '../../stores/boards'
 import { ref } from 'vue'
 
 defineProps<{
@@ -82,6 +83,8 @@ defineProps<{
   selectedMultiOptionItems: Subtask['title'][] | string[]
 }>()
 defineEmits(['close-modal'])
+
+const boardsStore = useBoardsStore()
 
 const taskTitle = ref('')
 const statusItems = ref<BoardColumn['name'][]>([])

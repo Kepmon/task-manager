@@ -115,7 +115,8 @@ import LogoIcon from '../Svgs/LogoIcon.vue'
 import UserOptions from '../UserOptions.vue'
 import moreOptionsPopup from '../../composables/moreOptionsPopup'
 import { useBoardsStore } from '../../stores/boards'
-import { ref, Ref } from 'vue'
+import type { Ref } from 'vue'
+import { ref } from 'vue'
 
 defineProps<{
   sidebar: boolean

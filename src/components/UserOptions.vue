@@ -39,13 +39,14 @@ import {
 } from '../composables/authHandler'
 import { onClickOutside } from '@vueuse/core'
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 defineProps<{
   isDashboardEmpty?: true
 }>()
 
 const userStore = useUserStore()
+const route = useRoute()
 const router = useRouter()
 const areUserOptionsShown = ref(false)
 
@@ -58,7 +59,7 @@ const logout = async () => {
     }, 3000)
   }
 
-  handleAuthResponse(response)
+  handleAuthResponse(response, route.path)
 }
 
 const target = ref(null)

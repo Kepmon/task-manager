@@ -1,6 +1,7 @@
 import type { Board } from '../api/boardsTypes'
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import type { CollectionReference, DocumentData } from 'firebase/firestore'
 import {
   onSnapshot,
   query,
@@ -10,8 +11,6 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
-  CollectionReference,
-  DocumentData,
   serverTimestamp
 } from 'firebase/firestore'
 import { db, usersColRef } from '../firebase'

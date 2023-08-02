@@ -1,10 +1,10 @@
 import { defineStore } from 'pinia'
+import type { AuthError } from 'firebase/auth'
 import {
   onAuthStateChanged,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signOut,
-  AuthError
+  signOut
 } from 'firebase/auth'
 import { addDoc } from 'firebase/firestore'
 import { auth, usersColRef } from '../firebase'
