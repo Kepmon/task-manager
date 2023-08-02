@@ -56,7 +56,7 @@ const message = computed(() => {
 
 <style lang="postcss" scoped>
 .popup-text {
-  @apply absolute inset-0 bottom-auto py-10 mx-auto w-[min(90%,400px)];
+  @apply fixed inset-0 bottom-auto py-10 mx-auto w-[min(90%,400px)];
   @apply translate-y-8 text-center text-gray-900 rounded-xl z-10;
 }
 

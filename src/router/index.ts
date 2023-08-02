@@ -58,15 +58,17 @@ router.beforeEach(async (to, from, next) => {
       router.push('/')
       return
     }
-    userStore.currentUser = savedUser
   }
 
-  if (to.path === '/dashboard' && !userStore.currentUser) {
+  if (to.path === '/dashboard' && !Object.keys(savedUser).length) {
     userStore.logout()
     return next('/')
   }
 
-  if ((to.path === '/' || to.path === '/sign-up') && userStore.currentUser) {
+  if (
+    (to.path === '/' || to.path === '/sign-up') &&
+    Object.keys(savedUser).length
+  ) {
     return next('/dashboard')
   }
 

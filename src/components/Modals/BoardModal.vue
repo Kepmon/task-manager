@@ -1,5 +1,5 @@
 <template>
-  <dialogs-template @submit-form="submit" @close-dialog="$emit('close-dialog')">
+  <modals-template @submit-form="submit" @close-modal="$emit('close-modal')">
     <template #form-title>
       <h2>{{ action }} {{ action === 'add' ? 'New' : '' }} Board</h2>
     </template>
@@ -15,9 +15,7 @@
         :isError="formNameError"
         label="Board Name"
         :placeholder="
-          action === 'add'
-            ? 'e.g. Web Design'
-            : boardsNewStore.currentBoard?.name
+          action === 'add' ? 'e.g. Web Design' : boardsStore.currentBoard?.name
         "
         :whitePlaceholder="action === 'add' ? false : true"
         :class="{ 'input-error after:translate-y-full': formNameError }"
@@ -76,55 +74,48 @@
         {{ action === 'add' ? 'Create New Board' : 'Save Changes' }}
       </the-button>
     </template>
-  </dialogs-template>
+  </modals-template>
 </template>
 
 <script setup lang="ts">
 import type { BoardColumn } from '../../api/boardsTypes'
-import DialogsTemplate from './DialogsTemplate.vue'
+import ModalsTemplate from './ModalsTemplate.vue'
 import TextInput from '../shared/Inputs/TextInput.vue'
 import TheButton from '../../components/shared/TheButton.vue'
-import { useUserStore } from '../../stores/user'
-import { useBoardsNewStore } from '../../stores/boardsNew'
+import { useBoardsStore } from '../../stores/boards'
 import { ref } from 'vue'
 
 const props = defineProps<{
   action: 'add' | 'edit'
   selectedMultiOptionItems?: BoardColumn['name'][]
 }>()
-const emits = defineEmits(['update:modelValue', 'close-dialog'])
+const emits = defineEmits(['update:modelValue', 'close-modal'])
 
-const userStore = useUserStore()
-const boardsNewStore = useBoardsNewStore()
+const boardsStore = useBoardsStore()
 
 const formData = ref<{ name: string; columns: string[] }>({
   name:
-    props.action === 'add' ? '' : (boardsNewStore.currentBoard?.name as string),
+    props.action === 'add' ? '' : (boardsStore.currentBoard?.name as string),
   columns:
     props.action === 'add'
       ? ['Todo', 'Doing']
-      : (boardsNewStore.boardColumnsNames as string[])
+      : (boardsStore.boardColumnsNames as string[])
 })
 const formNameError = ref(false)
-
-const submitFunctions = {
-  add: () =>
-    boardsNewStore.addNewBoard({
-      userID: userStore.userID,
-      name: formData.value.name,
-      columns: formData.value.columns.map((name) => ({ name, tasks: [] }))
-    }),
-  edit: () =>
-    boardsNewStore.editBoard({
-      name: formData.value.name,
-      columns: formData.value.columns.map((name) => ({ name, tasks: [] }))
-    })
-}
 
 const submit = () => {
   if (formData.value.name === '') return
 
-  emits('close-dialog')
-  submitFunctions[props.action as keyof typeof submitFunctions]()
+  emits('close-modal')
+  const submitFn =
+    props.action === 'add' ? boardsStore.addNewBoard : boardsStore.editBoard
+
+  submitFn({
+    name: formData.value.name,
+    columns: formData.value.columns.map((column) => ({
+      name: column,
+      tasks: []
+    }))
+  })
 }
 </script>

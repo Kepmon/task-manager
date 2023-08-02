@@ -1,11 +1,11 @@
 <template>
   <div class="main-container">
-    <Spinner v-if="boardsNewStore.isLoading" />
+    <Spinner v-if="boardsStore.isLoading" />
 
     <transition name="popup">
       <confirmation-popup
-        v-if="boardsNewStore.isConfirmationPopupShown"
-        :action="boardsNewStore.action"
+        v-if="boardsStore.isConfirmationPopupShown"
+        :action="boardsStore.action"
         element="board"
       />
     </transition>
@@ -43,16 +43,16 @@
       <boards-column
         v-if="!isDashboardEmpty"
         :selectedMultiOptionItems="['Todo', 'Doing']"
-        :columns="boardsNewStore.boardColumns"
+        :columns="boardsStore.boardColumns"
         :logo="isLogoShown"
       />
       <empty-info
-        v-if="!boardsNewStore.isLoading"
+        v-if="!boardsStore.isLoading"
         :emptyDashboard="isDashboardEmpty"
         :emptyBoard="isBoardEmpty"
       />
       <user-options
-        v-if="isDashboardEmpty && !boardsNewStore.isLoading"
+        v-if="isDashboardEmpty && !boardsStore.isLoading"
         :isDashboardEmpty="isDashboardEmpty"
         class="absolute bottom-8 right-8 scale-125"
       />
@@ -68,26 +68,24 @@ import BoardsColumn from '../components/BoardsColumn.vue'
 import UserOptions from '../components/UserOptions.vue'
 import ConfirmationPopup from '../components/shared/ConfirmationPopup.vue'
 import Spinner from '../components/Spinner.vue'
-import { useBoardsNewStore } from '../stores/boardsNew'
+import { useBoardsStore } from '../stores/boards'
 import { ref, computed } from 'vue'
 import { useWindowSize } from '@vueuse/core'
 
-const boardsNewStore = useBoardsNewStore()
-
+const boardsStore = useBoardsStore()
 const isDashboardEmpty = computed(() =>
-  boardsNewStore.boards.length === 0 ? true : false
+  boardsStore.boards.length === 0 ? true : false
 )
 const isBoardEmpty = computed(() =>
-  boardsNewStore.boardColumns && boardsNewStore.boardColumns.length === 0
+  boardsStore.boardColumns && boardsStore.boardColumns.length === 0
     ? true
     : false
 )
 
 const areBoardOptionsShown = ref(false)
 const boardsNavbarProps = computed(() => ({
-  condition: windowWidth.value < 640 ? isNavOpen.value : isSidebarShown.value,
-  boards: boardsNewStore.boards,
-  boardName: boardsNewStore.currentBoard?.name || ''
+  boards: boardsStore.boards,
+  boardName: boardsStore.currentBoard?.name || ''
 }))
 
 const isSidebarShown = ref(true)

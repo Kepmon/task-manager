@@ -151,13 +151,13 @@ button {
   @apply bg-purple-400;
 }
 
-.dialog-enter-from,
-.dialog-leave-to {
+.modal-enter-from,
+.modal-leave-to {
   @apply opacity-0;
 }
 
-.dialog-enter-active,
-.dialog-leave-active {
+.modal-enter-active,
+.modal-leave-active {
   @apply transition-opacity duration-300;
 }
 

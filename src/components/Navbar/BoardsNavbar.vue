@@ -1,7 +1,7 @@
 <template>
   <transition name="nav">
     <nav
-      v-if="condition && !boardsNewStore.isLoading"
+      v-if="!boardsStore.isLoading"
       aria-label="boards navigation"
       class="boards"
     >
@@ -29,8 +29,8 @@
           There are no boards to display
         </p>
         <board-label
-          @keydown.enter="isAddBoardDialogShown = true"
-          @click="isAddBoardDialogShown = true"
+          @keydown.enter="isAddBoardModalShown = true"
+          @click="isAddBoardModalShown = true"
           name="+ Create New Board"
           tabindex="0"
           class="text-purple-400 fill-purple-400"
@@ -50,10 +50,10 @@
       </div>
     </nav>
   </transition>
-  <transition name="dialog">
-    <board-dialog
-      v-if="isAddBoardDialogShown"
-      @close-dialog="isAddBoardDialogShown = false"
+  <transition name="modal">
+    <board-modal
+      v-if="isAddBoardModalShown"
+      @close-modal="isAddBoardModalShown = false"
       action="add"
       :selectedMultiOptionItems="['Todo', 'Doing']"
     />
@@ -64,27 +64,23 @@
 import type { Board } from '../../api/boardsTypes'
 import ThemeToggle from '../shared/ThemeToggle.vue'
 import BoardLabel from './BoardLabel.vue'
-import BoardDialog from '../Dialogs/BoardDialog.vue'
+import BoardModal from '../Modals/BoardModal.vue'
 import LogoIcon from '../Svgs/LogoIcon.vue'
-import { useBoardsNewStore } from '../../stores/boardsNew'
+import { useBoardsStore } from '../../stores/boards'
 import { ref } from 'vue'
 
 defineProps<{
-  condition: boolean
   boards: Board[] | null
   boardName: Board['name']
 }>()
 defineEmits(['toggle-sidebar'])
 
-const isAddBoardDialogShown = ref(false)
-const boardsNewStore = useBoardsNewStore()
+const isAddBoardModalShown = ref(false)
+const boardsStore = useBoardsStore()
 
 const changeCurrentBoard = (board: Board) => {
-  boardsNewStore.chosenBoard = board
-  localStorage.setItem(
-    'currentBoard',
-    JSON.stringify(boardsNewStore.chosenBoard)
-  )
+  boardsStore.chosenBoard = board
+  localStorage.setItem('currentBoard', JSON.stringify(boardsStore.chosenBoard))
 }
 </script>
 

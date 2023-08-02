@@ -9,17 +9,17 @@
       {{ message }}
     </p>
     <the-button
-      @click="isBoardDialogShown = true"
+      @click="isBoardModalShown = true"
       :regularButton="true"
       class="gap-[2px] w-max purple-class"
     >
       + Add New
       <span class="capitalize">{{ emptyDashboard ? 'board' : 'column' }}</span>
     </the-button>
-    <transition name="dialog">
-      <board-dialog
-        v-if="isBoardDialogShown"
-        @close-dialog="isBoardDialogShown = false"
+    <transition name="modal">
+      <board-modal
+        v-if="isBoardModalShown"
+        @close-modal="isBoardModalShown = false"
         :action="emptyDashboard ? 'add' : 'edit'"
       />
     </transition>
@@ -28,7 +28,7 @@
 
 <script setup lang="ts">
 import TheButton from '../components/shared/TheButton.vue'
-import BoardDialog from './Dialogs/BoardDialog.vue'
+import BoardModal from './Modals/BoardModal.vue'
 import { ref, computed } from 'vue'
 
 const props = defineProps<{
@@ -36,7 +36,7 @@ const props = defineProps<{
   emptyBoard: boolean
 }>()
 
-const isBoardDialogShown = ref(false)
+const isBoardModalShown = ref(false)
 
 const message = computed(
   () =>

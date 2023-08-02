@@ -1,5 +1,5 @@
 <template>
-  <dialogs-template @close-dialog="$emit('close-dialog')">
+  <modals-template @close-modal="$emit('close-modal')">
     <template #form-title>
       <h2 class="text-red-400">Delete this {{ elementToDelete }}?</h2>
     </template>
@@ -20,7 +20,7 @@
         </the-button>
 
         <the-button
-          @click="$emit('close-dialog')"
+          @click="$emit('close-modal')"
           :regularButton="true"
           :isInForm="true"
           type="button"
@@ -30,20 +30,20 @@
         </the-button>
       </div>
     </template>
-  </dialogs-template>
+  </modals-template>
 </template>
 
 <script setup lang="ts">
-import DialogsTemplate from './DialogsTemplate.vue'
+import ModalsTemplate from './ModalsTemplate.vue'
 import TheButton from '../shared/TheButton.vue'
 import { computed } from 'vue'
-import { useBoardsNewStore } from '../../stores/boardsNew'
+import { useBoardsStore } from '../../stores/boards'
 
 const props = defineProps<{
   elementToDelete: 'board' | 'task'
   elementName: string
 }>()
-const emits = defineEmits(['close-dialog'])
+const emits = defineEmits(['close-modal'])
 
 const message = computed(() => {
   const prefix = `Are you sure you want to delete the '${props.elementName}'`
@@ -58,10 +58,13 @@ const message = computed(() => {
     ${suffix}`
 })
 
-const boardsNewStore = useBoardsNewStore()
+const boardsStore = useBoardsStore()
 const submit = () => {
-  emits('close-dialog')
-  boardsNewStore.deleteBoard()
+  emits('close-modal')
+
+  if (props.elementToDelete === 'board') {
+    boardsStore.deleteBoard()
+  }
 }
 </script>
 
