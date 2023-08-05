@@ -1,6 +1,5 @@
 <template>
   <div
-    v-if="title"
     @click="$emit('change', title)"
     @keypress.enter="$emit('change', title)"
     tabindex="0"

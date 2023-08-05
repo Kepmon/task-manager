@@ -1,12 +1,8 @@
 <template>
-  <div
-    v-if="columns?.length !== 0"
-    class="columns-container"
-    :class="{ 'columns-container--sizes': !logo }"
-  >
-    <div class="flex gap-6 h-full">
+  <div class="columns-container" :class="{ 'columns-container--sizes': !logo }">
+    <div v-if="boardsStore.boards.length !== 0" class="flex gap-6 h-full">
       <div
-        v-for="(column, index) in columns"
+        v-for="(column, index) in boardsStore.boardColumns"
         :key="index"
         class="flex flex-col"
       >
@@ -16,18 +12,18 @@
             :class="circleColor ? circleColor(column) : ''"
           ></div>
           <p class="text-xs text-gray-400 uppercase">
-            {{ column.name }} ({{ column.tasks?.length || 0 }})
+            {{ column.name }} ({{ 2 || 0 }})
           </p>
         </div>
-        <task-card
+        <!-- <task-card
           @change="(title) => (clickedTitle = title)"
-          v-for="{ title } in column.tasks"
-          :key="title"
+          v-for="({ title }, taskIndex) in distributeTasksPerColumns(task)"
+          :key="taskIndex"
           :howManyCompleted="0"
           :howManySubtasks="0"
           :title="title"
           :isClickedTask="clickedTitle === title"
-        />
+        /> -->
       </div>
       <div class="new-column group" tabindex="0">
         <span class="new-column-text">+ New Column</span>
@@ -56,7 +52,7 @@
         v-if="isEditTaskModalShown"
         @close-modal="isEditTaskModalShown = false"
         action="edit"
-        :selectedMultiOptionItems="selectedMultiOptionItems"
+        :selectedMultiOptionItems="['one, two']"
       />
     </transition>
   </div>
@@ -69,19 +65,23 @@ import SeeTaskModal from './Modals/SeeTaskModal.vue'
 import ConfirmationModal from '../components/Modals/ConfirmationModal.vue'
 import TaskModal from '../components/Modals/TaskModal.vue'
 import { computed, ref } from 'vue'
+import { useBoardsStore } from '../stores/boards'
 
-const props = defineProps<{
-  columns: BoardColumn[] | null
+defineProps<{
   logo: boolean
-  selectedMultiOptionItems: string[]
 }>()
 
+const boardsStore = useBoardsStore()
+
 const circleColor = computed(() => {
-  if (props.columns != null) {
+  if (boardsStore.boardColumns != null) {
     return (column: BoardColumn) => ({
-      'bg-blue-600': (props.columns as BoardColumn[]).indexOf(column) % 3 === 0,
-      'bg-blue-500': (props.columns as BoardColumn[]).indexOf(column) % 3 === 1,
-      'bg-green-400': (props.columns as BoardColumn[]).indexOf(column) % 3 === 2
+      'bg-blue-600':
+        (boardsStore.boardColumns as BoardColumn[]).indexOf(column) % 3 === 0,
+      'bg-blue-500':
+        (boardsStore.boardColumns as BoardColumn[]).indexOf(column) % 3 === 1,
+      'bg-green-400':
+        (boardsStore.boardColumns as BoardColumn[]).indexOf(column) % 3 === 2
     })
   }
   return null

@@ -31,7 +31,6 @@
           >
             <text-input
               @update:model-value="(newValue: string) => ((formData.columns as string[])[index] = newValue)"
-              :key="index"
               :modelValue="item"
               :placeholder="action === 'add' ? item : ''"
               :isError="formData.columns[index] === ''"
@@ -87,7 +86,7 @@ import { ref } from 'vue'
 
 const props = defineProps<{
   action: 'add' | 'edit'
-  selectedMultiOptionItems?: BoardColumn['name'][]
+  selectedMultiOptionItems?: BoardColumn[]
 }>()
 const emits = defineEmits(['update:modelValue', 'close-modal'])
 
@@ -110,12 +109,6 @@ const submit = () => {
   const submitFn =
     props.action === 'add' ? boardsStore.addNewBoard : boardsStore.editBoard
 
-  submitFn({
-    name: formData.value.name,
-    columns: formData.value.columns.map((column) => ({
-      name: column,
-      tasks: []
-    }))
-  })
+  submitFn(formData.value.name, formData.value.columns)
 }
 </script>

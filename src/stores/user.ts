@@ -6,14 +6,21 @@ import {
   signInWithEmailAndPassword,
   signOut
 } from 'firebase/auth'
-import { addDoc } from 'firebase/firestore'
+import { query, where, getDocs, addDoc } from 'firebase/firestore'
 import { auth, usersColRef } from '../firebase'
 import { ref } from 'vue'
+import { useBoardsStore } from './boards'
+import { useTasksStore } from './tasks'
 
 export const useUserStore = defineStore('user', () => {
   const userID = ref<null | string>(null)
+  const userDocID = ref<null | string>(null)
 
-  onAuthStateChanged(auth, (user) => {
+  const boardsStore = useBoardsStore()
+  const tasksStore = useTasksStore()
+
+  const isLoading = ref(true)
+  onAuthStateChanged(auth, async (user) => {
     if (!user) {
       localStorage.removeItem('user')
       return
@@ -21,6 +28,14 @@ export const useUserStore = defineStore('user', () => {
 
     userID.value = user.uid
     localStorage.setItem('user', JSON.stringify(user))
+
+    const activeUserColRef = query(usersColRef, where('userID', '==', user.uid))
+    const activeUserDocID = (await getDocs(activeUserColRef)).docs[0].id
+
+    await boardsStore.getBoardsData(activeUserDocID)
+    await tasksStore.getTasksData(activeUserDocID)
+
+    isLoading.value = false
   })
 
   const register = async (email: string, password: string) => {
@@ -72,7 +87,9 @@ export const useUserStore = defineStore('user', () => {
   }
 
   return {
+    isLoading,
     userID,
+    userDocID,
     register,
     logIn,
     logout

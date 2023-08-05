@@ -1,28 +1,31 @@
 <template>
-  <modals-template @close-modal="$emit('close-modal')">
+  <modals-template @submit-form="submit" @close-modal="$emit('close-modal')">
     <template #form-title>
       <h2>{{ action }} {{ action === 'add' ? 'New' : '' }} Task</h2>
     </template>
 
     <template #main-content>
       <text-input
-        v-model="taskTitle"
+        v-model="taskFormData.title"
         label="Title"
         :placeholder="action === 'add' ? 'e.g. Take coffee break' : ''"
       />
 
-      <description-field label="Description" />
+      <description-field
+        v-model="taskFormData.description"
+        label="Description"
+      />
 
       <div>
         <p class="mb-2 text-xs">Subtasks</p>
         <div class="grid gap-3">
           <div
-            v-for="(item, index) in boardsStore.boardColumnsNames"
+            v-for="(item, index) in taskFormData.subtasks"
             :key="index"
             class="flex items-center"
           >
             <text-input
-              :key="index"
+              @update:model-value="(newValue: string) => taskFormData.subtasks[index] = newValue"
               :modelValue="item"
               :placeholder="action === 'add' ? item : ''"
               :class="{ 'after:content-none': item !== '' }"
@@ -49,16 +52,24 @@
         </div>
       </div>
 
-      <the-button :regularButton="true" :isInForm="true" class="white-button">
+      <the-button
+        :regularButton="true"
+        :isInForm="true"
+        type="button"
+        class="white-button"
+      >
         + Add New Subtask
       </the-button>
 
       <div>
         <p class="mb-2 text-xs text-gray-400 dark:text-white">Status</p>
         <v-select
-          :options="statusItems"
+          @update:model-value="
+            (newItem: string) => (taskFormData.selectedStatusItem = (taskFormData.statusItems as BoardColumn[]).filter((item) => item.name === newItem)[0])
+          "
+          :options="statusItemsNames"
           :searchable="false"
-          placeholder="Todo"
+          :placeholder="taskFormData.selectedStatusItem.name"
         ></v-select>
       </div>
 
@@ -76,6 +87,7 @@ import TextInput from '../shared/Inputs/TextInput.vue'
 import DescriptionField from '../shared/Inputs/DescriptionField.vue'
 import TheButton from '../../components/shared/TheButton.vue'
 import { useBoardsStore } from '../../stores/boards'
+import { useTasksStore } from '../../stores/tasks'
 import { ref } from 'vue'
 
 defineProps<{
@@ -85,7 +97,24 @@ defineProps<{
 defineEmits(['close-modal'])
 
 const boardsStore = useBoardsStore()
+const statusItemsNames = boardsStore.boardColumns?.map((column) => column.name)
+const taskFormData = ref({
+  title: '',
+  description: '',
+  subtasks: ['e.g. Make coffee', 'e.g. Drink coffee & smile'],
+  statusItems: boardsStore.boardColumns,
+  selectedStatusItem: (boardsStore.boardColumns as BoardColumn[])[0]
+})
 
-const taskTitle = ref('')
-const statusItems = ref<BoardColumn['name'][]>([])
+const tasksStore = useTasksStore()
+const submit = async () => {
+  await tasksStore.addNewTask(
+    taskFormData.value.selectedStatusItem as BoardColumn,
+    {
+      title: taskFormData.value.title,
+      description: taskFormData.value.description
+    },
+    taskFormData.value.subtasks
+  )
+}
 </script>

@@ -1,6 +1,6 @@
 <template>
   <div class="main-container">
-    <Spinner v-if="boardsStore.isLoading" />
+    <Spinner v-if="userStore.isLoading" />
 
     <transition name="popup">
       <confirmation-popup
@@ -43,16 +43,15 @@
       <boards-column
         v-if="!isDashboardEmpty"
         :selectedMultiOptionItems="['Todo', 'Doing']"
-        :columns="boardsStore.boardColumns"
         :logo="isLogoShown"
       />
       <empty-info
-        v-if="!boardsStore.isLoading"
+        v-if="!userStore.isLoading"
         :emptyDashboard="isDashboardEmpty"
         :emptyBoard="isBoardEmpty"
       />
       <user-options
-        v-if="isDashboardEmpty && !boardsStore.isLoading"
+        v-if="isDashboardEmpty && !userStore.isLoading"
         :isDashboardEmpty="isDashboardEmpty"
         class="absolute bottom-8 right-8 scale-125"
       />
@@ -68,16 +67,19 @@ import BoardsColumn from '../components/BoardsColumn.vue'
 import UserOptions from '../components/UserOptions.vue'
 import ConfirmationPopup from '../components/shared/ConfirmationPopup.vue'
 import Spinner from '../components/Spinner.vue'
+import { useUserStore } from '../stores/user'
 import { useBoardsStore } from '../stores/boards'
 import { ref, computed } from 'vue'
 import { useWindowSize } from '@vueuse/core'
 
+const userStore = useUserStore()
 const boardsStore = useBoardsStore()
+
 const isDashboardEmpty = computed(() =>
   boardsStore.boards.length === 0 ? true : false
 )
 const isBoardEmpty = computed(() =>
-  boardsStore.boardColumns && boardsStore.boardColumns.length === 0
+  boardsStore.boardColumnsNames && boardsStore.boardColumnsNames.length === 0
     ? true
     : false
 )

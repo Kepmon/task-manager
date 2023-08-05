@@ -1,4 +1,4 @@
-import type { Board } from '../api/boardsTypes'
+import type { Board, BoardColumn } from '../api/boardsTypes'
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { CollectionReference, DocumentData } from 'firebase/firestore'
@@ -13,12 +13,13 @@ import {
   deleteDoc,
   serverTimestamp
 } from 'firebase/firestore'
-import { db, usersColRef } from '../firebase'
+import { db } from '../firebase'
 import { useUserStore } from './user'
 
 export const useBoardsStore = defineStore('boards', () => {
   const userStore = useUserStore()
   const boardsColRef = ref<null | CollectionReference<DocumentData>>(null)
+  const columnsColRef = ref<null | CollectionReference<DocumentData>>(null)
   const boards = ref<Board[]>([])
   const chosenBoard = ref<null | Board>(null)
   const currentBoard = computed<null | Board>(() => {
@@ -31,23 +32,15 @@ export const useBoardsStore = defineStore('boards', () => {
 
     return boards.value[0]
   })
-
-  const boardColumns = computed(() =>
-    currentBoard.value ? currentBoard.value.columns : null
-  )
+  const boardColumns = ref<null | BoardColumn[]>(null)
   const boardColumnsNames = computed(() =>
-    boardColumns.value?.map((column) => column.name)
+    boardColumns.value ? boardColumns.value?.map((column) => column.name) : null
   )
 
   const isConfirmationPopupShown = ref(false)
   const action = ref<'add' | 'edit' | 'delete'>('add')
 
-  const isLoading = ref(true)
-  onSnapshot(usersColRef, (snapshot) => {
-    const userDocID = snapshot.docs.find(
-      (doc) => doc.data().userID === userStore.userID
-    )?.id
-
+  const getBoardsData = async (userDocID: string) => {
     boardsColRef.value = collection(db, `users/${userDocID}/boards`)
     const boardsColRefOrdered = query(
       boardsColRef.value as CollectionReference<DocumentData>,
@@ -57,40 +50,49 @@ export const useBoardsStore = defineStore('boards', () => {
       boards.value = snapshot.docs.map((doc) => doc.data() as Board)
     })
 
-    isLoading.value = false
-  })
+    columnsColRef.value = collection(
+      db,
+      `users/${userStore.userDocID}/boards/${currentBoard.value?.docID}/columns`
+    )
+    onSnapshot(columnsColRef.value, (snapshot) => {
+      boardColumns.value = snapshot.docs.map((doc) => doc.data() as BoardColumn)
+      localStorage.setItem('boardColumns', JSON.stringify(boardColumns.value))
+    })
+  }
 
-  const addNewBoard = async (board: Omit<Board, 'docID' | 'createdAt'>) => {
+  const addNewBoard = async (
+    boardName: Board['name'],
+    boardColumns: string[]
+  ) => {
     const addedDocRef = await addDoc(
       boardsColRef.value as CollectionReference<DocumentData>,
       {
         createdAt: serverTimestamp(),
-        ...board
+        name: boardName
       }
     )
 
     if (addedDocRef) {
+      const columnsColRef = collection(db, `${addedDocRef.path}/columns`)
+
       await updateDoc(addedDocRef, {
         docID: addedDocRef.id
+      })
+
+      boardColumns.forEach(async (column) => {
+        const addedColumnRef = await addDoc(columnsColRef, {
+          name: column
+        })
+
+        if (addedColumnRef) {
+          await updateDoc(addedColumnRef, {
+            docID: addedColumnRef.id
+          })
+        }
       })
     }
 
     chosenBoard.value = boards.value[0]
-    localStorage.setItem('currentBoard', JSON.stringify(chosenBoard.value))
-  }
-
-  const editBoard = async (board: Omit<Board, 'docID' | 'createdAt'>) => {
-    const docToEditRef = doc(
-      boardsColRef.value as CollectionReference<DocumentData>,
-      currentBoard.value?.docID
-    )
-    await updateDoc(docToEditRef, {
-      ...board
-    })
-
-    chosenBoard.value = boards.value.find(
-      (board) => board.docID === (currentBoard.value as Board).docID
-    ) as Board
     localStorage.setItem('currentBoard', JSON.stringify(chosenBoard.value))
   }
 
@@ -108,7 +110,8 @@ export const useBoardsStore = defineStore('boards', () => {
   }
 
   return {
-    isLoading,
+    boardsColRef,
+    columnsColRef,
     boards,
     chosenBoard,
     currentBoard,
@@ -116,8 +119,8 @@ export const useBoardsStore = defineStore('boards', () => {
     boardColumnsNames,
     isConfirmationPopupShown,
     action,
+    getBoardsData,
     addNewBoard,
-    editBoard,
     deleteBoard
   }
 })
