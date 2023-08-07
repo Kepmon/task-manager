@@ -6,6 +6,7 @@ export interface Board {
 
 export interface BoardColumn {
   docID: string
+  createdAt: string
   name: string
 }
 

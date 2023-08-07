@@ -12,18 +12,18 @@
             :class="circleColor ? circleColor(column) : ''"
           ></div>
           <p class="text-xs text-gray-400 uppercase">
-            {{ column.name }} ({{ 2 || 0 }})
+            {{ column.name }} ({{ tasksStore.tasks.length || 0 }})
           </p>
         </div>
-        <!-- <task-card
+        <task-card
           @change="(title) => (clickedTitle = title)"
-          v-for="({ title }, taskIndex) in distributeTasksPerColumns(task)"
+          v-for="(task, taskIndex) in tasksStore.tasks[index]"
           :key="taskIndex"
           :howManyCompleted="0"
           :howManySubtasks="0"
-          :title="title"
-          :isClickedTask="clickedTitle === title"
-        /> -->
+          :title="task.title"
+          :isClickedTask="clickedTitle === task.title"
+        />
       </div>
       <div class="new-column group" tabindex="0">
         <span class="new-column-text">+ New Column</span>
@@ -66,12 +66,14 @@ import ConfirmationModal from '../components/Modals/ConfirmationModal.vue'
 import TaskModal from '../components/Modals/TaskModal.vue'
 import { computed, ref } from 'vue'
 import { useBoardsStore } from '../stores/boards'
+import { useTasksStore } from '../stores/tasks'
 
 defineProps<{
   logo: boolean
 }>()
 
 const boardsStore = useBoardsStore()
+const tasksStore = useTasksStore()
 
 const circleColor = computed(() => {
   if (boardsStore.boardColumns != null) {

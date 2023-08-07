@@ -1,7 +1,7 @@
 <template>
   <transition name="nav">
     <nav
-      v-if="!boardsStore.isLoading"
+      v-if="!tasksStore.isLoading"
       aria-label="boards navigation"
       class="boards"
     >
@@ -66,7 +66,9 @@ import ThemeToggle from '../shared/ThemeToggle.vue'
 import BoardLabel from './BoardLabel.vue'
 import BoardModal from '../Modals/BoardModal.vue'
 import LogoIcon from '../Svgs/LogoIcon.vue'
+import { useUserStore } from '../../stores/user'
 import { useBoardsStore } from '../../stores/boards'
+import { useTasksStore } from '../../stores/tasks'
 import { ref } from 'vue'
 
 defineProps<{
@@ -76,7 +78,9 @@ defineProps<{
 defineEmits(['toggle-sidebar'])
 
 const isAddBoardModalShown = ref(false)
+const userStore = useUserStore()
 const boardsStore = useBoardsStore()
+const tasksStore = useTasksStore()
 
 const changeCurrentBoard = (board: Board) => {
   boardsStore.chosenBoard = board

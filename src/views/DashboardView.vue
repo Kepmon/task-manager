@@ -1,6 +1,6 @@
 <template>
   <div class="main-container">
-    <Spinner v-if="userStore.isLoading" />
+    <Spinner v-if="tasksStore.isLoading" />
 
     <transition name="popup">
       <confirmation-popup
@@ -10,10 +10,14 @@
       />
     </transition>
 
-    <boards-navbar @toggle-sidebar="toggleSidebar" v-bind="boardsNavbarProps" />
+    <boards-navbar
+      @toggle-sidebar="toggleSidebar"
+      :boards="boardsStore.boards"
+      :boardName="boardsStore.currentBoard?.name || ''"
+    />
 
     <main-navbar
-      v-if="!isDashboardEmpty"
+      v-if="!isDashboardEmpty && !tasksStore.isLoading"
       @toggle-boards-nav="toggleBoardsNav"
       :sidebar="isSidebarShown"
       :isLogo="isLogoShown"
@@ -46,12 +50,12 @@
         :logo="isLogoShown"
       />
       <empty-info
-        v-if="!userStore.isLoading"
+        v-if="!tasksStore.isLoading"
         :emptyDashboard="isDashboardEmpty"
         :emptyBoard="isBoardEmpty"
       />
       <user-options
-        v-if="isDashboardEmpty && !userStore.isLoading"
+        v-if="isDashboardEmpty && !tasksStore.isLoading"
         :isDashboardEmpty="isDashboardEmpty"
         class="absolute bottom-8 right-8 scale-125"
       />
@@ -67,13 +71,13 @@ import BoardsColumn from '../components/BoardsColumn.vue'
 import UserOptions from '../components/UserOptions.vue'
 import ConfirmationPopup from '../components/shared/ConfirmationPopup.vue'
 import Spinner from '../components/Spinner.vue'
-import { useUserStore } from '../stores/user'
 import { useBoardsStore } from '../stores/boards'
+import { useTasksStore } from '../stores/tasks'
 import { ref, computed } from 'vue'
 import { useWindowSize } from '@vueuse/core'
 
-const userStore = useUserStore()
 const boardsStore = useBoardsStore()
+const tasksStore = useTasksStore()
 
 const isDashboardEmpty = computed(() =>
   boardsStore.boards.length === 0 ? true : false
@@ -83,12 +87,7 @@ const isBoardEmpty = computed(() =>
     ? true
     : false
 )
-
 const areBoardOptionsShown = ref(false)
-const boardsNavbarProps = computed(() => ({
-  boards: boardsStore.boards,
-  boardName: boardsStore.currentBoard?.name || ''
-}))
 
 const isSidebarShown = ref(true)
 const isNavOpen = ref(false)

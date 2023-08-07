@@ -1,24 +1,30 @@
 import type { Board, BoardColumn } from '../api/boardsTypes'
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { CollectionReference, DocumentData } from 'firebase/firestore'
+import type {
+  Query,
+  CollectionReference,
+  DocumentData
+} from 'firebase/firestore'
 import {
   onSnapshot,
   query,
   orderBy,
   collection,
   doc,
+  getDocs,
   addDoc,
   updateDoc,
   deleteDoc,
   serverTimestamp
 } from 'firebase/firestore'
-import { db } from '../firebase'
+import { db, usersColRef } from '../firebase'
 import { useUserStore } from './user'
 
 export const useBoardsStore = defineStore('boards', () => {
   const userStore = useUserStore()
   const boardsColRef = ref<null | CollectionReference<DocumentData>>(null)
+  const boardsColRefOrdered = ref<null | Query<DocumentData>>(null)
   const columnsColRef = ref<null | CollectionReference<DocumentData>>(null)
   const boards = ref<Board[]>([])
   const chosenBoard = ref<null | Board>(null)
@@ -40,25 +46,33 @@ export const useBoardsStore = defineStore('boards', () => {
   const isConfirmationPopupShown = ref(false)
   const action = ref<'add' | 'edit' | 'delete'>('add')
 
-  const getBoardsData = async (userDocID: string) => {
-    boardsColRef.value = collection(db, `users/${userDocID}/boards`)
-    const boardsColRefOrdered = query(
+  const activeUserDocID = ref('')
+  onSnapshot(usersColRef, async () => {
+    activeUserDocID.value = (
+      await getDocs(userStore.activeUserColRef as Query<DocumentData>)
+    ).docs[0].id
+
+    boardsColRef.value = collection(db, `users/${activeUserDocID.value}/boards`)
+    boardsColRefOrdered.value = query(
       boardsColRef.value as CollectionReference<DocumentData>,
       orderBy('createdAt', 'desc')
     )
-    onSnapshot(boardsColRefOrdered, (snapshot) => {
-      boards.value = snapshot.docs.map((doc) => doc.data() as Board)
-    })
+    onSnapshot(
+      boardsColRefOrdered.value as CollectionReference<DocumentData>,
+      (snapshot) => {
+        boards.value = snapshot.docs.map((doc) => doc.data() as Board)
+      }
+    )
 
     columnsColRef.value = collection(
       db,
-      `users/${userStore.userDocID}/boards/${currentBoard.value?.docID}/columns`
+      `users/${activeUserDocID.value}/boards/${currentBoard.value?.docID}/columns`
     )
     onSnapshot(columnsColRef.value, (snapshot) => {
       boardColumns.value = snapshot.docs.map((doc) => doc.data() as BoardColumn)
       localStorage.setItem('boardColumns', JSON.stringify(boardColumns.value))
     })
-  }
+  })
 
   const addNewBoard = async (
     boardName: Board['name'],
@@ -81,7 +95,8 @@ export const useBoardsStore = defineStore('boards', () => {
 
       boardColumns.forEach(async (column) => {
         const addedColumnRef = await addDoc(columnsColRef, {
-          name: column
+          name: column,
+          createdAt: serverTimestamp()
         })
 
         if (addedColumnRef) {
@@ -111,6 +126,7 @@ export const useBoardsStore = defineStore('boards', () => {
 
   return {
     boardsColRef,
+    boardsColRefOrdered,
     columnsColRef,
     boards,
     chosenBoard,
@@ -119,7 +135,6 @@ export const useBoardsStore = defineStore('boards', () => {
     boardColumnsNames,
     isConfirmationPopupShown,
     action,
-    getBoardsData,
     addNewBoard,
     deleteBoard
   }

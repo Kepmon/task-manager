@@ -1,25 +1,22 @@
 import { defineStore } from 'pinia'
 import type { AuthError } from 'firebase/auth'
+import type { DocumentData, Query } from 'firebase/firestore'
 import {
   onAuthStateChanged,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut
 } from 'firebase/auth'
-import { query, where, getDocs, addDoc } from 'firebase/firestore'
+import { query, where, getDocs, addDoc, updateDoc } from 'firebase/firestore'
 import { auth, usersColRef } from '../firebase'
 import { ref } from 'vue'
-import { useBoardsStore } from './boards'
-import { useTasksStore } from './tasks'
 
 export const useUserStore = defineStore('user', () => {
   const userID = ref<null | string>(null)
   const userDocID = ref<null | string>(null)
+  const activeUserColRef = ref<null | Query<DocumentData>>(null)
+  const activeUserDocID = ref('')
 
-  const boardsStore = useBoardsStore()
-  const tasksStore = useTasksStore()
-
-  const isLoading = ref(true)
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
       localStorage.removeItem('user')
@@ -29,13 +26,8 @@ export const useUserStore = defineStore('user', () => {
     userID.value = user.uid
     localStorage.setItem('user', JSON.stringify(user))
 
-    const activeUserColRef = query(usersColRef, where('userID', '==', user.uid))
-    const activeUserDocID = (await getDocs(activeUserColRef)).docs[0].id
-
-    await boardsStore.getBoardsData(activeUserDocID)
-    await tasksStore.getTasksData(activeUserDocID)
-
-    isLoading.value = false
+    activeUserColRef.value = query(usersColRef, where('userID', '==', user.uid))
+    activeUserDocID.value = (await getDocs(activeUserColRef.value)).docs[0].id
   })
 
   const register = async (email: string, password: string) => {
@@ -48,8 +40,12 @@ export const useUserStore = defineStore('user', () => {
 
       if (!authResponse) throw new Error()
 
-      await addDoc(usersColRef, {
+      const addedUserDoc = await addDoc(usersColRef, {
         userID: userID.value
+      })
+
+      await updateDoc(addedUserDoc, {
+        docID: addedUserDoc.id
       })
 
       await logout()
@@ -87,7 +83,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
   return {
-    isLoading,
+    activeUserColRef,
     userID,
     userDocID,
     register,
