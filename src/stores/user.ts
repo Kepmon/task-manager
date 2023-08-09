@@ -83,6 +83,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
   return {
+    activeUserDocID,
     activeUserColRef,
     userID,
     userDocID,
