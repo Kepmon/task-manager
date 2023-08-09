@@ -2,14 +2,6 @@
   <div class="main-container">
     <Spinner v-if="tasksStore.isLoading" />
 
-    <transition name="popup">
-      <confirmation-popup
-        v-if="boardsStore.isConfirmationPopupShown"
-        :action="boardsStore.action"
-        element="board"
-      />
-    </transition>
-
     <boards-navbar
       @toggle-sidebar="toggleSidebar"
       :boards="boardsStore.boards"
@@ -69,15 +61,12 @@ import BoardsNavbar from '../components/Navbar/BoardsNavbar.vue'
 import EmptyInfo from '../components/EmptyInfo.vue'
 import BoardsColumn from '../components/BoardsColumn.vue'
 import UserOptions from '../components/UserOptions.vue'
-import ConfirmationPopup from '../components/shared/ConfirmationPopup.vue'
 import Spinner from '../components/Spinner.vue'
-import { useUserStore } from '../stores/user'
 import { useBoardsStore } from '../stores/boards'
 import { useTasksStore } from '../stores/tasks'
 import { ref, computed } from 'vue'
 import { useWindowSize } from '@vueuse/core'
 
-const userStore = useUserStore()
 const boardsStore = useBoardsStore()
 const tasksStore = useTasksStore()
 

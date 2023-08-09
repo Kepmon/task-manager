@@ -1,33 +1,22 @@
 import { defineStore } from 'pinia'
 import type { AuthError } from 'firebase/auth'
-import type { DocumentData, Query } from 'firebase/firestore'
 import {
   onAuthStateChanged,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut
 } from 'firebase/auth'
-import { query, where, getDocs, addDoc, updateDoc } from 'firebase/firestore'
+import { doc, setDoc } from 'firebase/firestore'
 import { auth, usersColRef } from '../firebase'
-import { ref } from 'vue'
 
 export const useUserStore = defineStore('user', () => {
-  const userID = ref<null | string>(null)
-  const userDocID = ref<null | string>(null)
-  const activeUserColRef = ref<null | Query<DocumentData>>(null)
-  const activeUserDocID = ref('')
-
-  onAuthStateChanged(auth, async (user) => {
+  onAuthStateChanged(auth, (user) => {
     if (!user) {
       localStorage.removeItem('user')
       return
     }
 
-    userID.value = user.uid
     localStorage.setItem('user', JSON.stringify(user))
-
-    activeUserColRef.value = query(usersColRef, where('userID', '==', user.uid))
-    activeUserDocID.value = (await getDocs(activeUserColRef.value)).docs[0].id
   })
 
   const register = async (email: string, password: string) => {
@@ -40,12 +29,8 @@ export const useUserStore = defineStore('user', () => {
 
       if (!authResponse) throw new Error()
 
-      const addedUserDoc = await addDoc(usersColRef, {
-        userID: userID.value
-      })
-
-      await updateDoc(addedUserDoc, {
-        docID: addedUserDoc.id
+      await setDoc(doc(usersColRef, authResponse.user.uid), {
+        userID: authResponse.user.uid
       })
 
       await logout()
@@ -83,10 +68,6 @@ export const useUserStore = defineStore('user', () => {
   }
 
   return {
-    activeUserDocID,
-    activeUserColRef,
-    userID,
-    userDocID,
     register,
     logIn,
     logout

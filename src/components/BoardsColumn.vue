@@ -1,6 +1,10 @@
 <template>
-  <div class="columns-container" :class="{ 'columns-container--sizes': !logo }">
-    <div v-if="boardsStore.boards.length !== 0" class="flex gap-6 h-full">
+  <div
+    v-if="boardsStore.boardColumns.length !== 0"
+    class="columns-container"
+    :class="{ 'columns-container--sizes': !logo }"
+  >
+    <div class="flex gap-6 h-full">
       <div
         v-for="(column, index) in boardsStore.boardColumns"
         :key="index"

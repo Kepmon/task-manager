@@ -1,11 +1,11 @@
 export interface Board {
-  docID: string
+  boardID: string
   createdAt: string
   name: string
 }
 
 export interface BoardColumn {
-  docID: string
+  columnID: string
   createdAt: string
   name: string
 }
