@@ -1,10 +1,6 @@
 <template>
   <transition name="nav">
-    <nav
-      v-if="!tasksStore.isLoading"
-      aria-label="boards navigation"
-      class="boards"
-    >
+    <nav v-if="!isLoading" aria-label="boards navigation" class="boards">
       <div class="hidden sm:block px-[10%] mt-4 mb-[54px]">
         <logo-icon aria-label="The app logo" />
       </div>
@@ -55,7 +51,6 @@
       v-if="isAddBoardModalShown"
       @close-modal="isAddBoardModalShown = false"
       action="add"
-      :selectedMultiOptionItems="['Todo', 'Doing']"
     />
   </transition>
 </template>
@@ -66,21 +61,18 @@ import ThemeToggle from '../shared/ThemeToggle.vue'
 import BoardLabel from './BoardLabel.vue'
 import BoardModal from '../Modals/BoardModal.vue'
 import LogoIcon from '../Svgs/LogoIcon.vue'
-import { useUserStore } from '../../stores/user'
 import { useBoardsStore } from '../../stores/boards'
-import { useTasksStore } from '../../stores/tasks'
 import { ref } from 'vue'
 
 defineProps<{
   boards: Board[] | null
   boardName: Board['name']
+  isLoading: boolean
 }>()
 defineEmits(['toggle-sidebar'])
 
 const isAddBoardModalShown = ref(false)
-const userStore = useUserStore()
 const boardsStore = useBoardsStore()
-const tasksStore = useTasksStore()
 
 const changeCurrentBoard = (board: Board) => {
   boardsStore.chosenBoard = board

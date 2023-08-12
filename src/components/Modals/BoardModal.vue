@@ -77,7 +77,6 @@
 </template>
 
 <script setup lang="ts">
-import type { BoardColumn } from '../../api/boardsTypes'
 import ModalsTemplate from './ModalsTemplate.vue'
 import TextInput from '../shared/Inputs/TextInput.vue'
 import TheButton from '../../components/shared/TheButton.vue'
@@ -86,7 +85,6 @@ import { ref } from 'vue'
 
 const props = defineProps<{
   action: 'add' | 'edit'
-  selectedMultiOptionItems?: BoardColumn[]
 }>()
 const emits = defineEmits(['update:modelValue', 'close-modal'])
 
@@ -109,6 +107,6 @@ const submit = () => {
   const submitFn =
     props.action === 'add' ? boardsStore.addNewBoard : boardsStore.editBoard
 
-  submitFn(formData.value.name, formData.value.columns)
+  submitFn(formData.value.name.trim(), formData.value.columns)
 }
 </script>

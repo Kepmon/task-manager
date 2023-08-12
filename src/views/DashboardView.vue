@@ -6,6 +6,7 @@
       @toggle-sidebar="toggleSidebar"
       :boards="boardsStore.boards"
       :boardName="boardsStore.currentBoard?.name || ''"
+      :isLoading="isLoading"
     />
 
     <main-navbar

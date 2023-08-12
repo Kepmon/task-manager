@@ -81,7 +81,7 @@
 </template>
 
 <script setup lang="ts">
-import type { BoardColumn, Subtask } from '../../api/boardsTypes'
+import type { BoardColumn } from '../../api/boardsTypes'
 import ModalsTemplate from './ModalsTemplate.vue'
 import TextInput from '../shared/Inputs/TextInput.vue'
 import DescriptionField from '../shared/Inputs/DescriptionField.vue'
@@ -92,9 +92,8 @@ import { ref } from 'vue'
 
 defineProps<{
   action: 'add' | 'edit'
-  selectedMultiOptionItems: Subtask['title'][] | string[]
 }>()
-defineEmits(['close-modal'])
+const emits = defineEmits(['close-modal'])
 
 const boardsStore = useBoardsStore()
 const statusItemsNames = boardsStore.boardColumns?.map((column) => column.name)
@@ -108,11 +107,12 @@ const taskFormData = ref({
 
 const tasksStore = useTasksStore()
 const submit = async () => {
+  emits('close-modal')
   await tasksStore.addNewTask(
     taskFormData.value.selectedStatusItem as BoardColumn,
     {
-      title: taskFormData.value.title,
-      description: taskFormData.value.description
+      title: taskFormData.value.title.trim(),
+      description: taskFormData.value.description.trim()
     },
     taskFormData.value.subtasks
   )

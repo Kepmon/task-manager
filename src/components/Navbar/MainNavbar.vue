@@ -81,10 +81,6 @@
         v-if="isAddTaskModalShown"
         @close-modal="isAddTaskModalShown = false"
         action="add"
-        :selectedMultiOptionItems="[
-          'e.g. Make coffee',
-          'e.g. Drink coffee & smile'
-        ]"
       />
     </transition>
     <transition name="modal">
@@ -100,7 +96,6 @@
         v-if="isEditBoardModalShown"
         @close-modal="isEditBoardModalShown = false"
         action="edit"
-        :selectedMultiOptionItems="selectedMultiOptionItems"
       />
     </transition>
   </div>
@@ -132,21 +127,6 @@ const isDeleteBoardModalShown = ref(false)
 const isEditBoardModalShown = ref(false)
 
 const boardsStore = useBoardsStore()
-const subtasks = ref([
-  {
-    title: 'Settings - Account page',
-    isCompleted: true
-  },
-  {
-    title: 'Settings - Billing page',
-    isCompleted: true
-  },
-  {
-    title: 'Search page',
-    isCompleted: false
-  }
-])
-const selectedMultiOptionItems = subtasks.value.map((subtask) => subtask.title)
 
 const { toggleOptions, closeOptions } = moreOptionsPopup
 const handleMoreOptionsFn = (

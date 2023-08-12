@@ -9,6 +9,7 @@ import {
 import { doc, setDoc } from 'firebase/firestore'
 import { auth, usersColRef } from '../firebase'
 import { computed } from 'vue'
+import { useBoardsStore } from './boards'
 
 export const useUserStore = defineStore('user', () => {
   const userID = computed(() => {
@@ -69,8 +70,13 @@ export const useUserStore = defineStore('user', () => {
 
   const logout = async () => {
     try {
+      const boardsStore = useBoardsStore()
+      boardsStore.removeBoardsSnapshot()
+      boardsStore.removeColumnsSnapshot()
+
       await signOut(auth)
       localStorage.removeItem('user')
+
       return true
     } catch (err) {
       return false

@@ -58,7 +58,6 @@
         v-if="isEditTaskModalShown"
         @close-modal="isEditTaskModalShown = false"
         action="edit"
-        :selectedMultiOptionItems="['one, two']"
       />
     </transition>
   </div>
@@ -87,7 +86,11 @@ const returnNumberOfElements = (
   taskIndex: number,
   element: Element
 ) => {
-  if (tasksStore.subtasks[columnIndex] == null) return 0
+  if (
+    tasksStore.subtasks[columnIndex] == null ||
+    tasksStore.subtasks[columnIndex][taskIndex] == null
+  )
+    return 0
 
   const elementFns = {
     tasks: () => tasksStore.tasks[columnIndex].length,

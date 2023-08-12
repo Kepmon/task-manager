@@ -39,7 +39,7 @@ export const useBoardsStore = defineStore('boards', () => {
 
   const boardsColRef = collection(db, `users/${userStore.userID}/boards`)
   const boardsColRefOrdered = query(boardsColRef, orderBy('createdAt', 'desc'))
-  onSnapshot(boardsColRefOrdered, (snapshot) => {
+  const removeBoardsSnapshot = onSnapshot(boardsColRefOrdered, (snapshot) => {
     boards.value = snapshot.docs.map((snap) => ({
       ...(snap.data() as Omit<Board, 'boardID'>),
       boardID: snap.id
@@ -50,7 +50,7 @@ export const useBoardsStore = defineStore('boards', () => {
     db,
     `users/${userStore.userID}/boards/${currentBoardID.value}/columns`
   )
-  onSnapshot(columnsColRef, (snapshot) => {
+  const removeColumnsSnapshot = onSnapshot(columnsColRef, (snapshot) => {
     boardColumns.value = snapshot.docs.map((snap) => ({
       ...(snap.data() as Omit<BoardColumn, 'columnID'>),
       columnID: snap.id
@@ -109,6 +109,8 @@ export const useBoardsStore = defineStore('boards', () => {
     currentBoardID,
     boardColumns,
     boardColumnsNames,
+    removeBoardsSnapshot,
+    removeColumnsSnapshot,
     getColumnIDs,
     addNewBoard,
     deleteBoard
