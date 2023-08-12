@@ -1,13 +1,9 @@
 <template>
-  <div
-    v-if="boardsStore.boardColumns.length !== 0"
-    class="columns-container"
-    :class="{ 'columns-container--sizes': !logo }"
-  >
+  <div class="columns-container" :class="{ 'columns-container--sizes': !logo }">
     <div class="flex gap-6 h-full">
       <div
-        v-for="(column, index) in boardsStore.boardColumns"
-        :key="index"
+        v-for="(column, columnIndex) in boardsStore.boardColumns"
+        :key="columnIndex"
         class="flex flex-col"
       >
         <div class="flex items-center gap-2 mb-8 min-w-[280px]">
@@ -16,15 +12,21 @@
             :class="circleColor ? circleColor(column) : ''"
           ></div>
           <p class="text-xs text-gray-400 uppercase">
-            {{ column.name }} ({{ tasksStore.tasks.length || 0 }})
+            {{ column.name }} ({{
+              returnNumberOfElements(columnIndex, 0, 'tasks')
+            }})
           </p>
         </div>
         <task-card
           @change="(title) => (clickedTitle = title)"
-          v-for="(task, taskIndex) in tasksStore.tasks[index]"
+          v-for="(task, taskIndex) in tasksStore.tasks[columnIndex]"
           :key="taskIndex"
-          :howManyCompleted="0"
-          :howManySubtasks="0"
+          :howManyCompleted="
+            returnNumberOfElements(columnIndex, taskIndex, 'subtasksCompleted')
+          "
+          :howManySubtasks="
+            returnNumberOfElements(columnIndex, taskIndex, 'subtasks')
+          "
           :title="task.title"
           :isClickedTask="clickedTitle === task.title"
         />
@@ -68,7 +70,7 @@ import TaskCard from './TaskCard.vue'
 import SeeTaskModal from './Modals/SeeTaskModal.vue'
 import ConfirmationModal from '../components/Modals/ConfirmationModal.vue'
 import TaskModal from '../components/Modals/TaskModal.vue'
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useBoardsStore } from '../stores/boards'
 import { useTasksStore } from '../stores/tasks'
 
@@ -78,6 +80,31 @@ defineProps<{
 
 const boardsStore = useBoardsStore()
 const tasksStore = useTasksStore()
+
+type Element = 'tasks' | 'subtasks' | 'subtasksCompleted'
+const returnNumberOfElements = (
+  columnIndex: number,
+  taskIndex: number,
+  element: Element
+) => {
+  if (tasksStore.subtasks[columnIndex] == null) return 0
+
+  const elementFns = {
+    tasks: () => tasksStore.tasks[columnIndex].length,
+    subtasks: () => tasksStore.subtasks[columnIndex][taskIndex].length,
+    subtasksCompleted: () =>
+      tasksStore.subtasks[columnIndex][taskIndex].filter(
+        (subtask) => subtask.isCompleted
+      ).length
+  }
+
+  return elementFns[element]()
+}
+
+onMounted(async () => {
+  await tasksStore.getTasks()
+  await tasksStore.getSubtasks()
+})
 
 const circleColor = computed(() => {
   if (boardsStore.boardColumns != null) {

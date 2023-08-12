@@ -1,6 +1,6 @@
 <template>
   <div class="main-container">
-    <Spinner v-if="tasksStore.isLoading" />
+    <Spinner v-if="isLoading" />
 
     <boards-navbar
       @toggle-sidebar="toggleSidebar"
@@ -9,7 +9,7 @@
     />
 
     <main-navbar
-      v-if="!isDashboardEmpty && !tasksStore.isLoading"
+      v-if="!isDashboardEmpty && !isLoading"
       @toggle-boards-nav="toggleBoardsNav"
       :sidebar="isSidebarShown"
       :isLogo="isLogoShown"
@@ -37,17 +37,16 @@
       }"
     >
       <boards-column
-        v-if="!isDashboardEmpty"
-        :selectedMultiOptionItems="['Todo', 'Doing']"
+        v-if="!isDashboardEmpty && !isLoading"
         :logo="isLogoShown"
       />
       <empty-info
-        v-if="!tasksStore.isLoading"
+        v-if="!isLoading"
         :emptyDashboard="isDashboardEmpty"
         :emptyBoard="isBoardEmpty"
       />
       <user-options
-        v-if="isDashboardEmpty && !tasksStore.isLoading"
+        v-if="isDashboardEmpty && !isLoading"
         :isDashboardEmpty="isDashboardEmpty"
         class="absolute bottom-8 right-8 scale-125"
       />
@@ -63,12 +62,12 @@ import BoardsColumn from '../components/BoardsColumn.vue'
 import UserOptions from '../components/UserOptions.vue'
 import Spinner from '../components/Spinner.vue'
 import { useBoardsStore } from '../stores/boards'
-import { useTasksStore } from '../stores/tasks'
 import { ref, computed } from 'vue'
 import { useWindowSize } from '@vueuse/core'
 
 const boardsStore = useBoardsStore()
-const tasksStore = useTasksStore()
+
+const isLoading = ref(false)
 
 const isDashboardEmpty = computed(() =>
   boardsStore.boards.length === 0 ? true : false

@@ -7,13 +7,17 @@ import {
   orderBy,
   collection,
   doc,
+  getDocs,
   addDoc,
   deleteDoc,
   serverTimestamp
 } from 'firebase/firestore'
 import { db } from '../firebase'
+import { useUserStore } from './user'
 
 export const useBoardsStore = defineStore('boards', () => {
+  const userStore = useUserStore()
+
   const boards = ref<Board[]>([])
   const chosenBoard = ref<null | Board>(null)
   const currentBoard = computed<null | Board>(() => {
@@ -26,22 +30,14 @@ export const useBoardsStore = defineStore('boards', () => {
 
     return boards.value[0]
   })
-  const boardColumns = ref<BoardColumn[]>([])
-  const boardColumnsNames = computed(() =>
-    boardColumns.value ? boardColumns.value?.map((column) => column.name) : null
-  )
-
-  const activeUser = JSON.parse(localStorage.getItem('user') || '{}')
-  const userID = computed(() => {
-    if (Object.keys(activeUser).length !== 0) {
-      return activeUser.uid
-    }
-
-    return null
-  })
   const currentBoardID = ref(currentBoard.value?.boardID || null)
 
-  const boardsColRef = collection(db, `users/${userID.value}/boards`)
+  const boardColumns = ref<BoardColumn[]>([])
+  const boardColumnsNames = computed(() =>
+    boardColumns.value?.map((column) => column.name)
+  )
+
+  const boardsColRef = collection(db, `users/${userStore.userID}/boards`)
   const boardsColRefOrdered = query(boardsColRef, orderBy('createdAt', 'desc'))
   onSnapshot(boardsColRefOrdered, (snapshot) => {
     boards.value = snapshot.docs.map((snap) => ({
@@ -52,7 +48,7 @@ export const useBoardsStore = defineStore('boards', () => {
 
   const columnsColRef = collection(
     db,
-    `users/${userID.value}/boards/${currentBoardID.value}/columns`
+    `users/${userStore.userID}/boards/${currentBoardID.value}/columns`
   )
   onSnapshot(columnsColRef, (snapshot) => {
     boardColumns.value = snapshot.docs.map((snap) => ({
@@ -60,6 +56,14 @@ export const useBoardsStore = defineStore('boards', () => {
       columnID: snap.id
     }))
   })
+
+  const getColumnIDs = async () => {
+    const columnDocs = (await getDocs(columnsColRef)).docs
+    return {
+      columnIDs: columnDocs.map((columnDoc) => columnDoc.id),
+      columnsColRefPath: columnsColRef.path
+    }
+  }
 
   const addNewBoard = async (
     boardName: Board['name'],
@@ -105,6 +109,7 @@ export const useBoardsStore = defineStore('boards', () => {
     currentBoardID,
     boardColumns,
     boardColumnsNames,
+    getColumnIDs,
     addNewBoard,
     deleteBoard
   }

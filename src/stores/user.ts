@@ -8,8 +8,18 @@ import {
 } from 'firebase/auth'
 import { doc, setDoc } from 'firebase/firestore'
 import { auth, usersColRef } from '../firebase'
+import { computed } from 'vue'
 
 export const useUserStore = defineStore('user', () => {
+  const userID = computed(() => {
+    const activeUser = JSON.parse(localStorage.getItem('user') || '{}')
+    if (Object.keys(activeUser).length !== 0) {
+      return activeUser.uid
+    }
+
+    return null
+  })
+
   onAuthStateChanged(auth, (user) => {
     if (!user) {
       localStorage.removeItem('user')
@@ -68,6 +78,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
   return {
+    userID,
     register,
     logIn,
     logout
