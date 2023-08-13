@@ -4,7 +4,6 @@
       <div
         v-for="(column, columnIndex) in boardsStore.boardColumns"
         :key="columnIndex"
-        class="flex flex-col"
       >
         <div class="flex items-center gap-2 mb-8 min-w-[280px]">
           <div

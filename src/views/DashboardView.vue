@@ -4,6 +4,7 @@
 
     <boards-navbar
       @toggle-sidebar="toggleSidebar"
+      :navOpen="windowWidth >= 640 ? true : isNavOpen"
       :boards="boardsStore.boards"
       :boardName="boardsStore.currentBoard?.name || ''"
       :isLoading="isLoading"
@@ -30,7 +31,7 @@
     </div>
 
     <main
-      class="flex flex-col justify-center p-4 sm:p-6"
+      class="p-4 sm:p-6"
       :class="{
         'sm:col-start-2': !isLogoShown,
         'sm:col-start-1 sm:col-span-2': isLogoShown,

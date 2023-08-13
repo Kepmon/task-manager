@@ -68,11 +68,9 @@
           <p class="mb-2 text-xs text-gray-400 dark:text-white">
             Current Status
           </p>
-          <v-select
-            :options="boardsStore.boardColumnsNames"
-            :searchable="false"
-            :placeholder="boardsStore.boardColumnsNames[columnIndex]"
-          ></v-select>
+          <p class="input border-blue-40 focus:border-purple-400">
+            {{ boardsStore.boardColumnsNames[columnIndex] }}
+          </p>
         </div>
       </div>
     </template>
@@ -84,6 +82,7 @@ import type { Task, Subtask } from '../../api/boardsTypes'
 import ModalsTemplate from './ModalsTemplate.vue'
 import MoreOptions from '../shared/MoreOptions.vue'
 import TheButton from '../shared/TheButton.vue'
+import TextInput from '../shared/Inputs/TextInput.vue'
 import moreOptionsPopup from '../../composables/moreOptionsPopup'
 import { useBoardsStore } from '../../stores/boards'
 import type { Ref } from 'vue'

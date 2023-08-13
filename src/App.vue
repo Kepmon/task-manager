@@ -106,7 +106,7 @@ button {
 }
 
 .v-select {
-  @apply bg-white dark:bg-gray-700 shadow-option rounded-[4px];
+  @apply bg-white dark:bg-gray-700 rounded-[4px];
 }
 
 .v-select .vs__selected,
@@ -135,8 +135,12 @@ button {
 }
 
 .v-select .vs__dropdown-menu {
-  @apply absolute top-10 rounded-lg text-sm text-gray-400;
+  @apply sticky mt-1 rounded-lg text-sm text-gray-400;
   @apply bg-white dark:bg-gray-800;
+}
+
+.v-select .vs__dropdown-toggle {
+  @apply shadow-option;
 }
 
 .v-select:has(:focus) .vs__dropdown-toggle {

@@ -1,6 +1,10 @@
 <template>
   <transition name="nav">
-    <nav v-if="!isLoading" aria-label="boards navigation" class="boards">
+    <nav
+      v-if="!isLoading && navOpen"
+      aria-label="boards navigation"
+      class="boards"
+    >
       <div class="hidden sm:block px-[10%] mt-4 mb-[54px]">
         <logo-icon aria-label="The app logo" />
       </div>
@@ -66,6 +70,7 @@ import { ref } from 'vue'
 
 defineProps<{
   boards: Board[] | null
+  navOpen: boolean
   boardName: Board['name']
   isLoading: boolean
 }>()
