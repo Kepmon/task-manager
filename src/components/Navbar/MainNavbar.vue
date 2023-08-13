@@ -88,7 +88,7 @@
         v-if="isDeleteBoardModalShown"
         @close-modal="isDeleteBoardModalShown = false"
         elementToDelete="board"
-        elementName="Platform Launch"
+        :elementName="(boardsStore.currentBoard as Board).name"
       />
     </transition>
     <transition name="modal">
@@ -102,6 +102,7 @@
 </template>
 
 <script setup lang="ts">
+import type { Board } from '../../api/boardsTypes'
 import MoreOptions from '../shared/MoreOptions.vue'
 import TaskModal from '../Modals/TaskModal.vue'
 import ConfirmationModal from '../Modals/ConfirmationModal.vue'

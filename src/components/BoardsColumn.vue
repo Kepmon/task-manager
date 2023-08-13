@@ -18,7 +18,8 @@
           </p>
         </div>
         <task-card
-          @change="(title) => (clickedTitle = title)"
+          @click="() => handleTaskCardClick(columnIndex, taskIndex)"
+          @keypress.enter="() => handleTaskCardClick(columnIndex, taskIndex)"
           v-for="(task, taskIndex) in tasksStore.tasks[columnIndex]"
           :key="taskIndex"
           :howManyCompleted="
@@ -28,7 +29,6 @@
             returnNumberOfElements(columnIndex, taskIndex, 'subtasks')
           "
           :title="task.title"
-          :isClickedTask="clickedTitle === task.title"
         />
       </div>
       <div class="new-column group" tabindex="0">
@@ -38,33 +38,49 @@
     <Teleport to="body">
       <transition name="modal">
         <see-task-modal
-          v-if="clickedTitle != null"
-          @close-modal="closeSeeTask"
+          v-if="
+            isSeeTaskModalShown &&
+            clickedTask != null &&
+            subtasksOfClickedTask != null &&
+            columnOfClickedTask != null
+          "
+          @close-modal="isSeeTaskModalShown = false"
           @show-edit-form="showEditForm"
           @show-delete-form="showDeleteForm"
+          :columnIndex="columnOfClickedTask"
+          :task="clickedTask"
+          :subtasks="subtasksOfClickedTask"
         />
       </transition>
     </Teleport>
     <transition name="modal">
       <confirmation-modal
-        v-if="isDeleteTaskModalShown"
+        v-if="isDeleteTaskModalShown && clickedTask != null"
         @close-modal="isDeleteTaskModalShown = false"
         elementToDelete="task"
-        elementName="Research pricing points of various competitors and trial different business models"
+        :elementName="clickedTask.title"
       />
     </transition>
     <transition name="modal">
       <task-modal
-        v-if="isEditTaskModalShown"
+        v-if="
+          isEditTaskModalShown &&
+          clickedTask != null &&
+          subtasksOfClickedTask != null &&
+          columnOfClickedTask != null
+        "
         @close-modal="isEditTaskModalShown = false"
         action="edit"
+        :columnIndex="columnOfClickedTask"
+        :task="clickedTask"
+        :subtasks="subtasksOfClickedTask"
       />
     </transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { BoardColumn, Task } from '../api/boardsTypes'
+import type { BoardColumn, Task, Subtask } from '../api/boardsTypes'
 import TaskCard from './TaskCard.vue'
 import SeeTaskModal from './Modals/SeeTaskModal.vue'
 import ConfirmationModal from '../components/Modals/ConfirmationModal.vue'
@@ -79,6 +95,24 @@ defineProps<{
 
 const boardsStore = useBoardsStore()
 const tasksStore = useTasksStore()
+onMounted(async () => {
+  await tasksStore.getTasks()
+  await tasksStore.getSubtasks()
+})
+
+const circleColor = computed(() => {
+  if (boardsStore.boardColumns != null) {
+    return (column: BoardColumn) => ({
+      'bg-blue-600':
+        (boardsStore.boardColumns as BoardColumn[]).indexOf(column) % 3 === 0,
+      'bg-blue-500':
+        (boardsStore.boardColumns as BoardColumn[]).indexOf(column) % 3 === 1,
+      'bg-green-400':
+        (boardsStore.boardColumns as BoardColumn[]).indexOf(column) % 3 === 2
+    })
+  }
+  return null
+})
 
 type Element = 'tasks' | 'subtasks' | 'subtasksCompleted'
 const returnNumberOfElements = (
@@ -104,42 +138,36 @@ const returnNumberOfElements = (
   return elementFns[element]()
 }
 
-onMounted(async () => {
-  await tasksStore.getTasks()
-  await tasksStore.getSubtasks()
-})
+const columnOfClickedTask = ref<null | number>(null)
+const clickedTask = ref<null | Task>(null)
+const subtasksOfClickedTask = ref<null | Subtask[]>(null)
 
-const circleColor = computed(() => {
-  if (boardsStore.boardColumns != null) {
-    return (column: BoardColumn) => ({
-      'bg-blue-600':
-        (boardsStore.boardColumns as BoardColumn[]).indexOf(column) % 3 === 0,
-      'bg-blue-500':
-        (boardsStore.boardColumns as BoardColumn[]).indexOf(column) % 3 === 1,
-      'bg-green-400':
-        (boardsStore.boardColumns as BoardColumn[]).indexOf(column) % 3 === 2
-    })
-  }
-  return null
-})
+const handleTaskCardClick = (columnIndex: number, taskIndex: number) => {
+  saveClickedTask(columnIndex, taskIndex)
 
-const clickedTitle = ref<null | Task['title']>(null)
+  isSeeTaskModalShown.value = true
+}
+const saveClickedTask = (columnIndex: number, taskIndex: number) => {
+  columnOfClickedTask.value = columnIndex
+  clickedTask.value = tasksStore.tasks[columnIndex][taskIndex]
 
+  saveSubtasksOfClickedTask(columnIndex, taskIndex)
+}
+const saveSubtasksOfClickedTask = (columnIndex: number, taskIndex: number) => {
+  subtasksOfClickedTask.value = tasksStore.subtasks[columnIndex][taskIndex]
+}
+
+const isSeeTaskModalShown = ref(false)
 const isEditTaskModalShown = ref(false)
 const isDeleteTaskModalShown = ref(false)
 
-const closeSeeTask = () => {
-  clickedTitle.value = null
-}
-
 const showEditForm = () => {
+  isSeeTaskModalShown.value = false
   isEditTaskModalShown.value = true
-  closeSeeTask()
 }
-
 const showDeleteForm = () => {
+  isSeeTaskModalShown.value = false
   isDeleteTaskModalShown.value = true
-  closeSeeTask()
 }
 </script>
 

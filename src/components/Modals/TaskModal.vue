@@ -81,7 +81,7 @@
 </template>
 
 <script setup lang="ts">
-import type { BoardColumn } from '../../api/boardsTypes'
+import type { BoardColumn, Task, Subtask } from '../../api/boardsTypes'
 import ModalsTemplate from './ModalsTemplate.vue'
 import TextInput from '../shared/Inputs/TextInput.vue'
 import DescriptionField from '../shared/Inputs/DescriptionField.vue'
@@ -90,19 +90,29 @@ import { useBoardsStore } from '../../stores/boards'
 import { useTasksStore } from '../../stores/tasks'
 import { ref } from 'vue'
 
-defineProps<{
+const props = defineProps<{
   action: 'add' | 'edit'
+  columnIndex?: number
+  task?: Task
+  subtasks?: Subtask[]
 }>()
 const emits = defineEmits(['close-modal'])
 
 const boardsStore = useBoardsStore()
 const statusItemsNames = boardsStore.boardColumns?.map((column) => column.name)
+
 const taskFormData = ref({
-  title: '',
-  description: '',
-  subtasks: ['e.g. Make coffee', 'e.g. Drink coffee & smile'],
+  title: props.task != null ? props.task.title : '',
+  description: props.task != null ? props.task.description : '',
+  subtasks:
+    props.subtasks != null
+      ? props.subtasks.map((subtask) => subtask.title)
+      : ['e.g. Make coffee', 'e.g. Drink coffee & smile'],
   statusItems: boardsStore.boardColumns,
-  selectedStatusItem: (boardsStore.boardColumns as BoardColumn[])[0]
+  selectedStatusItem:
+    props.columnIndex != null
+      ? boardsStore.boardColumns[props.columnIndex]
+      : boardsStore.boardColumns[0]
 })
 
 const tasksStore = useTasksStore()

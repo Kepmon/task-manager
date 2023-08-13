@@ -1,10 +1,7 @@
 <template>
   <modals-template @close-modal="$emit('close-modal')">
     <template #form-title>
-      <h2>
-        Research pricing points of various competitors and trial different
-        business models
-      </h2>
+      <h2>{{ task.title }}</h2>
     </template>
 
     <template #ellipsis>
@@ -26,7 +23,7 @@
     </template>
 
     <template #main-content>
-      <div class="flex flex-col gap-6 relative">
+      <div class="grid gap-6 relative">
         <more-options
           @toggle-options="(e: Event) => handleMoreOptionsFn(e, toggleOptions)"
           @show-edit-form="$emit('show-edit-form')"
@@ -37,15 +34,18 @@
         />
 
         <p class="text-gray-400 text-xs xs::text-sm">
-          {{ addTaskOptions.description }}
+          {{ task.description }}
         </p>
 
-        <div v-if="addTaskOptions.subtasks.length">
+        <div v-if="subtasks.length">
           <p class="mb-4 text-xs text-gray-400 dark:text-white">
-            Subtasks ( 2 of 4 )
+            Subtasks ({{
+              subtasks.filter((subtask) => subtask.isCompleted).length
+            }}
+            of {{ subtasks.length }})
           </p>
           <div
-            v-for="{ title, isCompleted } in addTaskOptions.subtasks"
+            v-for="{ title, isCompleted } in subtasks"
             :key="title"
             class="subtask"
           >
@@ -69,9 +69,9 @@
             Current Status
           </p>
           <v-select
-            :options="addTaskOptions.status"
+            :options="boardsStore.boardColumnsNames"
             :searchable="false"
-            placeholder="Doing"
+            :placeholder="boardsStore.boardColumnsNames[columnIndex]"
           ></v-select>
         </div>
       </div>
@@ -80,6 +80,7 @@
 </template>
 
 <script setup lang="ts">
+import type { Task, Subtask } from '../../api/boardsTypes'
 import ModalsTemplate from './ModalsTemplate.vue'
 import MoreOptions from '../shared/MoreOptions.vue'
 import TheButton from '../shared/TheButton.vue'
@@ -88,24 +89,14 @@ import { useBoardsStore } from '../../stores/boards'
 import type { Ref } from 'vue'
 import { ref } from 'vue'
 
+defineProps<{
+  columnIndex: number
+  task: Task
+  subtasks: Subtask[]
+}>()
 defineEmits(['close-modal', 'show-edit-form', 'show-delete-form'])
 
 const boardsStore = useBoardsStore()
-const addTaskOptions = {
-  title: 'e.g. Take coffee break',
-  description: '',
-  subtasks: [
-    {
-      title: 'e.g. Make coffee',
-      isCompleted: false
-    },
-    {
-      title: 'e.g. Drink coffee and smile',
-      isCompleted: false
-    }
-  ],
-  status: boardsStore.boardColumnsNames
-}
 const areTaskOptionsShown = ref(false)
 
 const { toggleOptions, closeOptions } = moreOptionsPopup

@@ -1,10 +1,5 @@
 <template>
-  <div
-    @click="$emit('change', title)"
-    @keypress.enter="$emit('change', title)"
-    tabindex="0"
-    class="task-card group"
-  >
+  <div tabindex="0" class="task-card group">
     <p class="task-card__title">
       {{ title }}
     </p>
@@ -20,7 +15,6 @@ defineProps<{
   howManyCompleted: number
   howManySubtasks: number
 }>()
-defineEmits(['change'])
 </script>
 
 <style lang="postcss" scoped>
