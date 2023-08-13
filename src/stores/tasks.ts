@@ -45,7 +45,7 @@ export const useTasksStore = defineStore('tasks', () => {
   const getTasks = async () => {
     const tasksColRefs = await getTasksColRefs()
     const tasksColRefsOrdered = tasksColRefs.map((tasksColRef) =>
-      query(tasksColRef, orderBy('createdAt', 'desc'))
+      query(tasksColRef, orderBy('createdAt', 'asc'))
     )
 
     tasks.value = await Promise.all(
@@ -64,7 +64,7 @@ export const useTasksStore = defineStore('tasks', () => {
     const subtasksColRefs = await getSubtasksColRefs()
     const subtasksColRefsOrdered = subtasksColRefs.map((subtasksColRefArr) =>
       subtasksColRefArr.map((subtasksColRef) =>
-        query(subtasksColRef, orderBy('createdAt', 'desc'))
+        query(subtasksColRef, orderBy('createdAt', 'asc'))
       )
     )
 
