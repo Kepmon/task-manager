@@ -5,7 +5,7 @@
         v-for="(column, columnIndex) in boardsStore.boardColumns"
         :key="columnIndex"
       >
-        <div class="flex items-center gap-2 mb-8 min-w-[280px]">
+        <div class="flex items-center gap-2 mb-4 min-w-[280px]">
           <div
             class="h-[15px] w-[15px] rounded-full"
             :class="circleColor ? circleColor(column) : ''"
@@ -15,6 +15,20 @@
               returnNumberOfElements(columnIndex, 0, 'tasks')
             }})
           </p>
+          <button
+            @click="() => handleDeleteIconClick(column)"
+            class="p-2 ml-auto box-content group"
+            aria-label="click here to delete the whole column"
+          >
+            <svg width="15" height="15">
+              <g
+                class="fill-gray-400 group-hover:fill-purple-400 transition-colors duration-300"
+              >
+                <path d="m12.728 0 2.122 2.122L2.122 14.85 0 12.728z" />
+                <path d="M0 2.122 2.122 0 14.85 12.728l-2.122 2.122z" />
+              </g>
+            </svg>
+          </button>
         </div>
         <task-card
           @click="() => handleTaskCardClick(columnIndex, taskIndex)"
@@ -54,10 +68,23 @@
     </Teleport>
     <transition name="modal">
       <confirmation-modal
-        v-if="isDeleteTaskModalShown && clickedTask != null"
-        @close-modal="isDeleteTaskModalShown = false"
-        elementToDelete="task"
-        :elementName="clickedTask.title"
+        v-if="isDeleteTaskModalShown || isDeleteColumnModalShown"
+        @close-modal="
+          isDeleteTaskModalShown
+            ? (isDeleteTaskModalShown = false)
+            : (isDeleteColumnModalShown = false)
+        "
+        :elementToDelete="isDeleteTaskModalShown ? 'task' : 'column'"
+        :elementName="
+          isDeleteTaskModalShown
+            ? (clickedTask as Task).title
+            : (columnToDelete as BoardColumn).name
+        "
+        :elementID="
+          isDeleteTaskModalShown
+            ? (clickedTask as Task).taskID
+            : (columnToDelete as BoardColumn).columnID
+        "
       />
     </transition>
     <transition name="modal">
@@ -109,6 +136,19 @@ const circleColor = computed(() => {
   return null
 })
 
+const isSeeTaskModalShown = ref(false)
+const isEditTaskModalShown = ref(false)
+const isDeleteTaskModalShown = ref(false)
+
+const showEditForm = () => {
+  isSeeTaskModalShown.value = false
+  isEditTaskModalShown.value = true
+}
+const showDeleteForm = () => {
+  isSeeTaskModalShown.value = false
+  isDeleteTaskModalShown.value = true
+}
+
 type Element = 'tasks' | 'subtasks' | 'subtasksCompleted'
 const returnNumberOfElements = (
   columnIndex: number,
@@ -152,17 +192,11 @@ const saveSubtasksOfClickedTask = (columnIndex: number, taskIndex: number) => {
   subtasksOfClickedTask.value = tasksStore.subtasks[columnIndex][taskIndex]
 }
 
-const isSeeTaskModalShown = ref(false)
-const isEditTaskModalShown = ref(false)
-const isDeleteTaskModalShown = ref(false)
-
-const showEditForm = () => {
-  isSeeTaskModalShown.value = false
-  isEditTaskModalShown.value = true
-}
-const showDeleteForm = () => {
-  isSeeTaskModalShown.value = false
-  isDeleteTaskModalShown.value = true
+const columnToDelete = ref<null | BoardColumn>(null)
+const isDeleteColumnModalShown = ref(false)
+const handleDeleteIconClick = (column: BoardColumn) => {
+  isDeleteColumnModalShown.value = true
+  columnToDelete.value = column
 }
 </script>
 

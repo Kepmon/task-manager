@@ -126,30 +126,7 @@ export const useBoardsStore = defineStore('boards', () => {
       if (boardColumns[index] === columnDocName) return
 
       if (boardColumns[index] == null) {
-        const columnDocRef = doc(columnsColRef, columnDocsRefs[index].id)
-
-        const tasksColRefs = collection(db, `${columnDocRef.path}/tasks`)
-        const tasksDocRefs = await getDocs(tasksColRefs)
-        if (tasksDocRefs.docs.length !== 0) {
-          tasksDocRefs.forEach(async (tasksDocRef) => {
-            const subtasksColRef = collection(
-              db,
-              `${tasksColRefs.path}/${tasksDocRef.id}/subtasks`
-            )
-
-            const subtasksDocRefs = await getDocs(subtasksColRef)
-            if (subtasksDocRefs.docs.length !== 0) {
-              subtasksDocRefs.forEach(async (subtasksDocRef) => {
-                await deleteDoc(subtasksDocRef.ref)
-              })
-            }
-
-            await deleteDoc(tasksDocRef.ref)
-          })
-        }
-
-        await deleteDoc(columnDocRef)
-        await getColumns()
+        await deleteColumn(columnDocsRefs[index].id)
         return
       }
 
@@ -184,11 +161,8 @@ export const useBoardsStore = defineStore('boards', () => {
     }
   }
 
-  const deleteBoard = async () => {
-    const boardDocRef = doc(
-      boardsColRef,
-      currentBoardID.value as Board['boardID']
-    )
+  const deleteBoard = async (boardID: Board['boardID']) => {
+    const boardDocRef = doc(boardsColRef, boardID)
     const columnsColRefs = collection(db, `${boardDocRef.path}/columns`)
     const columnsDocRefs = (await getDocs(columnsColRefs)).docs
 
@@ -222,9 +196,40 @@ export const useBoardsStore = defineStore('boards', () => {
 
     await deleteDoc(boardDocRef)
 
-    if (boards.value.length) {
-      chosenBoard.value = boards.value[0]
+    boards.value.length
+      ? (chosenBoard.value = boards.value[0])
+      : (chosenBoard.value = null)
+  }
+
+  const deleteColumn = async (columnID: BoardColumn['columnID']) => {
+    const columnsColRef = collection(
+      db,
+      `users/${userStore.userID}/boards/${currentBoardID.value}/columns`
+    )
+    const columnDocRef = doc(columnsColRef, columnID)
+
+    const tasksColRefs = collection(db, `${columnDocRef.path}/tasks`)
+    const tasksDocRefs = await getDocs(tasksColRefs)
+    if (tasksDocRefs.docs.length !== 0) {
+      tasksDocRefs.forEach(async (tasksDocRef) => {
+        const subtasksColRef = collection(
+          db,
+          `${tasksColRefs.path}/${tasksDocRef.id}/subtasks`
+        )
+
+        const subtasksDocRefs = await getDocs(subtasksColRef)
+        if (subtasksDocRefs.docs.length !== 0) {
+          subtasksDocRefs.forEach(async (subtasksDocRef) => {
+            await deleteDoc(subtasksDocRef.ref)
+          })
+        }
+
+        await deleteDoc(tasksDocRef.ref)
+      })
     }
+
+    await deleteDoc(columnDocRef)
+    await getColumns()
   }
 
   return {
@@ -239,6 +244,7 @@ export const useBoardsStore = defineStore('boards', () => {
     getColumns,
     addNewBoard,
     editBoard,
-    deleteBoard
+    deleteBoard,
+    deleteColumn
   }
 })
