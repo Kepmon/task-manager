@@ -72,7 +72,6 @@ export const useUserStore = defineStore('user', () => {
     try {
       const boardsStore = useBoardsStore()
       boardsStore.removeBoardsSnapshot()
-      boardsStore.removeColumnsSnapshot()
 
       await signOut(auth)
       localStorage.removeItem('user')

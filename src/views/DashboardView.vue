@@ -1,17 +1,17 @@
 <template>
   <div class="main-container">
-    <Spinner v-if="isLoading" />
+    <Spinner v-if="boardsStore.isLoading" />
 
     <boards-navbar
       @toggle-sidebar="toggleSidebar"
       :navOpen="windowWidth >= 640 ? true : isNavOpen"
       :boards="boardsStore.boards"
       :boardName="boardsStore.currentBoard?.name || ''"
-      :isLoading="isLoading"
+      :isLoading="boardsStore.isLoading"
     />
 
     <main-navbar
-      v-if="!isDashboardEmpty && !isLoading"
+      v-if="!isDashboardEmpty && !boardsStore.isLoading"
       @toggle-boards-nav="toggleBoardsNav"
       :sidebar="isSidebarShown"
       :isLogo="isLogoShown"
@@ -39,16 +39,16 @@
       }"
     >
       <boards-column
-        v-if="!isDashboardEmpty && !isLoading"
+        v-if="!isDashboardEmpty && !boardsStore.isLoading"
         :logo="isLogoShown"
       />
       <empty-info
-        v-if="!isLoading"
+        v-if="!boardsStore.isLoading"
         :emptyDashboard="isDashboardEmpty"
         :emptyBoard="isBoardEmpty"
       />
       <user-options
-        v-if="isDashboardEmpty && !isLoading"
+        v-if="isDashboardEmpty && !boardsStore.isLoading"
         :isDashboardEmpty="isDashboardEmpty"
         class="absolute bottom-8 right-8 scale-125"
       />
@@ -64,12 +64,13 @@ import BoardsColumn from '../components/BoardsColumn.vue'
 import UserOptions from '../components/UserOptions.vue'
 import Spinner from '../components/Spinner.vue'
 import { useBoardsStore } from '../stores/boards'
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useWindowSize } from '@vueuse/core'
 
 const boardsStore = useBoardsStore()
-
-const isLoading = ref(false)
+onMounted(async () => {
+  await boardsStore.getColumns()
+})
 
 const isDashboardEmpty = computed(() =>
   boardsStore.boards.length === 0 ? true : false

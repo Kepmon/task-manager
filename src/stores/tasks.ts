@@ -1,4 +1,9 @@
 import type { BoardColumn, Task, Subtask } from '../api/boardsTypes'
+import type {
+  CollectionReference,
+  QueryDocumentSnapshot,
+  DocumentData
+} from 'firebase/firestore'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { query, orderBy, getDocs } from 'firebase/firestore'
@@ -14,73 +19,73 @@ export const useTasksStore = defineStore('tasks', () => {
   const tasks = ref<Task[][]>([])
   const subtasks = ref<Subtask[][][]>([])
 
-  const getTasksColRefs = async () => {
-    const { columnIDs, columnsColRefPath } = await boardsStore.getColumnIDs()
+  const getTasks = async (
+    columnsColRef: CollectionReference<DocumentData>,
+    columns: BoardColumn[]
+  ) => {
+    const returnedData =
+      columns.length !== 0
+        ? await Promise.all(
+            columns.map(async (column) => {
+              const tasksColRef = collection(
+                db,
+                `${columnsColRef.path}/${column.columnID}/tasks`
+              )
+              const tasksColRefOrdered = query(
+                tasksColRef,
+                orderBy('createdAt', 'asc')
+              )
 
-    return columnIDs.map((columnID) =>
-      collection(db, `${columnsColRefPath}/${columnID}/tasks`)
-    )
-  }
+              const tasksDocRefs = (await getDocs(tasksColRefOrdered)).docs
 
-  const getSubtasksColRefs = async () => {
-    const tasksColRefs = await getTasksColRefs()
-    const tasksIDs = await Promise.all(
-      tasksColRefs.map(async (tasksColRef) => {
-        const tasksDocRefs = (await getDocs(tasksColRef)).docs
+              return {
+                tasks: tasksDocRefs.map((tasksDocRef) => ({
+                  ...(tasksDocRef.data() as Omit<Task, 'taskID'>),
+                  taskID: tasksDocRef.id
+                })),
+                tasksDocRefs
+              }
+            })
+          )
+        : null
 
-        return await Promise.all(
-          tasksDocRefs.map((tasksDocRef) => tasksDocRef.id)
-        )
-      })
-    )
-    const tasksPaths = tasksColRefs.map((tasksColRef) => tasksColRef.path)
+    if (returnedData != null) {
+      tasks.value = returnedData.map((item) => item.tasks)
 
-    return tasksIDs.map((taskIDArr, index) =>
-      taskIDArr.map((taskID) =>
-        collection(db, `${tasksPaths[index]}/${taskID}/subtasks`)
-      )
-    )
-  }
-
-  const getTasks = async () => {
-    const tasksColRefs = await getTasksColRefs()
-    const tasksColRefsOrdered = tasksColRefs.map((tasksColRef) =>
-      query(tasksColRef, orderBy('createdAt', 'asc'))
-    )
-
-    tasks.value = await Promise.all(
-      tasksColRefsOrdered.map(async (tasksColRef) => {
-        const tasksDocRefs = (await getDocs(tasksColRef)).docs
-
-        return tasksDocRefs.map((tasksDocRef) => ({
-          ...(tasksDocRef.data() as Omit<Task, 'taskID'>),
-          taskID: tasksDocRef.id
-        }))
-      })
-    )
-  }
-
-  const getSubtasks = async () => {
-    const subtasksColRefs = await getSubtasksColRefs()
-    const subtasksColRefsOrdered = subtasksColRefs.map((subtasksColRefArr) =>
-      subtasksColRefArr.map((subtasksColRef) =>
-        query(subtasksColRef, orderBy('createdAt', 'asc'))
-      )
-    )
-
-    subtasks.value = await Promise.all(
-      subtasksColRefsOrdered.map(async (subtasksColRefArr) =>
-        Promise.all(
-          subtasksColRefArr.map(async (subtasksColRef) => {
-            const subtasksDocRefs = (await getDocs(subtasksColRef)).docs
-
-            return subtasksDocRefs.map((subtasksDocRef) => ({
-              ...(subtasksDocRef.data() as Omit<Subtask, 'subtaskID'>),
-              subtaskID: subtasksDocRef.id
-            }))
-          })
+      const tasksDocRefsArr = returnedData.map((item) => item.tasksDocRefs)
+      subtasks.value = await Promise.all(
+        tasksDocRefsArr.map(
+          async (tasksDocRefsArr) => await getSubtasks(tasksDocRefsArr)
         )
       )
+    }
+  }
+
+  const getSubtasks = async (
+    tasksDocRefs: QueryDocumentSnapshot<DocumentData>[]
+  ) => {
+    return await Promise.all(
+      tasksDocRefs.map(async (tasksDocRef) => {
+        const subtasksColRef = collection(
+          db,
+          `${tasksDocRef.ref.path}/subtasks`
+        )
+        const subtasksColRefOrdered = query(
+          subtasksColRef,
+          orderBy('createdAt', 'asc')
+        )
+
+        const subtasksDocRefs = (await getDocs(subtasksColRefOrdered)).docs
+
+        if (subtasksDocRefs.length !== 0) {
+          return subtasksDocRefs.map((subtasksDocRef) => ({
+            ...(subtasksDocRef.data() as Omit<Subtask, 'subtaskID'>),
+            subtaskID: subtasksDocRef.id
+          }))
+        }
+
+        return []
+      })
     )
   }
 
@@ -100,13 +105,7 @@ export const useTasksStore = defineStore('tasks', () => {
     })
 
     if (addedDocRef) {
-      const taskID = addedDocRef.id
-      const subtasksColRef = collection(
-        db,
-        `users/${userStore.userID}/boards/${boardsStore.currentBoardID}/columns/${selectedColumn.columnID}/tasks/${taskID}/subtasks`
-      )
-
-      await getTasks()
+      const subtasksColRef = collection(db, `${addedDocRef.path}/subtasks`)
 
       subtasks.forEach(async (subtask) => {
         await addDoc(subtasksColRef, {
@@ -116,14 +115,13 @@ export const useTasksStore = defineStore('tasks', () => {
         })
       })
 
-      await getSubtasks()
+      await boardsStore.getColumns()
     }
   }
 
   return {
     tasks,
     subtasks,
-    getTasksColRefs,
     getTasks,
     getSubtasks,
     addNewTask

@@ -14,7 +14,7 @@
       <div class="sm:flex sm:flex-col grow">
         <ul v-if="boards != null" class="boards-list">
           <board-label
-            @click="() => changeCurrentBoard(board)"
+            @click="() => (boardsStore.chosenBoard = board)"
             v-for="(board, index) in boards"
             :key="index"
             :name="board.name"
@@ -78,11 +78,6 @@ defineEmits(['toggle-sidebar'])
 
 const isAddBoardModalShown = ref(false)
 const boardsStore = useBoardsStore()
-
-const changeCurrentBoard = (board: Board) => {
-  boardsStore.chosenBoard = board
-  localStorage.setItem('currentBoard', JSON.stringify(boardsStore.chosenBoard))
-}
 </script>
 
 <style lang="postcss" scoped>

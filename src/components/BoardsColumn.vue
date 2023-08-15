@@ -84,7 +84,7 @@ import TaskCard from './TaskCard.vue'
 import SeeTaskModal from './Modals/SeeTaskModal.vue'
 import ConfirmationModal from '../components/Modals/ConfirmationModal.vue'
 import TaskModal from '../components/Modals/TaskModal.vue'
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref } from 'vue'
 import { useBoardsStore } from '../stores/boards'
 import { useTasksStore } from '../stores/tasks'
 
@@ -94,10 +94,6 @@ defineProps<{
 
 const boardsStore = useBoardsStore()
 const tasksStore = useTasksStore()
-onMounted(async () => {
-  await tasksStore.getTasks()
-  await tasksStore.getSubtasks()
-})
 
 const circleColor = computed(() => {
   if (boardsStore.boardColumns != null) {
