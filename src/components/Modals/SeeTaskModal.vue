@@ -5,21 +5,10 @@
     </template>
 
     <template #ellipsis>
-      <the-button
-        @click.prevent="areTaskOptionsShown = !areTaskOptionsShown"
-        :regularButton="false"
-        data-ellipsis
-        aria-label="click here to see more options"
-        class="px-3 py-2 cursor-pointer rounded-md focus-visible:outline outline-[3px] outline-gray-400"
-      >
-        <svg width="5" height="20" data-ellipsis>
-          <g fill-rule="evenodd" class="fill-gray-400">
-            <circle cx="2.308" cy="2.308" r="2.308" />
-            <circle cx="2.308" cy="10" r="2.308" />
-            <circle cx="2.308" cy="17.692" r="2.308" />
-          </g>
-        </svg>
-      </the-button>
+      <more-options-icon
+        @toggle-options="areTaskOptionsShown = !areTaskOptionsShown"
+        element="task"
+      />
     </template>
 
     <template #main-content>
@@ -81,8 +70,7 @@
 import type { Task, Subtask } from '../../api/boardsTypes'
 import ModalsTemplate from './ModalsTemplate.vue'
 import MoreOptions from '../shared/MoreOptions.vue'
-import TheButton from '../shared/TheButton.vue'
-import TextInput from '../shared/Inputs/TextInput.vue'
+import MoreOptionsIcon from '../Svgs/MoreOptionsIcon.vue'
 import moreOptionsPopup from '../../composables/moreOptionsPopup'
 import { useBoardsStore } from '../../stores/boards'
 import type { Ref } from 'vue'

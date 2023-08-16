@@ -1,13 +1,5 @@
 <template>
   <div class="grid" :class="{ 'col-span-2': isLogo }">
-    <more-options
-      @toggle-options="(e: Event) => handleMoreOptionsFn(e, toggleOptions)"
-      @show-edit-form="isEditBoardModalShown = true"
-      @show-delete-form="isDeleteBoardModalShown = true"
-      @close-more-options="(e: Event) => handleMoreOptionsFn(e, closeOptions)"
-      :condition="areBoardOptionsShown"
-      element="board"
-    />
     <nav aria-label="main navigation" class="main-nav">
       <div class="flex items-center gap-2">
         <svg width="24" height="25" class="sm:hidden" aria-label="The app logo">
@@ -54,23 +46,23 @@
           <span class="leading-none text-2xl md:text-base">+</span>
           <span class="hidden md:block">Add New Task</span>
         </button>
-        <button
-          @click.prevent="areBoardOptionsShown = !areBoardOptionsShown"
-          data-ellipsis
-          aria-label="click here to see more options"
-          class="px-3 py-2 rounded-md focus-visible:outline outline-[3px] outline-gray-400"
-        >
-          <svg width="5" height="20" data-ellipsis>
-            <g fill-rule="evenodd" class="fill-gray-400">
-              <circle cx="2.308" cy="2.308" r="2.308" />
-              <circle cx="2.308" cy="10" r="2.308" />
-              <circle cx="2.308" cy="17.692" r="2.308" />
-            </g>
-          </svg>
-        </button>
+        <div class="relative">
+          <more-options-icon
+            @toggle-options="areBoardOptionsShown = !areBoardOptionsShown"
+            element="board"
+          />
+          <more-options
+            @toggle-options="(e: Event) => handleMoreOptionsFn(e, toggleOptions)"
+            @show-edit-form="isEditBoardModalShown = true"
+            @show-delete-form="isDeleteBoardModalShown = true"
+            @close-more-options="(e: Event) => handleMoreOptionsFn(e, closeOptions)"
+            :condition="areBoardOptionsShown"
+            element="board"
+          />
+        </div>
       </div>
       <user-options
-        class="fixed ml-3 sm:static bottom-8 right-8 scale-125 sm:scale-100"
+        class="fixed grid items-center ml-3 sm:static scale-125 sm:scale-100"
         :class="{
           'sm:fixed sm:scale-125': boardsStore.currentBoard == null
         }"
@@ -105,6 +97,7 @@
 <script setup lang="ts">
 import type { Board } from '../../api/boardsTypes'
 import MoreOptions from '../shared/MoreOptions.vue'
+import MoreOptionsIcon from '../Svgs/MoreOptionsIcon.vue'
 import TaskModal from '../Modals/TaskModal.vue'
 import ConfirmationModal from '../Modals/ConfirmationModal.vue'
 import BoardModal from '../Modals/BoardModal.vue'
@@ -124,6 +117,7 @@ defineProps<{
 defineEmits(['toggle-boards-nav'])
 
 const areBoardOptionsShown = ref(false)
+
 const isAddTaskModalShown = ref(false)
 const isDeleteBoardModalShown = ref(false)
 const isEditBoardModalShown = ref(false)

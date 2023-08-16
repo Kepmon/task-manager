@@ -5,7 +5,9 @@
         v-for="(column, columnIndex) in boardsStore.boardColumns"
         :key="columnIndex"
       >
-        <div class="flex items-center gap-2 mb-4 min-w-[280px]">
+        <div
+          class="flex items-center gap-2 py-room-for-outline mb-4 min-w-[280px]"
+        >
           <div
             class="h-[15px] w-[15px] rounded-full"
             :class="circleColor ? circleColor(column) : ''"
@@ -15,20 +17,10 @@
               returnNumberOfElements(columnIndex, 0, 'tasks')
             }})
           </p>
-          <button
-            @click="() => handleDeleteIconClick(column)"
-            class="p-2 ml-auto box-content group"
-            aria-label="click here to delete the whole column"
-          >
-            <svg width="15" height="15">
-              <g
-                class="fill-gray-400 group-hover:fill-purple-400 transition-colors duration-300"
-              >
-                <path d="m12.728 0 2.122 2.122L2.122 14.85 0 12.728z" />
-                <path d="M0 2.122 2.122 0 14.85 12.728l-2.122 2.122z" />
-              </g>
-            </svg>
-          </button>
+          <close-icon
+            @handle-close="() => handleDeleteIconClick(column)"
+            :isColumn="true"
+          />
         </div>
         <task-card
           @click="() => handleTaskCardClick(columnIndex, taskIndex)"
@@ -44,7 +36,11 @@
           :title="task.title"
         />
       </div>
-      <div class="new-column group" tabindex="0">
+      <div
+        @click="isEditBoardModalShown = true"
+        class="new-column group"
+        tabindex="0"
+      >
         <span class="new-column-text">+ New Column</span>
       </div>
     </div>
@@ -102,6 +98,13 @@
         :subtasks="subtasksOfClickedTask"
       />
     </transition>
+    <transition name="modal">
+      <board-modal
+        v-if="isEditBoardModalShown"
+        @close-modal="isEditBoardModalShown = false"
+        action="edit"
+      />
+    </transition>
   </div>
 </template>
 
@@ -111,6 +114,8 @@ import TaskCard from './TaskCard.vue'
 import SeeTaskModal from './Modals/SeeTaskModal.vue'
 import ConfirmationModal from '../components/Modals/ConfirmationModal.vue'
 import TaskModal from '../components/Modals/TaskModal.vue'
+import BoardModal from '../components/Modals/BoardModal.vue'
+import CloseIcon from './Svgs/CloseIcon.vue'
 import { computed, ref } from 'vue'
 import { useBoardsStore } from '../stores/boards'
 import { useTasksStore } from '../stores/tasks'
@@ -139,6 +144,7 @@ const circleColor = computed(() => {
 const isSeeTaskModalShown = ref(false)
 const isEditTaskModalShown = ref(false)
 const isDeleteTaskModalShown = ref(false)
+const isEditBoardModalShown = ref(false)
 
 const showEditForm = () => {
   isSeeTaskModalShown.value = false
@@ -202,7 +208,7 @@ const handleDeleteIconClick = (column: BoardColumn) => {
 
 <style lang="postcss" scoped>
 .columns-container {
-  @apply h-full overflow-auto;
+  @apply px-room-for-outline h-full overflow-auto;
   @apply scrollbar-invisible hover:scrollbar-visibleLight dark:hover:scrollbar-visibleDark;
 }
 

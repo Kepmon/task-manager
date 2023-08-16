@@ -31,23 +31,7 @@
               :class="{ 'after:content-none': item !== '' }"
               class="input-error grow"
             ></text-input>
-            <button
-              class="p-2 box-content"
-              aria-label="click here to close off this field"
-              type="button"
-            >
-              <svg width="15" height="15">
-                <g
-                  :class="{
-                    'fill-red-400': item === '',
-                    'fill-gray-400': item !== ''
-                  }"
-                >
-                  <path d="m12.728 0 2.122 2.122L2.122 14.85 0 12.728z" />
-                  <path d="M0 2.122 2.122 0 14.85 12.728l-2.122 2.122z" />
-                </g>
-              </svg>
-            </button>
+            <close-icon :listItem="item" />
           </div>
         </div>
       </div>
@@ -86,6 +70,7 @@ import ModalsTemplate from './ModalsTemplate.vue'
 import TextInput from '../shared/Inputs/TextInput.vue'
 import DescriptionField from '../shared/Inputs/DescriptionField.vue'
 import TheButton from '../../components/shared/TheButton.vue'
+import CloseIcon from '../Svgs/CloseIcon.vue'
 import { useBoardsStore } from '../../stores/boards'
 import { useTasksStore } from '../../stores/tasks'
 import { ref } from 'vue'

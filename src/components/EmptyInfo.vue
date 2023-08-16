@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="emptyDashboard || emptyBoard"
-    class="grid content-center justify-items-center"
+    class="grid content-center justify-items-center min-h-screen"
   >
     <p
       class="mb-[25px] text-lg text-center text-gray-400 first-letter:capitalize"

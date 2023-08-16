@@ -42,6 +42,11 @@ button {
   @apply border-none cursor-pointer;
 }
 
+button,
+[tabindex='0'] {
+  @apply outline outline-transparent focus-visible:outline-purple-400 outline-[3px];
+}
+
 .input {
   @apply py-3 px-4 w-full bg-transparent rounded-[4px] text-sm font-normal;
   @apply outline outline-transparent border;
@@ -51,10 +56,6 @@ button {
   @apply relative after:content-['Can\'t_be_empty'] after:text-sm;
   @apply after:text-red-400 after:font-normal after:absolute;
   @apply after:right-4 after:bottom-1/2 after:translate-y-1/2;
-}
-
-[tabindex='0'] {
-  @apply outline outline-transparent;
 }
 
 ::selection {
@@ -82,7 +83,7 @@ button {
 }
 
 .option {
-  @apply block py-[7px] s:py-[10px] pl-3 pr-16 w-[max-content] text-start text-sm text-gray-400;
+  @apply py-[7px] s:py-[10px] pl-3 pr-16 text-start text-sm text-gray-400;
   @apply hover:bg-gray-200 dark:hover:bg-gray-500 focus-visible:bg-gray-200 dark:focus-visible:bg-gray-500;
   @apply outline-transparent transition-colors duration-300;
 }

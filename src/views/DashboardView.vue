@@ -3,8 +3,12 @@
     <Spinner v-if="boardsStore.isLoading" />
 
     <boards-navbar
+      v-if="
+        !isDashboardEmpty && !boardsStore.isLoading && windowWidth >= 640
+          ? true
+          : isNavOpen
+      "
       @toggle-sidebar="toggleSidebar"
-      :navOpen="windowWidth >= 640 ? true : isNavOpen"
       :boards="boardsStore.boards"
       :boardName="boardsStore.currentBoard?.name || ''"
       :isLoading="boardsStore.isLoading"
