@@ -18,13 +18,15 @@
             }})
           </p>
           <close-icon
-            @handle-close="() => handleDeleteIconClick(column)"
+            @handle-close="() => modals.handleDeleteIconClick(column)"
             :isColumn="true"
           />
         </div>
         <task-card
-          @click="() => handleTaskCardClick(columnIndex, taskIndex)"
-          @keypress.enter="() => handleTaskCardClick(columnIndex, taskIndex)"
+          @click="() => tasks.handleTaskCardClick(columnIndex, taskIndex)"
+          @keypress.enter="
+            () => tasks.handleTaskCardClick(columnIndex, taskIndex)
+          "
           v-for="(task, taskIndex) in tasksStore.tasks[columnIndex]"
           :key="taskIndex"
           :howManyCompleted="
@@ -37,7 +39,7 @@
         />
       </div>
       <div
-        @click="isEditBoardModalShown = true"
+        @click="modals.isEditBoardModalShown = true"
         class="new-column group"
         tabindex="0"
       >
@@ -47,61 +49,47 @@
     <Teleport to="body">
       <transition name="modal">
         <see-task-modal
-          v-if="
-            isSeeTaskModalShown &&
-            clickedTask != null &&
-            subtasksOfClickedTask != null &&
-            columnOfClickedTask != null
-          "
-          @close-modal="isSeeTaskModalShown = false"
-          @show-edit-form="showEditForm"
-          @show-delete-form="showDeleteForm"
-          :columnIndex="columnOfClickedTask"
-          :task="clickedTask"
-          :subtasks="subtasksOfClickedTask"
+          v-if="modals.isSeeTaskModalShown && tasksConditions"
+          @close-modal="modals.isSeeTaskModalShown = false"
+          @show-edit-form="modals.showEditForm"
+          @show-delete-form="modals.showDeleteForm"
+          v-bind="tasksProps"
         />
       </transition>
     </Teleport>
     <transition name="modal">
       <confirmation-modal
-        v-if="isDeleteTaskModalShown || isDeleteColumnModalShown"
+        v-if="modals.isDeleteTaskModalShown || modals.isDeleteColumnModalShown"
         @close-modal="
-          isDeleteTaskModalShown
-            ? (isDeleteTaskModalShown = false)
-            : (isDeleteColumnModalShown = false)
+          modals.isDeleteTaskModalShown
+            ? (modals.isDeleteTaskModalShown = false)
+            : (modals.isDeleteColumnModalShown = false)
         "
-        :elementToDelete="isDeleteTaskModalShown ? 'task' : 'column'"
+        :elementToDelete="modals.isDeleteTaskModalShown ? 'task' : 'column'"
         :elementName="
-          isDeleteTaskModalShown
-            ? (clickedTask as Task).title
-            : (columnToDelete as BoardColumn).name
+          modals.isDeleteTaskModalShown
+            ? (tasks.clickedTask as Task).title
+            : (modals.columnToDelete as BoardColumn).name
         "
         :elementID="
-          isDeleteTaskModalShown
-            ? (clickedTask as Task).taskID
-            : (columnToDelete as BoardColumn).columnID
+          modals.isDeleteTaskModalShown
+            ? (tasks.clickedTask as Task).taskID
+            : (modals.columnToDelete as BoardColumn).columnID
         "
       />
     </transition>
     <transition name="modal">
       <task-modal
-        v-if="
-          isEditTaskModalShown &&
-          clickedTask != null &&
-          subtasksOfClickedTask != null &&
-          columnOfClickedTask != null
-        "
-        @close-modal="isEditTaskModalShown = false"
+        v-if="modals.isEditTaskModalShown && tasksConditions"
+        @close-modal="modals.isEditTaskModalShown = false"
         action="edit"
-        :columnIndex="columnOfClickedTask"
-        :task="clickedTask"
-        :subtasks="subtasksOfClickedTask"
+        v-bind="tasksProps"
       />
     </transition>
     <transition name="modal">
       <board-modal
-        v-if="isEditBoardModalShown"
-        @close-modal="isEditBoardModalShown = false"
+        v-if="modals.isEditBoardModalShown"
+        @close-modal="modals.isEditBoardModalShown = false"
         action="edit"
       />
     </transition>
@@ -116,7 +104,7 @@ import ConfirmationModal from '../components/Modals/ConfirmationModal.vue'
 import TaskModal from '../components/Modals/TaskModal.vue'
 import BoardModal from '../components/Modals/BoardModal.vue'
 import CloseIcon from './Svgs/CloseIcon.vue'
-import { computed, ref } from 'vue'
+import { computed, ref, Ref } from 'vue'
 import { useBoardsStore } from '../stores/boards'
 import { useTasksStore } from '../stores/tasks'
 
@@ -141,19 +129,65 @@ const circleColor = computed(() => {
   return null
 })
 
-const isSeeTaskModalShown = ref(false)
-const isEditTaskModalShown = ref(false)
-const isDeleteTaskModalShown = ref(false)
-const isEditBoardModalShown = ref(false)
+const modals = ref({
+  isSeeTaskModalShown: false,
+  isEditTaskModalShown: false,
+  isDeleteTaskModalShown: false,
+  isEditBoardModalShown: false,
+  isDeleteColumnModalShown: false,
+  columnToDelete: <null | BoardColumn>null,
+  showEditForm: () => {
+    modals.value.isSeeTaskModalShown = false
+    modals.value.isEditTaskModalShown = true
+  },
+  showDeleteForm: () => {
+    modals.value.isSeeTaskModalShown = false
+    modals.value.isDeleteTaskModalShown = true
+  },
+  handleDeleteIconClick: (column: BoardColumn) => {
+    modals.value.isDeleteColumnModalShown = true
+    modals.value.columnToDelete = column
+  }
+})
 
-const showEditForm = () => {
-  isSeeTaskModalShown.value = false
-  isEditTaskModalShown.value = true
+const tasks = ref({
+  columnOfClickedTask: <null | number>null,
+  clickedTask: <null | Task>null,
+  subtasksOfClickedTask: <null | Subtask[]>null,
+  handleTaskCardClick: (columnIndex: number, taskIndex: number) => {
+    tasks.value.saveClickedTask(columnIndex, taskIndex)
+
+    modals.value.isSeeTaskModalShown = true
+  },
+  saveClickedTask: (columnIndex: number, taskIndex: number) => {
+    tasks.value.columnOfClickedTask = columnIndex
+    tasks.value.clickedTask = tasksStore.tasks[columnIndex][taskIndex]
+
+    tasks.value.saveSubtasksOfClickedTask(columnIndex, taskIndex)
+  },
+  saveSubtasksOfClickedTask: (columnIndex: number, taskIndex: number) => {
+    tasks.value.subtasksOfClickedTask =
+      tasksStore.subtasks[columnIndex][taskIndex]
+  }
+})
+
+interface TasksProps {
+  columnIndex: number
+  task: Task
+  subtasks: Subtask[]
 }
-const showDeleteForm = () => {
-  isSeeTaskModalShown.value = false
-  isDeleteTaskModalShown.value = true
-}
+const tasksProps = computed(() => ({
+  columnIndex: tasks.value.columnOfClickedTask,
+  task: tasks.value.clickedTask,
+  subtasks: tasks.value.subtasksOfClickedTask
+})) as Ref<TasksProps>
+const tasksConditions = computed(() =>
+  [
+    tasks.value.clickedTask != null,
+    tasks.value.subtasksOfClickedTask != null,
+    tasks.value.columnOfClickedTask != null
+  ].every((taskCondition) => taskCondition)
+)
 
 type Element = 'tasks' | 'subtasks' | 'subtasksCompleted'
 const returnNumberOfElements = (
@@ -177,32 +211,6 @@ const returnNumberOfElements = (
   }
 
   return elementFns[element]()
-}
-
-const columnOfClickedTask = ref<null | number>(null)
-const clickedTask = ref<null | Task>(null)
-const subtasksOfClickedTask = ref<null | Subtask[]>(null)
-
-const handleTaskCardClick = (columnIndex: number, taskIndex: number) => {
-  saveClickedTask(columnIndex, taskIndex)
-
-  isSeeTaskModalShown.value = true
-}
-const saveClickedTask = (columnIndex: number, taskIndex: number) => {
-  columnOfClickedTask.value = columnIndex
-  clickedTask.value = tasksStore.tasks[columnIndex][taskIndex]
-
-  saveSubtasksOfClickedTask(columnIndex, taskIndex)
-}
-const saveSubtasksOfClickedTask = (columnIndex: number, taskIndex: number) => {
-  subtasksOfClickedTask.value = tasksStore.subtasks[columnIndex][taskIndex]
-}
-
-const columnToDelete = ref<null | BoardColumn>(null)
-const isDeleteColumnModalShown = ref(false)
-const handleDeleteIconClick = (column: BoardColumn) => {
-  isDeleteColumnModalShown.value = true
-  columnToDelete.value = column
 }
 </script>
 
