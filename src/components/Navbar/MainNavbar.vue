@@ -1,7 +1,7 @@
 <template>
   <div class="grid" :class="{ 'col-span-2': isLogo }">
     <nav aria-label="main navigation" class="main-nav">
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 grow">
         <svg width="24" height="25" class="sm:hidden" aria-label="The app logo">
           <g fill="#635FC7" fill-rule="evenodd">
             <rect width="6" height="25" rx="2" />
@@ -14,7 +14,7 @@
         </div>
         <div
           @click="$emit('toggle-boards-nav')"
-          class="flex items-center gap-2"
+          class="flex items-center gap-2 grow pr-4"
         >
           <h1 class="py-4 font-bold xs:text-lg" :class="{ 'sm:pl-6': isLogo }">
             {{ boardsStore.currentBoard?.name }}
@@ -34,10 +34,10 @@
           </svg>
         </div>
       </div>
-      <div class="flex items-center gap-2 ml-auto sm:gap-3 text-white">
+      <div class="flex items-center gap-2 sm:gap-3 text-white">
         <button
           @click="isAddTaskModalShown = true"
-          class="gap-[2px] purple-class px-4 py-[2px] rounded-2xl md:p-0 regular-button"
+          class="regular-button purple-class"
           :class="{
             'opacity-25 cursor-not-allowed': isBoardEmpty,
             'cursor-pointer': !isBoardEmpty
@@ -134,6 +134,10 @@ const handleMoreOptionsFn = (
 </script>
 
 <style lang="postcss" scoped>
+.regular-button {
+  @apply gap-[2px] px-4 py-[2px] rounded-2xl w-[max-content];
+}
+
 @screen md {
   .regular-button {
     @apply flex items-center grow justify-center gap-2 py-[10px] px-4 rounded-3xl;

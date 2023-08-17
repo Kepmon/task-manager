@@ -100,7 +100,7 @@ const boardsStore = useBoardsStore()
 }
 
 .boards-list {
-  @apply grid max-h-[calc(100vh-310px)] overflow-auto;
+  @apply grid max-h-[calc(100vh-310px)];
   @apply scrollbar-visibleLight dark:scrollbar-visibleDark;
 }
 

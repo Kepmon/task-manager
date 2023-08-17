@@ -1,4 +1,9 @@
 import type { Board, BoardColumn } from '../api/boardsTypes'
+import type {
+  CollectionReference,
+  DocumentReference,
+  DocumentData
+} from 'firebase/firestore'
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import {
@@ -43,7 +48,7 @@ export const useBoardsStore = defineStore('boards', () => {
 
   const boardColumns = ref<BoardColumn[]>([])
   const boardColumnsNames = computed(() =>
-    boardColumns.value?.map((column) => column.name)
+    boardColumns.value ? boardColumns.value.map((column) => column.name) : null
   )
 
   const boardsColRef = collection(db, `users/${userStore.userID}/boards`)
@@ -58,7 +63,7 @@ export const useBoardsStore = defineStore('boards', () => {
   const getColumns = async () => {
     const columnsColRef = collection(
       db,
-      `users/${userStore.userID}/boards/${currentBoardID.value}/columns`
+      `${boardsColRef.path}/${currentBoardID.value}/columns`
     )
     const columnsColRefOrdered = query(
       columnsColRef,
@@ -82,23 +87,36 @@ export const useBoardsStore = defineStore('boards', () => {
     isLoading.value = false
   }
 
+  const addDocToFirestore = async (
+    colRef: CollectionReference<DocumentData>,
+    name: string
+  ) => {
+    return await addDoc(colRef, {
+      createdAt: serverTimestamp(),
+      name
+    })
+  }
+
+  const updateFirestoreDoc = async (
+    docRef: DocumentReference<DocumentData>,
+    name: string
+  ) => {
+    return await updateDoc(docRef, {
+      name
+    })
+  }
+
   const addNewBoard = async (
     boardName: Board['name'],
     boardColumns: string[]
   ) => {
-    const addedDocRef = await addDoc(boardsColRef, {
-      createdAt: serverTimestamp(),
-      name: boardName
-    })
+    const addedDocRef = await addDocToFirestore(boardsColRef, boardName)
 
     if (addedDocRef) {
       const columnsColRef = collection(db, `${addedDocRef.path}/columns`)
 
       boardColumns.forEach(async (column) => {
-        await addDoc(columnsColRef, {
-          name: column,
-          createdAt: serverTimestamp()
-        })
+        await addDocToFirestore(columnsColRef, column)
       })
     }
 
@@ -112,9 +130,7 @@ export const useBoardsStore = defineStore('boards', () => {
     const docToEditRef = doc(boardsColRef, currentBoardID.value as string)
 
     if (boardName !== (currentBoard.value as Board).name) {
-      await updateDoc(docToEditRef, {
-        name: boardName
-      })
+      await updateFirestoreDoc(docToEditRef, boardName)
     }
 
     const columnsColRef = collection(db, `${docToEditRef.path}/columns`)
@@ -122,6 +138,7 @@ export const useBoardsStore = defineStore('boards', () => {
     const columnDocsNames = columnDocsRefs.map(
       (columnDoc) => columnDoc.data().name as BoardColumn['name']
     )
+
     columnDocsNames.forEach(async (columnDocName, index) => {
       if (boardColumns[index] === columnDocName) return
 
@@ -131,32 +148,25 @@ export const useBoardsStore = defineStore('boards', () => {
       }
 
       const docToEditRef = doc(columnsColRef, columnDocsRefs[index].id)
-      updateDoc(docToEditRef, {
-        name: boardColumns[index]
-      })
+      await updateFirestoreDoc(docToEditRef, boardColumns[index])
     })
 
     if (boardColumns.length > columnDocsNames.length) {
       boardColumns.forEach(async (boardColumn, index) => {
         if (columnDocsNames[index] != null) return
 
-        await addDoc(columnsColRef, {
-          name: boardColumn,
-          createdAt: serverTimestamp()
-        })
+        await addDocToFirestore(columnsColRef, boardColumn)
       })
     }
 
-    const chosenBoardOne = chosenBoard.value
-
+    const chosenBoardBefore = chosenBoard.value
     chosenBoard.value =
       boards.value.find(
         (board) => board.boardID === (currentBoard.value as Board).boardID
       ) || null
+    const chosenBoardAfter = chosenBoard.value
 
-    const chosenBoardTwo = chosenBoard.value
-
-    if (chosenBoardOne === chosenBoardTwo) {
+    if (chosenBoardBefore === chosenBoardAfter) {
       await getColumns()
     }
   }
@@ -167,31 +177,7 @@ export const useBoardsStore = defineStore('boards', () => {
     const columnsDocRefs = (await getDocs(columnsColRefs)).docs
 
     columnsDocRefs.forEach(async (columnDocRef) => {
-      const tasksColRefs = collection(
-        db,
-        `${columnsColRefs.path}/${columnDocRef.id}/tasks`
-      )
-      const tasksDocRefs = await getDocs(tasksColRefs)
-
-      if (tasksDocRefs.docs.length !== 0) {
-        tasksDocRefs.forEach(async (tasksDocRef) => {
-          const subtasksColRef = collection(
-            db,
-            `${tasksColRefs.path}/${tasksDocRef.id}/subtasks`
-          )
-          const subtasksDocRefs = await getDocs(subtasksColRef)
-
-          if (subtasksDocRefs.docs.length !== 0) {
-            subtasksDocRefs.forEach(async (subtasksDocRef) => {
-              await deleteDoc(subtasksDocRef.ref)
-            })
-          }
-
-          await deleteDoc(tasksDocRef.ref)
-        })
-
-        await deleteDoc(columnDocRef.ref)
-      }
+      await deleteColumn(columnDocRef.id)
     })
 
     await deleteDoc(boardDocRef)
@@ -204,7 +190,7 @@ export const useBoardsStore = defineStore('boards', () => {
   const deleteColumn = async (columnID: BoardColumn['columnID']) => {
     const columnsColRef = collection(
       db,
-      `users/${userStore.userID}/boards/${currentBoardID.value}/columns`
+      `${boardsColRef.path}/${currentBoardID.value}/columns`
     )
     const columnDocRef = doc(columnsColRef, columnID)
 

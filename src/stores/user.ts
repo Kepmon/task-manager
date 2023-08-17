@@ -74,7 +74,6 @@ export const useUserStore = defineStore('user', () => {
       boardsStore.removeBoardsSnapshot()
 
       await signOut(auth)
-      localStorage.removeItem('user')
 
       return true
     } catch (err) {
