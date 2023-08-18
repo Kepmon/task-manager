@@ -30,23 +30,35 @@
             class="flex items-center"
           >
             <text-input
+              @handle-blur="
+                () =>
+                  item === ''
+                    ? (columnErrors[index] = true)
+                    : (columnErrors[index] = false)
+              "
               @update:model-value="(newValue: string) => ((formData.columns as string[])[index] = newValue)"
               :modelValue="item"
               :placeholder="action === 'add' ? item : ''"
-              :isError="formData.columns[index] === ''"
-              :class="{ 'after:content-none': item !== '' }"
-              class="input-error grow"
+              :isError="columnErrors[index]"
+              :condition="
+                index === formData.columns.length - 1 && isNewInputAdded
+              "
+              class="grow"
+              :class="{
+                'input-error': columnErrors[index] === true
+              }"
             ></text-input>
             <close-icon
               @handle-close="() => (formData.columns as string[]).splice(index, 1)"
               :listItem="item"
+              :isError="columnErrors[index]"
             />
           </div>
         </div>
       </div>
 
       <the-button
-        @click="() => (formData.columns as string[]).push('')"
+        @click="handleAddNewColumn"
         :regularButton="true"
         :isInForm="true"
         class="white-button"
@@ -77,6 +89,13 @@ const emits = defineEmits(['update:modelValue', 'close-modal'])
 
 const boardsStore = useBoardsStore()
 
+const isNewInputAdded = ref(false)
+const handleAddNewColumn = () => {
+  ;(formData.value.columns as string[]).push('')
+  columnErrors.value.push(false)
+  isNewInputAdded.value = true
+}
+
 const formData = ref<{ name: string; columns: string[] }>({
   name:
     props.action === 'add' ? '' : (boardsStore.currentBoard?.name as string),
@@ -86,6 +105,7 @@ const formData = ref<{ name: string; columns: string[] }>({
       : (boardsStore.boardColumnsNames as string[])
 })
 const formNameError = ref(false)
+const columnErrors = ref(formData.value.columns.map(() => false))
 
 const submit = () => {
   if (formData.value.name === '') return

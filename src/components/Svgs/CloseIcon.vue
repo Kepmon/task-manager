@@ -1,8 +1,11 @@
 <template>
   <button
     @click="$emit('handle-close')"
-    class="p-2 box-content"
-    :class="{ 'ml-auto group': isColumn }"
+    class="p-2 box-content rounded-[4px]"
+    :class="{
+      'ml-auto group': isColumn,
+      'focus-visible:outline-red-400': isError
+    }"
     :aria-label="
       listItem || isPolicy
         ? 'click here to close off this field'
@@ -13,9 +16,8 @@
     <svg width="15" height="15" :class="{ 'scale-150': isPolicy }">
       <g
         :class="{
-          'fill-red-400': listItem === '',
-          'fill-gray-400':
-            (listItem !== '' && listItem != null) || isColumn || isPolicy,
+          'fill-red-400': isError,
+          'fill-gray-400': !isError || isColumn || isPolicy,
           'fill-gray-400 group-hover:fill-purple-400 group-focus-visible:fill-purple-400 transition-colors duration-300':
             isColumn
         }"
@@ -32,6 +34,7 @@ defineProps<{
   listItem?: string
   isColumn?: true
   isPolicy?: true
+  isError?: boolean
 }>()
 defineEmits(['handle-close'])
 </script>
