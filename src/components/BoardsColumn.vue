@@ -53,6 +53,7 @@
           @close-modal="modals.isSeeTaskModalShown = false"
           @show-edit-form="modals.showEditForm"
           @show-delete-form="modals.showDeleteForm"
+          @handle-move-task="(value) => moveTask(value)"
           v-bind="tasksProps"
         />
       </transition>
@@ -107,7 +108,6 @@ import CloseIcon from './Svgs/CloseIcon.vue'
 import { computed, ref, Ref } from 'vue'
 import { useBoardsStore } from '../stores/boards'
 import { useTasksStore } from '../stores/tasks'
-
 defineProps<{
   logo: boolean
 }>()
@@ -211,6 +211,26 @@ const returnNumberOfElements = (
   }
 
   return elementFns[element]()
+}
+
+const moveTask = async (value: BoardColumn['name']) => {
+  const prevColumnID =
+    boardsStore.boardColumns[tasks.value.columnOfClickedTask as number].columnID
+  const nextColumnID = (
+    boardsStore.boardColumns.find(
+      (boardColumn) => boardColumn.name === value
+    ) as BoardColumn
+  ).columnID
+  const taskToBeMoved = tasks.value.clickedTask as Task
+
+  await tasksStore.moveTaskBetweenColumns(
+    prevColumnID,
+    nextColumnID,
+    taskToBeMoved
+  )
+  await boardsStore.getColumns()
+
+  modals.value.isSeeTaskModalShown = false
 }
 </script>
 

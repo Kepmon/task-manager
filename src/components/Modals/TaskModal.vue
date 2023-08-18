@@ -104,12 +104,13 @@ const tasksStore = useTasksStore()
 const submit = async () => {
   emits('close-modal')
   await tasksStore.addNewTask(
-    taskFormData.value.selectedStatusItem as BoardColumn,
+    taskFormData.value.selectedStatusItem.columnID as BoardColumn['columnID'],
     {
       title: taskFormData.value.title.trim(),
       description: taskFormData.value.description.trim()
     },
     taskFormData.value.subtasks
   )
+  await boardsStore.getColumns()
 }
 </script>

@@ -58,6 +58,9 @@
             Current Status
           </p>
           <v-select
+            @update:model-value="
+              (newColumnName: BoardColumn['name']) => $emit('handle-move-task', newColumnName)
+            "
             :options="taskStatuses"
             :searchable="false"
             :placeholder="taskStatuses[columnIndex]"
@@ -69,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Task, Subtask } from '../../api/boardsTypes'
+import type { BoardColumn, Task, Subtask } from '../../api/boardsTypes'
 import ModalsTemplate from './ModalsTemplate.vue'
 import MoreOptions from '../shared/MoreOptions.vue'
 import MoreOptionsIcon from '../Svgs/MoreOptionsIcon.vue'
@@ -83,7 +86,12 @@ defineProps<{
   task: Task
   subtasks: Subtask[]
 }>()
-defineEmits(['close-modal', 'show-edit-form', 'show-delete-form'])
+defineEmits([
+  'close-modal',
+  'show-edit-form',
+  'show-delete-form',
+  'handle-move-task'
+])
 
 const boardsStore = useBoardsStore()
 const taskStatuses = ref(boardsStore.boardColumns.map((column) => column.name))

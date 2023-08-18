@@ -7,7 +7,14 @@ import type {
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { query, orderBy, getDocs } from 'firebase/firestore'
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import {
+  collection,
+  doc,
+  addDoc,
+  setDoc,
+  deleteDoc,
+  serverTimestamp
+} from 'firebase/firestore'
 import { db } from '../firebase'
 import { useUserStore } from './user'
 import { useBoardsStore } from './boards'
@@ -90,13 +97,13 @@ export const useTasksStore = defineStore('tasks', () => {
   }
 
   const addNewTask = async (
-    selectedColumn: BoardColumn,
-    task: Omit<Task, 'createdAt' | 'taskID'>,
+    columnID: BoardColumn['columnID'],
+    task: Omit<Task, 'createdAt' | 'taskID'> | Omit<Task, 'taskID'>,
     subtasks: Subtask['title'][]
   ) => {
     const tasksColRef = collection(
       db,
-      `users/${userStore.userID}/boards/${boardsStore.currentBoardID}/columns/${selectedColumn.columnID}/tasks`
+      `users/${userStore.userID}/boards/${boardsStore.currentBoardID}/columns/${columnID}/tasks`
     )
 
     const addedDocRef = await addDoc(tasksColRef, {
@@ -114,9 +121,83 @@ export const useTasksStore = defineStore('tasks', () => {
           createdAt: serverTimestamp()
         })
       })
-
-      await boardsStore.getColumns()
     }
+  }
+
+  const moveTaskBetweenColumns = async (
+    prevColumnID: BoardColumn['columnID'],
+    nextColumnID: BoardColumn['columnID'],
+    task: Task
+  ) => {
+    const colRefPathPrefix = `users/${userStore.userID}/boards/${boardsStore.currentBoardID}/columns`
+    const prevTasksColRef = collection(
+      db,
+      `${colRefPathPrefix}/${prevColumnID}/tasks`
+    )
+    const nextTasksColRef = collection(
+      db,
+      `${colRefPathPrefix}/${nextColumnID}/tasks`
+    )
+    const prevTaskDocRef = doc(prevTasksColRef, task.taskID)
+    const nextTaskDocRef = doc(nextTasksColRef, task.taskID)
+
+    const prevSubtasksColRef = collection(db, `${prevTaskDocRef.path}/subtasks`)
+    const nextSubtasksColRef = collection(db, `${nextTaskDocRef.path}/subtasks`)
+    const prevSubtaskDocRefs = (await getDocs(prevSubtasksColRef)).docs
+    const subtasks = prevSubtaskDocRefs.map((subtask, index) => ({
+      ...(subtask.data() as Omit<Subtask, 'subtaskID'>),
+      subtaskID: prevSubtaskDocRefs[index].id
+    }))
+
+    await deleteTask(prevColumnID, task.taskID)
+
+    await setDoc(nextTaskDocRef, {
+      createdAt: task.createdAt,
+      title: task.title,
+      description: task.description
+    })
+
+    if (subtasks.length > 0) {
+      subtasks.forEach(async (subtask) => {
+        const subtaskDocRef = doc(nextSubtasksColRef, subtask.subtaskID)
+        await setDoc(subtaskDocRef, {
+          title: subtask.title,
+          isCompleted: subtask.isCompleted,
+          createdAt: subtask.createdAt
+        })
+      })
+    }
+  }
+
+  const deleteTask = async (
+    columnID: BoardColumn['columnID'],
+    taskID: Task['taskID']
+  ) => {
+    const tasksColRef = collection(
+      db,
+      `users/${userStore.userID}/boards/${boardsStore.currentBoardID}/columns/${columnID}/tasks`
+    )
+    const tasksDocRef = doc(tasksColRef, taskID)
+
+    const subtasksColRef = collection(db, `${tasksDocRef.path}/subtasks`)
+    // const columnDocRef = doc(columnsColRef, columnID)
+    // const tasksColRefs = collection(db, `${columnDocRef.path}/tasks`)
+    // const tasksDocRefs = await getDocs(tasksColRefs)
+    // if (tasksDocRefs.docs.length !== 0) {
+    // tasksDocRefs.forEach(async (tasksDocRef) => {
+    const subtasksDocRefs = await getDocs(subtasksColRef)
+    if (subtasksDocRefs.docs.length !== 0) {
+      subtasksDocRefs.forEach(async (subtasksDocRef) => {
+        await deleteDoc(subtasksDocRef.ref)
+      })
+    }
+
+    await deleteDoc(tasksDocRef)
+    // })
+    // }
+
+    // await deleteDoc(columnDocRef)
+    // await boardsStore.getColumns()
   }
 
   return {
@@ -124,6 +205,8 @@ export const useTasksStore = defineStore('tasks', () => {
     subtasks,
     getTasks,
     getSubtasks,
-    addNewTask
+    addNewTask,
+    moveTaskBetweenColumns,
+    deleteTask
   }
 })
