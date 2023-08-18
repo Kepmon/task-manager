@@ -1,70 +1,110 @@
 <template>
   <div class="columns-container" :class="{ 'columns-container--sizes': !logo }">
-    <div v-if="boardsStore.boards.length !== 0" class="flex gap-6 h-full">
+    <div class="flex gap-6 h-full">
       <div
-        v-for="(column, index) in boardsStore.boardColumns"
-        :key="index"
-        class="flex flex-col"
+        v-for="(column, columnIndex) in boardsStore.boardColumns"
+        :key="columnIndex"
       >
-        <div class="flex items-center gap-2 mb-8 min-w-[280px]">
+        <div
+          class="flex items-center gap-2 py-room-for-outline mb-4 min-w-[280px]"
+        >
           <div
             class="h-[15px] w-[15px] rounded-full"
             :class="circleColor ? circleColor(column) : ''"
           ></div>
           <p class="text-xs text-gray-400 uppercase">
-            {{ column.name }} ({{ tasksStore.tasks.length || 0 }})
+            {{ column.name }} ({{
+              returnNumberOfElements(columnIndex, 0, 'tasks')
+            }})
           </p>
+          <close-icon
+            @handle-close="() => modals.handleDeleteIconClick(column)"
+            :isColumn="true"
+          />
         </div>
         <task-card
-          @change="(title) => (clickedTitle = title)"
-          v-for="(task, taskIndex) in tasksStore.tasks[index]"
+          @click="() => tasks.handleTaskCardClick(columnIndex, taskIndex)"
+          @keypress.enter="
+            () => tasks.handleTaskCardClick(columnIndex, taskIndex)
+          "
+          v-for="(task, taskIndex) in tasksStore.tasks[columnIndex]"
           :key="taskIndex"
-          :howManyCompleted="0"
-          :howManySubtasks="0"
+          :howManyCompleted="
+            returnNumberOfElements(columnIndex, taskIndex, 'subtasksCompleted')
+          "
+          :howManySubtasks="
+            returnNumberOfElements(columnIndex, taskIndex, 'subtasks')
+          "
           :title="task.title"
-          :isClickedTask="clickedTitle === task.title"
         />
       </div>
-      <div class="new-column group" tabindex="0">
+      <div
+        @click="modals.isEditBoardModalShown = true"
+        class="new-column group"
+        tabindex="0"
+      >
         <span class="new-column-text">+ New Column</span>
       </div>
     </div>
     <Teleport to="body">
       <transition name="modal">
         <see-task-modal
-          v-if="clickedTitle != null"
-          @close-modal="closeSeeTask"
-          @show-edit-form="showEditForm"
-          @show-delete-form="showDeleteForm"
+          v-if="modals.isSeeTaskModalShown && tasksConditions"
+          @close-modal="modals.isSeeTaskModalShown = false"
+          @show-edit-form="modals.showEditForm"
+          @show-delete-form="modals.showDeleteForm"
+          v-bind="tasksProps"
         />
       </transition>
     </Teleport>
     <transition name="modal">
       <confirmation-modal
-        v-if="isDeleteTaskModalShown"
-        @close-modal="isDeleteTaskModalShown = false"
-        elementToDelete="task"
-        elementName="Research pricing points of various competitors and trial different business models"
+        v-if="modals.isDeleteTaskModalShown || modals.isDeleteColumnModalShown"
+        @close-modal="
+          modals.isDeleteTaskModalShown
+            ? (modals.isDeleteTaskModalShown = false)
+            : (modals.isDeleteColumnModalShown = false)
+        "
+        :elementToDelete="modals.isDeleteTaskModalShown ? 'task' : 'column'"
+        :elementName="
+          modals.isDeleteTaskModalShown
+            ? (tasks.clickedTask as Task).title
+            : (modals.columnToDelete as BoardColumn).name
+        "
+        :elementID="
+          modals.isDeleteTaskModalShown
+            ? (tasks.clickedTask as Task).taskID
+            : (modals.columnToDelete as BoardColumn).columnID
+        "
       />
     </transition>
     <transition name="modal">
       <task-modal
-        v-if="isEditTaskModalShown"
-        @close-modal="isEditTaskModalShown = false"
+        v-if="modals.isEditTaskModalShown && tasksConditions"
+        @close-modal="modals.isEditTaskModalShown = false"
         action="edit"
-        :selectedMultiOptionItems="['one, two']"
+        v-bind="tasksProps"
+      />
+    </transition>
+    <transition name="modal">
+      <board-modal
+        v-if="modals.isEditBoardModalShown"
+        @close-modal="modals.isEditBoardModalShown = false"
+        action="edit"
       />
     </transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { BoardColumn, Task } from '../api/boardsTypes'
+import type { BoardColumn, Task, Subtask } from '../api/boardsTypes'
 import TaskCard from './TaskCard.vue'
 import SeeTaskModal from './Modals/SeeTaskModal.vue'
 import ConfirmationModal from '../components/Modals/ConfirmationModal.vue'
 import TaskModal from '../components/Modals/TaskModal.vue'
-import { computed, ref } from 'vue'
+import BoardModal from '../components/Modals/BoardModal.vue'
+import CloseIcon from './Svgs/CloseIcon.vue'
+import { computed, ref, Ref } from 'vue'
 import { useBoardsStore } from '../stores/boards'
 import { useTasksStore } from '../stores/tasks'
 
@@ -89,29 +129,94 @@ const circleColor = computed(() => {
   return null
 })
 
-const clickedTitle = ref<null | Task['title']>(null)
+const modals = ref({
+  isSeeTaskModalShown: false,
+  isEditTaskModalShown: false,
+  isDeleteTaskModalShown: false,
+  isEditBoardModalShown: false,
+  isDeleteColumnModalShown: false,
+  columnToDelete: <null | BoardColumn>null,
+  showEditForm: () => {
+    modals.value.isSeeTaskModalShown = false
+    modals.value.isEditTaskModalShown = true
+  },
+  showDeleteForm: () => {
+    modals.value.isSeeTaskModalShown = false
+    modals.value.isDeleteTaskModalShown = true
+  },
+  handleDeleteIconClick: (column: BoardColumn) => {
+    modals.value.isDeleteColumnModalShown = true
+    modals.value.columnToDelete = column
+  }
+})
 
-const isEditTaskModalShown = ref(false)
-const isDeleteTaskModalShown = ref(false)
+const tasks = ref({
+  columnOfClickedTask: <null | number>null,
+  clickedTask: <null | Task>null,
+  subtasksOfClickedTask: <null | Subtask[]>null,
+  handleTaskCardClick: (columnIndex: number, taskIndex: number) => {
+    tasks.value.saveClickedTask(columnIndex, taskIndex)
 
-const closeSeeTask = () => {
-  clickedTitle.value = null
+    modals.value.isSeeTaskModalShown = true
+  },
+  saveClickedTask: (columnIndex: number, taskIndex: number) => {
+    tasks.value.columnOfClickedTask = columnIndex
+    tasks.value.clickedTask = tasksStore.tasks[columnIndex][taskIndex]
+
+    tasks.value.saveSubtasksOfClickedTask(columnIndex, taskIndex)
+  },
+  saveSubtasksOfClickedTask: (columnIndex: number, taskIndex: number) => {
+    tasks.value.subtasksOfClickedTask =
+      tasksStore.subtasks[columnIndex][taskIndex]
+  }
+})
+
+interface TasksProps {
+  columnIndex: number
+  task: Task
+  subtasks: Subtask[]
 }
+const tasksProps = computed(() => ({
+  columnIndex: tasks.value.columnOfClickedTask,
+  task: tasks.value.clickedTask,
+  subtasks: tasks.value.subtasksOfClickedTask
+})) as Ref<TasksProps>
+const tasksConditions = computed(() =>
+  [
+    tasks.value.clickedTask != null,
+    tasks.value.subtasksOfClickedTask != null,
+    tasks.value.columnOfClickedTask != null
+  ].every((taskCondition) => taskCondition)
+)
 
-const showEditForm = () => {
-  isEditTaskModalShown.value = true
-  closeSeeTask()
-}
+type Element = 'tasks' | 'subtasks' | 'subtasksCompleted'
+const returnNumberOfElements = (
+  columnIndex: number,
+  taskIndex: number,
+  element: Element
+) => {
+  if (
+    tasksStore.subtasks[columnIndex] == null ||
+    tasksStore.subtasks[columnIndex][taskIndex] == null
+  )
+    return 0
 
-const showDeleteForm = () => {
-  isDeleteTaskModalShown.value = true
-  closeSeeTask()
+  const elementFns = {
+    tasks: () => tasksStore.tasks[columnIndex].length,
+    subtasks: () => tasksStore.subtasks[columnIndex][taskIndex].length,
+    subtasksCompleted: () =>
+      tasksStore.subtasks[columnIndex][taskIndex].filter(
+        (subtask) => subtask.isCompleted
+      ).length
+  }
+
+  return elementFns[element]()
 }
 </script>
 
 <style lang="postcss" scoped>
 .columns-container {
-  @apply h-full overflow-auto;
+  @apply px-room-for-outline h-full overflow-auto;
   @apply scrollbar-invisible hover:scrollbar-visibleLight dark:hover:scrollbar-visibleDark;
 }
 

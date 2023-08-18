@@ -1,32 +1,18 @@
 <template>
   <modals-template @close-modal="$emit('close-modal')">
     <template #form-title>
-      <h2>
-        Research pricing points of various competitors and trial different
-        business models
-      </h2>
+      <h2>{{ task.title }}</h2>
     </template>
 
     <template #ellipsis>
-      <the-button
-        @click.prevent="areTaskOptionsShown = !areTaskOptionsShown"
-        :regularButton="false"
-        data-ellipsis
-        aria-label="click here to see more options"
-        class="px-3 py-2 cursor-pointer rounded-md focus-visible:outline outline-[3px] outline-gray-400"
-      >
-        <svg width="5" height="20" data-ellipsis>
-          <g fill-rule="evenodd" class="fill-gray-400">
-            <circle cx="2.308" cy="2.308" r="2.308" />
-            <circle cx="2.308" cy="10" r="2.308" />
-            <circle cx="2.308" cy="17.692" r="2.308" />
-          </g>
-        </svg>
-      </the-button>
+      <more-options-icon
+        @toggle-options="areTaskOptionsShown = !areTaskOptionsShown"
+        element="task"
+      />
     </template>
 
     <template #main-content>
-      <div class="flex flex-col gap-6 relative">
+      <div class="grid gap-6 relative">
         <more-options
           @toggle-options="(e: Event) => handleMoreOptionsFn(e, toggleOptions)"
           @show-edit-form="$emit('show-edit-form')"
@@ -37,15 +23,18 @@
         />
 
         <p class="text-gray-400 text-xs xs::text-sm">
-          {{ addTaskOptions.description }}
+          {{ task.description }}
         </p>
 
-        <div v-if="addTaskOptions.subtasks.length">
+        <div v-if="subtasks.length">
           <p class="mb-4 text-xs text-gray-400 dark:text-white">
-            Subtasks ( 2 of 4 )
+            Subtasks ({{
+              subtasks.filter((subtask) => subtask.isCompleted).length
+            }}
+            of {{ subtasks.length }})
           </p>
           <div
-            v-for="{ title, isCompleted } in addTaskOptions.subtasks"
+            v-for="{ title, isCompleted } in subtasks"
             :key="title"
             class="subtask"
           >
@@ -69,9 +58,9 @@
             Current Status
           </p>
           <v-select
-            :options="addTaskOptions.status"
+            :options="taskStatuses"
             :searchable="false"
-            placeholder="Doing"
+            :placeholder="taskStatuses[columnIndex]"
           ></v-select>
         </div>
       </div>
@@ -80,32 +69,24 @@
 </template>
 
 <script setup lang="ts">
+import type { Task, Subtask } from '../../api/boardsTypes'
 import ModalsTemplate from './ModalsTemplate.vue'
 import MoreOptions from '../shared/MoreOptions.vue'
-import TheButton from '../shared/TheButton.vue'
+import MoreOptionsIcon from '../Svgs/MoreOptionsIcon.vue'
 import moreOptionsPopup from '../../composables/moreOptionsPopup'
 import { useBoardsStore } from '../../stores/boards'
 import type { Ref } from 'vue'
 import { ref } from 'vue'
 
+defineProps<{
+  columnIndex: number
+  task: Task
+  subtasks: Subtask[]
+}>()
 defineEmits(['close-modal', 'show-edit-form', 'show-delete-form'])
 
 const boardsStore = useBoardsStore()
-const addTaskOptions = {
-  title: 'e.g. Take coffee break',
-  description: '',
-  subtasks: [
-    {
-      title: 'e.g. Make coffee',
-      isCompleted: false
-    },
-    {
-      title: 'e.g. Drink coffee and smile',
-      isCompleted: false
-    }
-  ],
-  status: boardsStore.boardColumnsNames
-}
+const taskStatuses = ref(boardsStore.boardColumns.map((column) => column.name))
 const areTaskOptionsShown = ref(false)
 
 const { toggleOptions, closeOptions } = moreOptionsPopup

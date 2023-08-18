@@ -1,92 +1,93 @@
 import type { BoardColumn, Task, Subtask } from '../api/boardsTypes'
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { Query, DocumentData, updateDoc } from 'firebase/firestore'
-import {
-  onSnapshot,
-  collection,
-  query,
-  orderBy,
-  getDocs,
-  addDoc,
-  serverTimestamp
+import type {
+  CollectionReference,
+  QueryDocumentSnapshot,
+  DocumentData
 } from 'firebase/firestore'
-import { db, usersColRef } from '../firebase'
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
+import { query, orderBy, getDocs } from 'firebase/firestore'
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import { db } from '../firebase'
 import { useUserStore } from './user'
 import { useBoardsStore } from './boards'
 
 export const useTasksStore = defineStore('tasks', () => {
   const userStore = useUserStore()
   const boardsStore = useBoardsStore()
-  const currentBoardID = computed(() => boardsStore.currentBoard?.docID || null)
 
   const tasks = ref<Task[][]>([])
-  const subtasks = ref<Subtask[][]>([])
+  const subtasks = ref<Subtask[][][]>([])
 
-  const isLoading = ref(true)
-  const activeUserDocID = ref('')
-
-  onSnapshot(usersColRef, async () => {
-    activeUserDocID.value = (
-      await getDocs(userStore.activeUserColRef as Query<DocumentData>)
-    ).docs[0].id
-
-    const columnsColRef = collection(
-      db,
-      `users/${activeUserDocID.value}/boards/${currentBoardID.value}/columns`
-    )
-    const columnsColRefOrdered = query(
-      columnsColRef,
-      orderBy('createdAt', 'desc')
-    )
-    const columnIDs = ref<BoardColumn['docID'][]>([])
-    const columnDocs = (await getDocs(columnsColRefOrdered)).docs
-
-    const tasksColRefs = columnDocs.map((columnDoc) => {
-      const columnID = columnDoc.data().docID
-      return collection(
-        db,
-        `users/${activeUserDocID.value}/boards/${currentBoardID.value}/columns/${columnID}/tasks`
-      )
-    })
-
-    onSnapshot(columnsColRefOrdered, async (snapshot) => {
-      const tasksColRefs = snapshot.docs.map((snapDoc) => {
-        const columnID = snapDoc.data().docID
-        columnIDs.value.push(columnID)
-
-        return collection(
-          db,
-          `users/${activeUserDocID.value}/boards/${currentBoardID.value}/columns/${columnID}/tasks`
-        )
-      })
-
-      await Promise.all(
-        tasksColRefs.map(async (taskRef, taskIndex) => {
-          const tasksPerColumnArr = ref<Task[]>([])
-          onSnapshot(taskRef, (snapshot) => {
-            snapshot.docs.forEach((taskDocRef) => {
-              tasksPerColumnArr.value.push(taskDocRef.data() as Task)
-            })
-            tasks.value.push(tasksPerColumnArr.value)
-
-            const subtasksColRefs = tasks.value[taskIndex].map((task) => {
-              const taskID = task.taskID
-
-              return collection(
+  const getTasks = async (
+    columnsColRef: CollectionReference<DocumentData>,
+    columns: BoardColumn[]
+  ) => {
+    const returnedData =
+      columns.length !== 0
+        ? await Promise.all(
+            columns.map(async (column) => {
+              const tasksColRef = collection(
                 db,
-                `users/${activeUserDocID.value}/boards/${currentBoardID.value}/columns/${columnIDs.value[taskIndex]}/tasks/${taskID}/subtasks`
+                `${columnsColRef.path}/${column.columnID}/tasks`
               )
+              const tasksColRefOrdered = query(
+                tasksColRef,
+                orderBy('createdAt', 'asc')
+              )
+
+              const tasksDocRefs = (await getDocs(tasksColRefOrdered)).docs
+
+              return {
+                tasks: tasksDocRefs.map((tasksDocRef) => ({
+                  ...(tasksDocRef.data() as Omit<Task, 'taskID'>),
+                  taskID: tasksDocRef.id
+                })),
+                tasksDocRefs
+              }
             })
-          })
+          )
+        : null
 
-          return (await getDocs(taskRef)).docs
-        })
+    if (returnedData != null) {
+      tasks.value = returnedData.map((item) => item.tasks)
+
+      const tasksDocRefsArr = returnedData.map((item) => item.tasksDocRefs)
+      subtasks.value = await Promise.all(
+        tasksDocRefsArr.map(
+          async (tasksDocRefsArr) => await getSubtasks(tasksDocRefsArr)
+        )
       )
-    })
+    }
+  }
 
-    isLoading.value = false
-  })
+  const getSubtasks = async (
+    tasksDocRefs: QueryDocumentSnapshot<DocumentData>[]
+  ) => {
+    return await Promise.all(
+      tasksDocRefs.map(async (tasksDocRef) => {
+        const subtasksColRef = collection(
+          db,
+          `${tasksDocRef.ref.path}/subtasks`
+        )
+        const subtasksColRefOrdered = query(
+          subtasksColRef,
+          orderBy('createdAt', 'asc')
+        )
+
+        const subtasksDocRefs = (await getDocs(subtasksColRefOrdered)).docs
+
+        if (subtasksDocRefs.length !== 0) {
+          return subtasksDocRefs.map((subtasksDocRef) => ({
+            ...(subtasksDocRef.data() as Omit<Subtask, 'subtaskID'>),
+            subtaskID: subtasksDocRef.id
+          }))
+        }
+
+        return []
+      })
+    )
+  }
 
   const addNewTask = async (
     selectedColumn: BoardColumn,
@@ -95,7 +96,7 @@ export const useTasksStore = defineStore('tasks', () => {
   ) => {
     const tasksColRef = collection(
       db,
-      `users/${activeUserDocID.value}/boards/${currentBoardID.value}/columns/${selectedColumn.docID}/tasks`
+      `users/${userStore.userID}/boards/${boardsStore.currentBoardID}/columns/${selectedColumn.columnID}/tasks`
     )
 
     const addedDocRef = await addDoc(tasksColRef, {
@@ -104,17 +105,7 @@ export const useTasksStore = defineStore('tasks', () => {
     })
 
     if (addedDocRef) {
-      await updateDoc(addedDocRef, {
-        taskID: addedDocRef.id
-      })
-    }
-
-    if (addedDocRef) {
-      const taskID = addedDocRef.id
-      const subtasksColRef = collection(
-        db,
-        `users/${activeUserDocID.value}/boards/${currentBoardID.value}/columns/${selectedColumn.docID}/tasks/${taskID}/subtasks`
-      )
+      const subtasksColRef = collection(db, `${addedDocRef.path}/subtasks`)
 
       subtasks.forEach(async (subtask) => {
         await addDoc(subtasksColRef, {
@@ -123,13 +114,16 @@ export const useTasksStore = defineStore('tasks', () => {
           createdAt: serverTimestamp()
         })
       })
+
+      await boardsStore.getColumns()
     }
   }
 
   return {
-    isLoading,
     tasks,
     subtasks,
+    getTasks,
+    getSubtasks,
     addNewTask
   }
 })

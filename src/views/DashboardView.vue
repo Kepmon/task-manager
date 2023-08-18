@@ -1,23 +1,21 @@
 <template>
   <div class="main-container">
-    <Spinner v-if="tasksStore.isLoading" />
-
-    <transition name="popup">
-      <confirmation-popup
-        v-if="boardsStore.isConfirmationPopupShown"
-        :action="boardsStore.action"
-        element="board"
-      />
-    </transition>
+    <Spinner v-if="boardsStore.isLoading" />
 
     <boards-navbar
+      v-if="
+        !isDashboardEmpty && !boardsStore.isLoading && windowWidth >= 640
+          ? true
+          : isNavOpen
+      "
       @toggle-sidebar="toggleSidebar"
       :boards="boardsStore.boards"
       :boardName="boardsStore.currentBoard?.name || ''"
+      :isLoading="boardsStore.isLoading"
     />
 
     <main-navbar
-      v-if="!isDashboardEmpty && !tasksStore.isLoading"
+      v-if="!isDashboardEmpty && !boardsStore.isLoading"
       @toggle-boards-nav="toggleBoardsNav"
       :sidebar="isSidebarShown"
       :isLogo="isLogoShown"
@@ -37,7 +35,7 @@
     </div>
 
     <main
-      class="flex flex-col justify-center p-4 sm:p-6"
+      class="p-4 sm:p-6"
       :class="{
         'sm:col-start-2': !isLogoShown,
         'sm:col-start-1 sm:col-span-2': isLogoShown,
@@ -45,17 +43,16 @@
       }"
     >
       <boards-column
-        v-if="!isDashboardEmpty"
-        :selectedMultiOptionItems="['Todo', 'Doing']"
+        v-if="!isDashboardEmpty && !boardsStore.isLoading"
         :logo="isLogoShown"
       />
       <empty-info
-        v-if="!tasksStore.isLoading"
+        v-if="!boardsStore.isLoading"
         :emptyDashboard="isDashboardEmpty"
         :emptyBoard="isBoardEmpty"
       />
       <user-options
-        v-if="isDashboardEmpty && !tasksStore.isLoading"
+        v-if="isDashboardEmpty && !boardsStore.isLoading"
         :isDashboardEmpty="isDashboardEmpty"
         class="absolute bottom-8 right-8 scale-125"
       />
@@ -69,17 +66,15 @@ import BoardsNavbar from '../components/Navbar/BoardsNavbar.vue'
 import EmptyInfo from '../components/EmptyInfo.vue'
 import BoardsColumn from '../components/BoardsColumn.vue'
 import UserOptions from '../components/UserOptions.vue'
-import ConfirmationPopup from '../components/shared/ConfirmationPopup.vue'
 import Spinner from '../components/Spinner.vue'
-import { useUserStore } from '../stores/user'
 import { useBoardsStore } from '../stores/boards'
-import { useTasksStore } from '../stores/tasks'
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useWindowSize } from '@vueuse/core'
 
-const userStore = useUserStore()
 const boardsStore = useBoardsStore()
-const tasksStore = useTasksStore()
+onMounted(async () => {
+  await boardsStore.getColumns()
+})
 
 const isDashboardEmpty = computed(() =>
   boardsStore.boards.length === 0 ? true : false

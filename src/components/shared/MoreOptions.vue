@@ -4,14 +4,15 @@
       v-if="condition"
       @click="$emit('toggle-options')"
       ref="target"
-      class="options-container"
+      class="options-container w-[max-content]"
       :class="{
-        'right-6 top-[76px]': element === 'board',
-        'right-0 -top-4': element === 'task'
+        'left-1/2 -translate-x-1/2 top-[calc(100%+1rem)]': element === 'board',
+        'right-3 -top-6': element === 'task'
       }"
     >
       <button
         @click.prevent="$emit('show-edit-form')"
+        ref="firstButton"
         class="option option--edit"
       >
         Edit {{ element }}
@@ -28,7 +29,7 @@
 
 <script setup lang="ts">
 import { onClickOutside } from '@vueuse/core'
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 
 defineProps<{
   condition: boolean
@@ -43,6 +44,21 @@ const emits = defineEmits([
 
 const target = ref(null)
 onClickOutside(target, (e: Event) => emits('close-more-options', e))
+
+const closePopupOnEsc = (e: KeyboardEvent) => {
+  if (e.key === 'Escape') {
+    emits('close-more-options', e)
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', (e: KeyboardEvent) => closePopupOnEsc(e))
+})
+onUnmounted(() => {
+  window.removeEventListener('keydown', (e: KeyboardEvent) =>
+    closePopupOnEsc(e)
+  )
+})
 </script>
 
 <style lang="postcss" scoped>

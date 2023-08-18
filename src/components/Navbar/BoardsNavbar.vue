@@ -1,10 +1,6 @@
 <template>
   <transition name="nav">
-    <nav
-      v-if="!tasksStore.isLoading"
-      aria-label="boards navigation"
-      class="boards"
-    >
+    <nav aria-label="boards navigation" class="boards">
       <div class="hidden sm:block px-[10%] mt-4 mb-[54px]">
         <logo-icon aria-label="The app logo" />
       </div>
@@ -14,7 +10,7 @@
       <div class="sm:flex sm:flex-col grow">
         <ul v-if="boards != null" class="boards-list">
           <board-label
-            @click="() => changeCurrentBoard(board)"
+            @click="() => (boardsStore.chosenBoard = board)"
             v-for="(board, index) in boards"
             :key="index"
             :name="board.name"
@@ -55,7 +51,6 @@
       v-if="isAddBoardModalShown"
       @close-modal="isAddBoardModalShown = false"
       action="add"
-      :selectedMultiOptionItems="['Todo', 'Doing']"
     />
   </transition>
 </template>
@@ -66,26 +61,18 @@ import ThemeToggle from '../shared/ThemeToggle.vue'
 import BoardLabel from './BoardLabel.vue'
 import BoardModal from '../Modals/BoardModal.vue'
 import LogoIcon from '../Svgs/LogoIcon.vue'
-import { useUserStore } from '../../stores/user'
 import { useBoardsStore } from '../../stores/boards'
-import { useTasksStore } from '../../stores/tasks'
 import { ref } from 'vue'
 
 defineProps<{
   boards: Board[] | null
   boardName: Board['name']
+  isLoading: boolean
 }>()
 defineEmits(['toggle-sidebar'])
 
 const isAddBoardModalShown = ref(false)
-const userStore = useUserStore()
 const boardsStore = useBoardsStore()
-const tasksStore = useTasksStore()
-
-const changeCurrentBoard = (board: Board) => {
-  boardsStore.chosenBoard = board
-  localStorage.setItem('currentBoard', JSON.stringify(boardsStore.chosenBoard))
-}
 </script>
 
 <style lang="postcss" scoped>
@@ -113,7 +100,7 @@ const changeCurrentBoard = (board: Board) => {
 }
 
 .boards-list {
-  @apply grid max-h-[calc(100vh-310px)] overflow-auto;
+  @apply grid max-h-[calc(100vh-310px)];
   @apply scrollbar-visibleLight dark:scrollbar-visibleDark;
 }
 

@@ -38,12 +38,13 @@ onUnmounted(() => {
 
 <style lang="postcss" scoped>
 .semitransparent-bg {
-  @apply flex items-center justify-center absolute z-10 p-4;
-  @apply inset-0 bg-gray-880;
+  @apply grid place-items-center absolute inset-0;
+  @apply z-50 p-4 bg-gray-880;
 }
 
 .form {
-  @apply flex flex-col gap-6;
-  @apply relative p-6 w-[90%] sm:w-[480px] rounded-md bg-white dark:bg-gray-700;
+  @apply grid gap-6 relative p-6 max-h-[95vh];
+  @apply sm:w-[480px] rounded-md bg-white dark:bg-gray-700;
+  @apply overflow-auto scrollbar-invisible;
 }
 </style>

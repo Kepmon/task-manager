@@ -31,23 +31,7 @@
               :class="{ 'after:content-none': item !== '' }"
               class="input-error grow"
             ></text-input>
-            <button
-              class="p-2 box-content"
-              aria-label="click here to close off this field"
-              type="button"
-            >
-              <svg width="15" height="15">
-                <g
-                  :class="{
-                    'fill-red-400': item === '',
-                    'fill-gray-400': item !== ''
-                  }"
-                >
-                  <path d="m12.728 0 2.122 2.122L2.122 14.85 0 12.728z" />
-                  <path d="M0 2.122 2.122 0 14.85 12.728l-2.122 2.122z" />
-                </g>
-              </svg>
-            </button>
+            <close-icon :listItem="item" />
           </div>
         </div>
       </div>
@@ -81,38 +65,49 @@
 </template>
 
 <script setup lang="ts">
-import type { BoardColumn, Subtask } from '../../api/boardsTypes'
+import type { BoardColumn, Task, Subtask } from '../../api/boardsTypes'
 import ModalsTemplate from './ModalsTemplate.vue'
 import TextInput from '../shared/Inputs/TextInput.vue'
 import DescriptionField from '../shared/Inputs/DescriptionField.vue'
 import TheButton from '../../components/shared/TheButton.vue'
+import CloseIcon from '../Svgs/CloseIcon.vue'
 import { useBoardsStore } from '../../stores/boards'
 import { useTasksStore } from '../../stores/tasks'
 import { ref } from 'vue'
 
-defineProps<{
+const props = defineProps<{
   action: 'add' | 'edit'
-  selectedMultiOptionItems: Subtask['title'][] | string[]
+  columnIndex?: number
+  task?: Task
+  subtasks?: Subtask[]
 }>()
-defineEmits(['close-modal'])
+const emits = defineEmits(['close-modal'])
 
 const boardsStore = useBoardsStore()
 const statusItemsNames = boardsStore.boardColumns?.map((column) => column.name)
+
 const taskFormData = ref({
-  title: '',
-  description: '',
-  subtasks: ['e.g. Make coffee', 'e.g. Drink coffee & smile'],
+  title: props.task != null ? props.task.title : '',
+  description: props.task != null ? props.task.description : '',
+  subtasks:
+    props.subtasks != null
+      ? props.subtasks.map((subtask) => subtask.title)
+      : ['e.g. Make coffee', 'e.g. Drink coffee & smile'],
   statusItems: boardsStore.boardColumns,
-  selectedStatusItem: (boardsStore.boardColumns as BoardColumn[])[0]
+  selectedStatusItem:
+    props.columnIndex != null
+      ? boardsStore.boardColumns[props.columnIndex]
+      : boardsStore.boardColumns[0]
 })
 
 const tasksStore = useTasksStore()
 const submit = async () => {
+  emits('close-modal')
   await tasksStore.addNewTask(
     taskFormData.value.selectedStatusItem as BoardColumn,
     {
-      title: taskFormData.value.title,
-      description: taskFormData.value.description
+      title: taskFormData.value.title.trim(),
+      description: taskFormData.value.description.trim()
     },
     taskFormData.value.subtasks
   )

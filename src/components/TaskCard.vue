@@ -1,10 +1,5 @@
 <template>
-  <div
-    @click="$emit('change', title)"
-    @keypress.enter="$emit('change', title)"
-    tabindex="0"
-    class="task-card group"
-  >
+  <div tabindex="0" class="task-card group">
     <p class="task-card__title">
       {{ title }}
     </p>
@@ -15,15 +10,11 @@
 </template>
 
 <script setup lang="ts">
-import { useTasksStore } from '../stores/tasks'
-const tasksStore = useTasksStore()
-
 defineProps<{
   title: string
   howManyCompleted: number
   howManySubtasks: number
 }>()
-defineEmits(['change'])
 </script>
 
 <style lang="postcss" scoped>

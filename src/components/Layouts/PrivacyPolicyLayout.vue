@@ -1,13 +1,11 @@
 <template>
   <div v-if="currentPath !== '/privacy-policy'" class="privacy-policy-popup">
-    <button
-      @click="$emit('close-popup')"
-      aria-label="Click here to close the popup"
+    <close-icon
+      @handle-close="$emit('close-popup')"
+      :isPolicy="true"
       class="close-button"
       :class="{ 'motion-safe:after:animate-ping-once': animationCondition }"
-    >
-      <close-icon />
-    </button>
+    />
 
     <privacy-policy-content />
   </div>
@@ -39,8 +37,8 @@ const currentPath = useRoute().path
 }
 
 .close-button {
-  @apply absolute top-0 right-1/2 max-[512px]:translate-x-1/2;
-  @apply s:top-2 s:right-2 p-3 cursor-pointer;
+  @apply grid place-content-center absolute top-0 right-1/2;
+  @apply s:top-2 s:right-2 p-3 h-6 w-6 max-[512px]:translate-x-1/2 cursor-pointer;
   @apply after:absolute after:inset-0 after:border-2 after:rounded-full;
   @apply after:border-black dark:after:border-white;
 }

@@ -6,6 +6,7 @@
       @input="
         $emit('update:modelValue', ($event.target as HTMLInputElement).value)
       "
+      :ref="condition ? 'newInput' : undefined"
       :value="modelValue?.includes('e.g.') ? '' : modelValue"
       type="text"
       :placeholder="placeholder"
@@ -20,13 +21,23 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
+import { ref, onMounted } from 'vue'
+
+const props = defineProps<{
   label?: string
   isError?: boolean
   placeholder?: string
   whitePlaceholder?: boolean
   modelValue?: string
   value?: string
+  condition?: boolean
 }>()
 defineEmits(['handle-blur', 'update:modelValue'])
+
+const newInput = ref<null | HTMLInputElement>(null)
+onMounted(() => {
+  if (props.condition) {
+    ;(newInput.value as HTMLInputElement).focus()
+  }
+})
 </script>

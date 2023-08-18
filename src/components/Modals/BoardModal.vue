@@ -30,37 +30,35 @@
             class="flex items-center"
           >
             <text-input
+              @handle-blur="
+                () =>
+                  item === ''
+                    ? (columnErrors[index] = true)
+                    : (columnErrors[index] = false)
+              "
               @update:model-value="(newValue: string) => ((formData.columns as string[])[index] = newValue)"
               :modelValue="item"
               :placeholder="action === 'add' ? item : ''"
-              :isError="formData.columns[index] === ''"
-              :class="{ 'after:content-none': item !== '' }"
-              class="input-error grow"
+              :isError="columnErrors[index]"
+              :condition="
+                index === formData.columns.length - 1 && isNewInputAdded
+              "
+              class="grow"
+              :class="{
+                'input-error': columnErrors[index] === true
+              }"
             ></text-input>
-            <button
-              @click="() => (formData.columns as string[]).splice(index, 1)"
-              class="p-2 box-content"
-              aria-label="click here to close off this field"
-              type="button"
-            >
-              <svg width="15" height="15">
-                <g
-                  :class="{
-                    'fill-red-400': item === '',
-                    'fill-gray-400': item !== ''
-                  }"
-                >
-                  <path d="m12.728 0 2.122 2.122L2.122 14.85 0 12.728z" />
-                  <path d="M0 2.122 2.122 0 14.85 12.728l-2.122 2.122z" />
-                </g>
-              </svg>
-            </button>
+            <close-icon
+              @handle-close="() => (formData.columns as string[]).splice(index, 1)"
+              :listItem="item"
+              :isError="columnErrors[index]"
+            />
           </div>
         </div>
       </div>
 
       <the-button
-        @click="() => (formData.columns as string[]).push('')"
+        @click="handleAddNewColumn"
         :regularButton="true"
         :isInForm="true"
         class="white-button"
@@ -77,20 +75,26 @@
 </template>
 
 <script setup lang="ts">
-import type { BoardColumn } from '../../api/boardsTypes'
 import ModalsTemplate from './ModalsTemplate.vue'
 import TextInput from '../shared/Inputs/TextInput.vue'
 import TheButton from '../../components/shared/TheButton.vue'
+import CloseIcon from '../Svgs/CloseIcon.vue'
 import { useBoardsStore } from '../../stores/boards'
 import { ref } from 'vue'
 
 const props = defineProps<{
   action: 'add' | 'edit'
-  selectedMultiOptionItems?: BoardColumn[]
 }>()
 const emits = defineEmits(['update:modelValue', 'close-modal'])
 
 const boardsStore = useBoardsStore()
+
+const isNewInputAdded = ref(false)
+const handleAddNewColumn = () => {
+  ;(formData.value.columns as string[]).push('')
+  columnErrors.value.push(false)
+  isNewInputAdded.value = true
+}
 
 const formData = ref<{ name: string; columns: string[] }>({
   name:
@@ -101,6 +105,7 @@ const formData = ref<{ name: string; columns: string[] }>({
       : (boardsStore.boardColumnsNames as string[])
 })
 const formNameError = ref(false)
+const columnErrors = ref(formData.value.columns.map(() => false))
 
 const submit = () => {
   if (formData.value.name === '') return
@@ -109,6 +114,6 @@ const submit = () => {
   const submitFn =
     props.action === 'add' ? boardsStore.addNewBoard : boardsStore.editBoard
 
-  submitFn(formData.value.name, formData.value.columns)
+  submitFn(formData.value.name.trim(), formData.value.columns)
 }
 </script>
