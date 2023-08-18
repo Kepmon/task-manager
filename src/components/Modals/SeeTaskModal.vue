@@ -57,9 +57,11 @@
           <p class="mb-2 text-xs text-gray-400 dark:text-white">
             Current Status
           </p>
-          <p class="input border-blue-40 focus:border-purple-400">
-            {{ boardsStore.boardColumnsNames[columnIndex] }}
-          </p>
+          <v-select
+            :options="taskStatuses"
+            :searchable="false"
+            :placeholder="taskStatuses[columnIndex]"
+          ></v-select>
         </div>
       </div>
     </template>
@@ -84,6 +86,7 @@ defineProps<{
 defineEmits(['close-modal', 'show-edit-form', 'show-delete-form'])
 
 const boardsStore = useBoardsStore()
+const taskStatuses = ref(boardsStore.boardColumns.map((column) => column.name))
 const areTaskOptionsShown = ref(false)
 
 const { toggleOptions, closeOptions } = moreOptionsPopup
