@@ -114,6 +114,8 @@ export const useTasksStore = defineStore('tasks', () => {
     if (addedDocRef) {
       const subtasksColRef = collection(db, `${addedDocRef.path}/subtasks`)
 
+      if (subtasks.length === 0) return
+
       subtasks.forEach(async (subtask) => {
         await addDoc(subtasksColRef, {
           title: subtask,
