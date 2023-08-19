@@ -180,11 +180,6 @@ export const useTasksStore = defineStore('tasks', () => {
     const tasksDocRef = doc(tasksColRef, taskID)
 
     const subtasksColRef = collection(db, `${tasksDocRef.path}/subtasks`)
-    // const columnDocRef = doc(columnsColRef, columnID)
-    // const tasksColRefs = collection(db, `${columnDocRef.path}/tasks`)
-    // const tasksDocRefs = await getDocs(tasksColRefs)
-    // if (tasksDocRefs.docs.length !== 0) {
-    // tasksDocRefs.forEach(async (tasksDocRef) => {
     const subtasksDocRefs = await getDocs(subtasksColRef)
     if (subtasksDocRefs.docs.length !== 0) {
       subtasksDocRefs.forEach(async (subtasksDocRef) => {
@@ -193,11 +188,6 @@ export const useTasksStore = defineStore('tasks', () => {
     }
 
     await deleteDoc(tasksDocRef)
-    // })
-    // }
-
-    // await deleteDoc(columnDocRef)
-    // await boardsStore.getColumns()
   }
 
   return {

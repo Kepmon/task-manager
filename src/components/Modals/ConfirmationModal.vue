@@ -38,6 +38,7 @@ import ModalsTemplate from './ModalsTemplate.vue'
 import TheButton from '../shared/TheButton.vue'
 import { computed } from 'vue'
 import { useBoardsStore } from '../../stores/boards'
+import { useTasksStore } from '../../stores/tasks'
 import { Board, BoardColumn, Task } from '../../api/boardsTypes'
 
 type ElementID = Board['boardID'] | BoardColumn['columnID'] | Task['taskID']
@@ -45,6 +46,7 @@ const props = defineProps<{
   elementToDelete: 'board' | 'column' | 'task'
   elementName: string
   elementID: ElementID
+  columnOfClickedTask?: BoardColumn['columnID']
 }>()
 const emits = defineEmits(['close-modal'])
 
@@ -62,16 +64,19 @@ const message = computed(() => {
 })
 
 const boardsStore = useBoardsStore()
+const tasksStore = useTasksStore()
 const submitFns = {
-  board: boardsStore.deleteBoard,
-  column: boardsStore.deleteColumn,
-  task: () => null
+  board: () => boardsStore.deleteBoard(props.elementID),
+  column: () => boardsStore.deleteColumn(props.elementID),
+  task: () =>
+    tasksStore.deleteTask(props.columnOfClickedTask as string, props.elementID)
 }
 
-const submit = async (elementID: ElementID) => {
+const submit = async () => {
   emits('close-modal')
 
-  await submitFns[props.elementToDelete](elementID)
+  await submitFns[props.elementToDelete]()
+  await boardsStore.getColumns()
 }
 </script>
 

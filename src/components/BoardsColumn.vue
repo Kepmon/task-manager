@@ -77,6 +77,9 @@
             ? (tasks.clickedTask as Task).taskID
             : (modals.columnToDelete as BoardColumn).columnID
         "
+        :columnOfClickedTask="
+          boardsStore.boardColumns[tasks.columnOfClickedTask as number].columnID
+        "
       />
     </transition>
     <transition name="modal">

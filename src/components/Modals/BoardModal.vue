@@ -58,7 +58,7 @@
       </div>
 
       <the-button
-        @click="handleAddNewColumn"
+        @click="addNewColumn"
         :regularButton="true"
         :isInForm="true"
         class="white-button"
@@ -79,6 +79,7 @@ import ModalsTemplate from './ModalsTemplate.vue'
 import TextInput from '../shared/Inputs/TextInput.vue'
 import TheButton from '../../components/shared/TheButton.vue'
 import CloseIcon from '../Svgs/CloseIcon.vue'
+import { addNewInput } from '../../composables/addNewInput'
 import { useBoardsStore } from '../../stores/boards'
 import { ref } from 'vue'
 
@@ -88,13 +89,6 @@ const props = defineProps<{
 const emits = defineEmits(['update:modelValue', 'close-modal'])
 
 const boardsStore = useBoardsStore()
-
-const isNewInputAdded = ref(false)
-const handleAddNewColumn = () => {
-  ;(formData.value.columns as string[]).push('')
-  columnErrors.value.push(false)
-  isNewInputAdded.value = true
-}
 
 const formData = ref<{ name: string; columns: string[] }>({
   name:
@@ -106,6 +100,11 @@ const formData = ref<{ name: string; columns: string[] }>({
 })
 const formNameError = ref(false)
 const columnErrors = ref(formData.value.columns.map(() => false))
+const isNewInputAdded = ref(false)
+
+const addNewColumn = () => {
+  addNewInput(formData, columnErrors, isNewInputAdded)
+}
 
 const submit = () => {
   if (formData.value.name === '') return

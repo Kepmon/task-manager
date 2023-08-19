@@ -6,14 +6,23 @@
 
     <template #main-content>
       <text-input
+        @handle-blur="
+          taskFormData.title === ''
+            ? (formNameError = true)
+            : (formNameError = false)
+        "
         v-model="taskFormData.title"
+        :isError="formNameError"
         label="Title"
         :placeholder="action === 'add' ? 'e.g. Take coffee break' : ''"
+        :whitePlaceholder="action === 'add' ? false : true"
+        :class="{ 'input-error after:translate-y-full': formNameError }"
       />
 
       <description-field
         v-model="taskFormData.description"
         label="Description"
+        :whitePlaceholder="action === 'add' ? false : true"
       />
 
       <div>
@@ -25,18 +34,35 @@
             class="flex items-center"
           >
             <text-input
+              @handle-blur="
+                () =>
+                  item === ''
+                    ? (subtasksErrors[index] = true)
+                    : (subtasksErrors[index] = false)
+              "
               @update:model-value="(newValue: string) => taskFormData.subtasks[index] = newValue"
               :modelValue="item"
               :placeholder="action === 'add' ? item : ''"
-              :class="{ 'after:content-none': item !== '' }"
-              class="input-error grow"
+              :isError="subtasksErrors[index]"
+              :condition="
+                index === taskFormData.subtasks.length - 1 && isNewInputAdded
+              "
+              class="grow"
+              :class="{
+                'input-error': subtasksErrors[index] === true
+              }"
             ></text-input>
-            <close-icon :listItem="item" />
+            <close-icon
+              @handle-close="() => (taskFormData.subtasks as string[]).splice(index, 1)"
+              :listItem="item"
+              :isError="subtasksErrors[index]"
+            />
           </div>
         </div>
       </div>
 
       <the-button
+        @click="addNewSubtaskInput"
         :regularButton="true"
         :isInForm="true"
         type="button"
@@ -71,6 +97,7 @@ import TextInput from '../shared/Inputs/TextInput.vue'
 import DescriptionField from '../shared/Inputs/DescriptionField.vue'
 import TheButton from '../../components/shared/TheButton.vue'
 import CloseIcon from '../Svgs/CloseIcon.vue'
+import { addNewInput } from '../../composables/addNewInput'
 import { useBoardsStore } from '../../stores/boards'
 import { useTasksStore } from '../../stores/tasks'
 import { ref } from 'vue'
@@ -99,6 +126,13 @@ const taskFormData = ref({
       ? boardsStore.boardColumns[props.columnIndex]
       : boardsStore.boardColumns[0]
 })
+const formNameError = ref(false)
+const subtasksErrors = ref(taskFormData.value.subtasks.map(() => false))
+const isNewInputAdded = ref(false)
+
+const addNewSubtaskInput = () => {
+  addNewInput(taskFormData, subtasksErrors, isNewInputAdded)
+}
 
 const tasksStore = useTasksStore()
 const submit = async () => {
