@@ -12,9 +12,7 @@
         v-model="formName"
         :isError="formNameError"
         label="Board Name"
-        :placeholder="
-          action === 'add' ? 'e.g. Web Design' : boardsStore.currentBoard?.name
-        "
+        :placeholder="action === 'add' ? 'e.g. Web Design' : ''"
         :whitePlaceholder="action === 'add' ? false : true"
         :class="{ 'input-error after:translate-y-full': formNameError }"
       />
@@ -33,6 +31,7 @@
 </template>
 
 <script setup lang="ts">
+import type { Board } from '../../api/boardsTypes'
 import ModalsTemplate from './ModalsTemplate.vue'
 import TextInput from '../shared/Inputs/TextInput.vue'
 import TheButton from '../../components/shared/TheButton.vue'
@@ -47,16 +46,22 @@ const emits = defineEmits(['update:modelValue', 'close-modal'])
 
 const boardsStore = useBoardsStore()
 
-const formName = ref('')
+const formName = ref(
+  props.action === 'add' ? '' : (boardsStore.currentBoard as Board).name
+)
 const formNameError = ref(false)
 
-const updatedColumns = ref<null | string[]>(null)
+const updatedColumns = ref(['Todo', 'Doing'])
 const updateColumnValues = (emittedValue: string[]) => {
   updatedColumns.value = emittedValue
 }
 
 const submit = () => {
-  if (formName.value === '') return
+  if (
+    formName.value === '' ||
+    updatedColumns.value?.some((item) => item === '')
+  )
+    return
 
   emits('close-modal')
   const submitFn =

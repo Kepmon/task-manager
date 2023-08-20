@@ -1,6 +1,8 @@
 <template>
-  <div v-if="itemsToBeIteratedOver.length">
-    <p class="mb-2 text-xs">Subtasks</p>
+  <div v-if="itemsToBeIteratedOver?.length">
+    <p class="mb-2 text-xs">
+      {{ element === 'board' ? 'Columns' : 'Subtasks' }}
+    </p>
     <div class="grid gap-3">
       <div
         v-for="(item, index) in itemsToBeIteratedOver"
@@ -9,9 +11,13 @@
       >
         <text-input
           @handle-blur="() => handleAddNewItem(item, index)"
-          @update:model-value="(newValue: string) => ((itemsToBeIteratedOver as string[])[index] = newValue)"
+          @update:model-value="(newValue: string) => updateInputValue(newValue, index)"
           :modelValue="item"
-          :placeholder="action === 'add' ? item : ''"
+          :placeholder="
+            action === 'add' && element === 'task'
+              ? formData.task.placeholderItems[index]
+              : ''
+          "
           :isError="errorsArr[index]"
           :condition="
             index === itemsToBeIteratedOver.length - 1 && isNewInputAdded
@@ -41,61 +47,52 @@
 </template>
 
 <script setup lang="ts">
-import type { Task, Subtask } from '../../api/boardsTypes'
 import TextInput from './Inputs/TextInput.vue'
 import CloseIcon from '../Svgs/CloseIcon.vue'
 import TheButton from './TheButton.vue'
 import { addNewInput } from '../../composables/addNewInput'
+import { useTasksStore } from '../../stores/tasks'
 import { useBoardsStore } from '../../stores/boards'
-import { ref, toRefs } from 'vue'
+import { ref } from 'vue'
 
 const props = defineProps<{
   action: 'add' | 'edit'
   element: 'board' | 'task'
-  columnIndex?: number
-  task?: Task
-  subtasks?: Subtask[]
 }>()
 const emits = defineEmits(['change-array-item'])
 
+const tasksStore = useTasksStore()
 const boardsStore = useBoardsStore()
 
 const formData = ref({
   board: ref({
-    name:
-      props.action === 'add' ? '' : (boardsStore.currentBoard?.name as string),
-    columns:
+    items:
       props.action === 'add'
         ? ['Todo', 'Doing']
-        : (boardsStore.boardColumnsNames as string[])
+        : (boardsStore.boardColumnsNames as string[]),
+    errors: boardsStore.columnErrors
   }),
   task: ref({
-    title: props.task != null ? props.task.title : '',
-    description: props.task != null ? props.task.description : '',
-    subtasks:
-      props.subtasks != null
-        ? props.subtasks.map((subtask) => subtask.title)
-        : ['e.g. Make coffee', 'e.g. Drink coffee & smile'],
-    statusItems: boardsStore.boardColumns,
-    selectedStatusItem:
-      props.columnIndex != null
-        ? boardsStore.boardColumns[props.columnIndex]
-        : boardsStore.boardColumns[0]
+    items:
+      props.action === 'add'
+        ? ['', '']
+        : (tasksStore.subtasksNames as string[]),
+    placeholderItems: ['e.g. Make coffee', 'e.g. Drink coffee & smile'],
+    errors: tasksStore.subtasksErrors
   })
 })
-const itemsToBeIteratedOver = ref(
-  props.element === 'board'
-    ? formData.value.board.columns
-    : formData.value.task.subtasks
-)
-
-const columnErrors = ref(formData.value.board.columns.map(() => false))
-const subtaskErrors = ref(formData.value.task.subtasks.map(() => false))
-const errorsArr = ref(props.element === 'board' ? columnErrors : subtaskErrors)
+const itemsToBeIteratedOver = ref(formData.value[props.element].items)
+const errorsArr = ref(formData.value[props.element].errors)
 
 const isNewInputAdded = ref(false)
 const addNewColumn = () => {
-  addNewInput(toRefs(formData.value)[props.element], errorsArr, isNewInputAdded)
+  addNewInput(itemsToBeIteratedOver, errorsArr, isNewInputAdded)
+}
+
+const updateInputValue = (newValue: string, index: number) => {
+  ;(itemsToBeIteratedOver.value as string[])[index] = newValue
+
+  emits('change-array-item', itemsToBeIteratedOver.value)
 }
 
 const handleAddNewItem = (item: string, index: number) => {

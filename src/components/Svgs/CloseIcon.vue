@@ -11,7 +11,7 @@
         ? 'click here to close off this field'
         : 'click here to delete the whole column'
     "
-    :type="listItem ? 'button' : undefined"
+    :type="listItem != null ? 'button' : undefined"
   >
     <svg width="15" height="15" :class="{ 'scale-150': isPolicy }">
       <g

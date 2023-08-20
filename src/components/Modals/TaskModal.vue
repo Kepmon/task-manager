@@ -27,9 +27,6 @@
         @change-array-item="(emittedValue) => updateSubtaskValues(emittedValue)"
         :action="action"
         element="task"
-        :columnIndex="columnIndex"
-        :task="task"
-        :subtasks="subtasks"
       />
 
       <div>
@@ -84,13 +81,17 @@ const selectedStatusItem = ref(
 )
 const statusItemsNames = boardsStore.boardColumns?.map((column) => column.name)
 
-const updatedSubtasks = ref<null | string[]>(null)
+const updatedSubtasks = ref(['', ''])
 const updateSubtaskValues = (emittedValue: string[]) => {
   updatedSubtasks.value = emittedValue
 }
 
 const submit = async () => {
-  if (formName.value === '') return
+  if (
+    formName.value === '' ||
+    updatedSubtasks.value?.some((item) => item === '')
+  )
+    return
 
   emits('close-modal')
   await tasksStore.addNewTask(

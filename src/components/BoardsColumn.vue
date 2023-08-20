@@ -69,16 +69,16 @@
         :elementToDelete="modals.isDeleteTaskModalShown ? 'task' : 'column'"
         :elementName="
           modals.isDeleteTaskModalShown
-            ? (tasks.clickedTask as Task).title
+            ? (tasksStore.clickedTask as Task).title
             : (modals.columnToDelete as BoardColumn).name
         "
         :elementID="
           modals.isDeleteTaskModalShown
-            ? (tasks.clickedTask as Task).taskID
+            ? (tasksStore.clickedTask as Task).taskID
             : (modals.columnToDelete as BoardColumn).columnID
         "
         :columnOfClickedTask="
-          boardsStore.boardColumns[tasks.columnOfClickedTask as number].columnID
+          boardsStore.boardColumns[tasksStore.columnOfClickedTask as number].columnID
         "
       />
     </transition>
@@ -154,22 +154,19 @@ const modals = ref({
 })
 
 const tasks = ref({
-  columnOfClickedTask: <null | number>null,
-  clickedTask: <null | Task>null,
-  subtasksOfClickedTask: <null | Subtask[]>null,
   handleTaskCardClick: (columnIndex: number, taskIndex: number) => {
     tasks.value.saveClickedTask(columnIndex, taskIndex)
 
     modals.value.isSeeTaskModalShown = true
   },
   saveClickedTask: (columnIndex: number, taskIndex: number) => {
-    tasks.value.columnOfClickedTask = columnIndex
-    tasks.value.clickedTask = tasksStore.tasks[columnIndex][taskIndex]
+    tasksStore.columnOfClickedTask = columnIndex
+    tasksStore.clickedTask = tasksStore.tasks[columnIndex][taskIndex]
 
     tasks.value.saveSubtasksOfClickedTask(columnIndex, taskIndex)
   },
   saveSubtasksOfClickedTask: (columnIndex: number, taskIndex: number) => {
-    tasks.value.subtasksOfClickedTask =
+    tasksStore.subtasksOfClickedTask =
       tasksStore.subtasks[columnIndex][taskIndex]
   }
 })
@@ -180,15 +177,15 @@ interface TasksProps {
   subtasks: Subtask[]
 }
 const tasksProps = computed(() => ({
-  columnIndex: tasks.value.columnOfClickedTask,
-  task: tasks.value.clickedTask,
-  subtasks: tasks.value.subtasksOfClickedTask
+  columnIndex: tasksStore.columnOfClickedTask,
+  task: tasksStore.clickedTask,
+  subtasks: tasksStore.subtasksOfClickedTask
 })) as Ref<TasksProps>
 const tasksConditions = computed(() =>
   [
-    tasks.value.clickedTask != null,
-    tasks.value.subtasksOfClickedTask != null,
-    tasks.value.columnOfClickedTask != null
+    tasksStore.clickedTask != null,
+    tasksStore.subtasksOfClickedTask != null,
+    tasksStore.columnOfClickedTask != null
   ].every((taskCondition) => taskCondition)
 )
 
@@ -218,13 +215,13 @@ const returnNumberOfElements = (
 
 const moveTask = async (value: BoardColumn['name']) => {
   const prevColumnID =
-    boardsStore.boardColumns[tasks.value.columnOfClickedTask as number].columnID
+    boardsStore.boardColumns[tasksStore.columnOfClickedTask as number].columnID
   const nextColumnID = (
     boardsStore.boardColumns.find(
       (boardColumn) => boardColumn.name === value
     ) as BoardColumn
   ).columnID
-  const taskToBeMoved = tasks.value.clickedTask as Task
+  const taskToBeMoved = tasksStore.clickedTask as Task
 
   await tasksStore.moveTaskBetweenColumns(
     prevColumnID,

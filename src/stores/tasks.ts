@@ -5,7 +5,7 @@ import type {
   DocumentData
 } from 'firebase/firestore'
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { query, orderBy, getDocs } from 'firebase/firestore'
 import {
   collection,
@@ -25,6 +25,19 @@ export const useTasksStore = defineStore('tasks', () => {
 
   const tasks = ref<Task[][]>([])
   const subtasks = ref<Subtask[][][]>([])
+
+  const columnOfClickedTask = ref<null | number>(null)
+  const clickedTask = ref<null | Task>(null)
+  const subtasksOfClickedTask = ref<null | Subtask[]>(null)
+
+  const subtasksNames = computed(() =>
+    subtasksOfClickedTask.value
+      ? subtasksOfClickedTask.value.map((subtask) => subtask.title)
+      : null
+  )
+  const subtasksErrors = computed(() =>
+    subtasksNames.value ? subtasksNames.value.map(() => false) : [false, false]
+  )
 
   const getTasks = async (
     columnsColRef: CollectionReference<DocumentData>,
@@ -195,6 +208,11 @@ export const useTasksStore = defineStore('tasks', () => {
   return {
     tasks,
     subtasks,
+    clickedTask,
+    columnOfClickedTask,
+    subtasksOfClickedTask,
+    subtasksNames,
+    subtasksErrors,
     getTasks,
     getSubtasks,
     addNewTask,

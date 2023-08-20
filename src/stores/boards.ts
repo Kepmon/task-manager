@@ -50,6 +50,11 @@ export const useBoardsStore = defineStore('boards', () => {
   const boardColumnsNames = computed(() =>
     boardColumns.value ? boardColumns.value.map((column) => column.name) : null
   )
+  const columnErrors = computed(() =>
+    boardColumnsNames.value
+      ? boardColumnsNames.value.map(() => false)
+      : [false, false]
+  )
 
   const boardsColRef = collection(db, `users/${userStore.userID}/boards`)
   const boardsColRefOrdered = query(boardsColRef, orderBy('createdAt', 'desc'))
@@ -226,6 +231,7 @@ export const useBoardsStore = defineStore('boards', () => {
     currentBoardID,
     boardColumns,
     boardColumnsNames,
+    columnErrors,
     removeBoardsSnapshot,
     getColumns,
     addNewBoard,

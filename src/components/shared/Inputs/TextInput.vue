@@ -7,7 +7,7 @@
         $emit('update:modelValue', ($event.target as HTMLInputElement).value)
       "
       :ref="condition ? 'newInput' : undefined"
-      :value="modelValue?.includes('e.g.') ? '' : modelValue"
+      :value="modelValue"
       type="text"
       :placeholder="placeholder"
       class="input"
