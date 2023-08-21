@@ -1,18 +1,40 @@
 <template>
-  <svg id="svg4" viewBox="0 0 670.30391 670.30391">
-    <path
-      id="path2"
-      d="M 18.738333,18.738333 a 64,64 0 0 1 90.495997,0 l 226.304,226.303997 226.304,-226.303997 a 64,64 0 0 1 90.496,90.495997 l -226.304,226.304 226.304,226.304 a 64,64 0 0 1 -90.496,90.496 l -226.304,-226.304 -226.304,226.304 a 64,64 0 0 1 -90.495997,-90.496 L 245.04233,335.53833 18.738333,109.23433 a 64,64 0 0 1 0,-90.495997 z"
-    />
-  </svg>
+  <button
+    @click="$emit('handle-close')"
+    class="p-2 box-content rounded-[4px]"
+    :class="{
+      'ml-auto group': isColumn,
+      'focus-visible:outline-red-400': isError
+    }"
+    :aria-label="
+      listItem != null || isPolicy
+        ? 'click here to close off this field'
+        : 'click here to delete the whole column'
+    "
+    :type="listItem != null ? 'button' : undefined"
+  >
+    <svg width="15" height="15" :class="{ 'scale-150': isPolicy }">
+      <g
+        :class="{
+          'fill-red-400': isError,
+          'fill-gray-400': !isError || isColumn || isPolicy,
+          'fill-gray-400 group-hover:fill-purple-400 group-focus-visible:fill-purple-400 transition-colors duration-300':
+            isColumn
+        }"
+      >
+        <path d="m12.728 0 2.122 2.122L2.122 14.85 0 12.728z" />
+        <path d="M0 2.122 2.122 0 14.85 12.728l-2.122 2.122z" />
+      </g>
+    </svg>
+  </button>
 </template>
 
-<style lang="postcss" scoped>
-svg {
-  @apply h-6 w-6 s:h-8 s:w-8;
-}
-
-path {
-  @apply dark:fill-white;
-}
-</style>
+<script setup lang="ts">
+defineProps<{
+  listItem?: string
+  isColumn?: true
+  isPolicy?: true
+  isError?: boolean
+}>()
+defineEmits(['handle-close'])
+</script>

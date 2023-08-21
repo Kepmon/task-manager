@@ -1,23 +1,25 @@
 export interface Board {
-  docID: string
+  boardID: string
   createdAt: string
   name: string
-  columns: BoardColumn[]
 }
 
 export interface BoardColumn {
+  columnID: string
+  createdAt: string
   name: string
-  tasks: Task[]
 }
 
 export interface Task {
+  taskID: string
+  createdAt: string
   title: string
   description: string
-  status: string
-  subtasks: Subtask[]
 }
 
 export interface Subtask {
+  subtaskID: string
   title: string
   isCompleted: boolean
+  createdAt: string
 }

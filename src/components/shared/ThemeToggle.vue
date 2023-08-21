@@ -4,7 +4,10 @@
     <the-button
       @click="() => toggleDark()"
       :regularButton="false"
-      class="toggle-theme purple-class"
+      :aria-label="`Click here to switch the theme from ${
+        isDark ? 'dark' : 'light'
+      } to ${isDark ? 'light' : 'dark'}`"
+      class="toggle-theme purple-class focus-visible:outline-white"
     >
       <transition-group name="theme-toggle">
         <div
@@ -14,7 +17,7 @@
         ></div>
       </transition-group>
     </the-button>
-    <img src="/img/icon-dark-theme.svg" alt="choose dark theme" />
+    <img src="/img/icon-dark-theme.svg" alt="" />
   </div>
 </template>
 

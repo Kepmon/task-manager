@@ -1,5 +1,8 @@
 <template>
-  <div>
+  <div
+    class="fixed bottom-6 right-8 sm:static"
+    :class="{ 'sm:fixed': isDashboardEmpty }"
+  >
     <Teleport to="body">
       <transition name="popup">
         <confirmation-popup v-if="isPopupShown" :isError="isAuthError" />
@@ -7,19 +10,19 @@
     </Teleport>
     <button
       @click="areUserOptionsShown = !areUserOptionsShown"
+      ref="target"
       aria-label="Click here to see the user options"
-      class="block rounded-md focus-visible:outline outline-purple-400 outline-[3px]"
+      class="sm:relative rounded-full outline-offset-3"
     >
       <user-icon />
     </button>
     <transition name="options">
       <div
         v-if="areUserOptionsShown"
-        ref="target"
-        class="options-container overflow-hidden"
+        class="options-container w-[max-content] -top-9 right-0"
         :class="{
-          '-top-10 right-0': isDashboardEmpty,
-          '-top-9 right-0 s:top-auto s:-bottom-7 s:right-6': !isDashboardEmpty
+          'sm:-top-9 sm:right-0': isDashboardEmpty,
+          'sm:top-[calc(100%+.5rem)] sm:right-1': !isDashboardEmpty
         }"
       >
         <button @click="logout" class="option">Log out</button>
@@ -29,6 +32,7 @@
 </template>
 
 <script setup lang="ts">
+import type { Ref } from 'vue'
 import UserIcon from './Svgs/UserIcon.vue'
 import ConfirmationPopup from './shared/ConfirmationPopup.vue'
 import { useUserStore } from '../stores/user'
@@ -38,7 +42,7 @@ import {
   handleAuthResponse
 } from '../composables/authHandler'
 import { onClickOutside } from '@vueuse/core'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 defineProps<{
@@ -63,7 +67,29 @@ const logout = async () => {
 }
 
 const target = ref(null)
-onClickOutside(target, () => (areUserOptionsShown.value = false))
+const closeUserOptions = (
+  target: Ref<null | HTMLElement>,
+  e: Event | KeyboardEvent
+) => {
+  if (
+    (e.target as HTMLElement).closest('button') === target.value &&
+    (e as KeyboardEvent).key !== 'Escape'
+  )
+    return
+
+  if (target == null) return
+
+  areUserOptionsShown.value = false
+}
+onClickOutside(target, (e: Event) => closeUserOptions(target, e))
+
+onMounted(() => {
+  window.addEventListener('keydown', (e: Event | KeyboardEvent) => {
+    if ((e as KeyboardEvent).key === 'Escape') {
+      closeUserOptions(target, e)
+    }
+  })
+})
 </script>
 
 <style lang="postcss" scoped>

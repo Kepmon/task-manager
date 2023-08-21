@@ -1,15 +1,7 @@
 <template>
   <div class="grid" :class="{ 'col-span-2': isLogo }">
-    <more-options
-      @toggle-options="(e: Event) => handleMoreOptionsFn(e, toggleOptions)"
-      @show-edit-form="isEditBoardModalShown = true"
-      @show-delete-form="isDeleteBoardModalShown = true"
-      @close-more-options="(e: Event) => handleMoreOptionsFn(e, closeOptions)"
-      :condition="areBoardOptionsShown"
-      element="board"
-    />
     <nav aria-label="main navigation" class="main-nav">
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 grow">
         <svg width="24" height="25" class="sm:hidden" aria-label="The app logo">
           <g fill="#635FC7" fill-rule="evenodd">
             <rect width="6" height="25" rx="2" />
@@ -22,7 +14,7 @@
         </div>
         <div
           @click="$emit('toggle-boards-nav')"
-          class="flex items-center gap-2"
+          class="flex items-center gap-2 grow pr-4"
         >
           <h1 class="py-4 font-bold xs:text-lg" :class="{ 'sm:pl-6': isLogo }">
             {{ boardsStore.currentBoard?.name }}
@@ -42,35 +34,45 @@
           </svg>
         </div>
       </div>
-      <div class="flex items-center gap-2 ml-auto sm:gap-3 text-white">
+      <div class="flex items-center gap-2 sm:gap-3 text-white">
         <button
           @click="isAddTaskModalShown = true"
-          class="gap-[2px] purple-class px-4 py-[2px] rounded-2xl md:p-0 regular-button"
+          aria-labelledby="add-new-task"
+          :aria-hidden="isBoardEmpty ? `true` : undefined"
+          class="regular-button purple-class focus-visible:outline-white"
           :class="{
             'opacity-25 cursor-not-allowed': isBoardEmpty,
             'cursor-pointer': !isBoardEmpty
           }"
         >
-          <span class="leading-none text-2xl md:text-base">+</span>
-          <span class="hidden md:block">Add New Task</span>
+          <p class="flex">
+            <span
+              aria-hidden="true"
+              class="leading-none text-2xl md:text-base mr-1"
+              >+</span
+            >
+            <span id="add-new-task" aria-hidden="true" class="hidden md:block"
+              >Add New Task</span
+            >
+          </p>
         </button>
-        <button
-          @click.prevent="areBoardOptionsShown = !areBoardOptionsShown"
-          data-ellipsis
-          aria-label="click here to see more options"
-          class="px-3 py-2 rounded-md focus-visible:outline outline-[3px] outline-gray-400"
-        >
-          <svg width="5" height="20" data-ellipsis>
-            <g fill-rule="evenodd" class="fill-gray-400">
-              <circle cx="2.308" cy="2.308" r="2.308" />
-              <circle cx="2.308" cy="10" r="2.308" />
-              <circle cx="2.308" cy="17.692" r="2.308" />
-            </g>
-          </svg>
-        </button>
+        <div class="relative">
+          <more-options-icon
+            @toggle-options="areBoardOptionsShown = !areBoardOptionsShown"
+            element="board"
+          />
+          <more-options
+            @toggle-options="(e: Event) => handleMoreOptionsFn(e, toggleOptions)"
+            @show-edit-form="isEditBoardModalShown = true"
+            @show-delete-form="isDeleteBoardModalShown = true"
+            @close-more-options="(e: Event) => handleMoreOptionsFn(e, closeOptions)"
+            :condition="areBoardOptionsShown"
+            element="board"
+          />
+        </div>
       </div>
       <user-options
-        class="fixed ml-3 sm:static bottom-8 right-8 scale-125 sm:scale-100"
+        class="fixed grid items-center ml-3 sm:static scale-125 sm:scale-100"
         :class="{
           'sm:fixed sm:scale-125': boardsStore.currentBoard == null
         }"
@@ -81,10 +83,6 @@
         v-if="isAddTaskModalShown"
         @close-modal="isAddTaskModalShown = false"
         action="add"
-        :selectedMultiOptionItems="[
-          'e.g. Make coffee',
-          'e.g. Drink coffee & smile'
-        ]"
       />
     </transition>
     <transition name="modal">
@@ -92,7 +90,8 @@
         v-if="isDeleteBoardModalShown"
         @close-modal="isDeleteBoardModalShown = false"
         elementToDelete="board"
-        elementName="Platform Launch"
+        :elementName="(boardsStore.currentBoard as Board).name"
+        :elementID="(boardsStore.currentBoardID as Board['boardID'])"
       />
     </transition>
     <transition name="modal">
@@ -100,14 +99,15 @@
         v-if="isEditBoardModalShown"
         @close-modal="isEditBoardModalShown = false"
         action="edit"
-        :selectedMultiOptionItems="selectedMultiOptionItems"
       />
     </transition>
   </div>
 </template>
 
 <script setup lang="ts">
+import type { Board } from '../../api/boardsTypes'
 import MoreOptions from '../shared/MoreOptions.vue'
+import MoreOptionsIcon from '../Svgs/MoreOptionsIcon.vue'
 import TaskModal from '../Modals/TaskModal.vue'
 import ConfirmationModal from '../Modals/ConfirmationModal.vue'
 import BoardModal from '../Modals/BoardModal.vue'
@@ -127,26 +127,12 @@ defineProps<{
 defineEmits(['toggle-boards-nav'])
 
 const areBoardOptionsShown = ref(false)
+
 const isAddTaskModalShown = ref(false)
 const isDeleteBoardModalShown = ref(false)
 const isEditBoardModalShown = ref(false)
 
 const boardsStore = useBoardsStore()
-const subtasks = ref([
-  {
-    title: 'Settings - Account page',
-    isCompleted: true
-  },
-  {
-    title: 'Settings - Billing page',
-    isCompleted: true
-  },
-  {
-    title: 'Search page',
-    isCompleted: false
-  }
-])
-const selectedMultiOptionItems = subtasks.value.map((subtask) => subtask.title)
 
 const { toggleOptions, closeOptions } = moreOptionsPopup
 const handleMoreOptionsFn = (
@@ -158,6 +144,10 @@ const handleMoreOptionsFn = (
 </script>
 
 <style lang="postcss" scoped>
+.regular-button {
+  @apply gap-[2px] px-4 py-[2px] rounded-2xl w-[max-content];
+}
+
 @screen md {
   .regular-button {
     @apply flex items-center grow justify-center gap-2 py-[10px] px-4 rounded-3xl;

@@ -6,12 +6,20 @@ import {
   signInWithEmailAndPassword,
   signOut
 } from 'firebase/auth'
-import { addDoc } from 'firebase/firestore'
+import { doc, setDoc } from 'firebase/firestore'
 import { auth, usersColRef } from '../firebase'
-import { ref } from 'vue'
+import { computed } from 'vue'
+import { useBoardsStore } from './boards'
 
 export const useUserStore = defineStore('user', () => {
-  const userID = ref<null | string>(null)
+  const userID = computed(() => {
+    const activeUser = JSON.parse(localStorage.getItem('user') || '{}')
+    if (Object.keys(activeUser).length !== 0) {
+      return activeUser.uid
+    }
+
+    return null
+  })
 
   onAuthStateChanged(auth, (user) => {
     if (!user) {
@@ -19,7 +27,6 @@ export const useUserStore = defineStore('user', () => {
       return
     }
 
-    userID.value = user.uid
     localStorage.setItem('user', JSON.stringify(user))
   })
 
@@ -33,8 +40,8 @@ export const useUserStore = defineStore('user', () => {
 
       if (!authResponse) throw new Error()
 
-      await addDoc(usersColRef, {
-        userID: userID.value
+      await setDoc(doc(usersColRef, authResponse.user.uid), {
+        userID: authResponse.user.uid
       })
 
       await logout()
@@ -63,8 +70,11 @@ export const useUserStore = defineStore('user', () => {
 
   const logout = async () => {
     try {
+      const boardsStore = useBoardsStore()
+      boardsStore.removeBoardsSnapshot()
+
       await signOut(auth)
-      localStorage.removeItem('user')
+
       return true
     } catch (err) {
       return false

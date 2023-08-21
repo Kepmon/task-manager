@@ -2,18 +2,20 @@
   <div class="main-container">
     <Spinner v-if="boardsStore.isLoading" />
 
-    <transition name="popup">
-      <confirmation-popup
-        v-if="boardsStore.isConfirmationPopupShown"
-        :action="boardsStore.action"
-        element="board"
-      />
-    </transition>
-
-    <boards-navbar @toggle-sidebar="toggleSidebar" v-bind="boardsNavbarProps" />
+    <boards-navbar
+      v-if="
+        !isDashboardEmpty && !boardsStore.isLoading && windowWidth >= 640
+          ? true
+          : isNavOpen
+      "
+      @toggle-sidebar="toggleSidebar"
+      :boards="boardsStore.boards"
+      :boardName="boardsStore.currentBoard?.name || ''"
+      :isLoading="boardsStore.isLoading"
+    />
 
     <main-navbar
-      v-if="!isDashboardEmpty"
+      v-if="!isDashboardEmpty && !boardsStore.isLoading"
       @toggle-boards-nav="toggleBoardsNav"
       :sidebar="isSidebarShown"
       :isLogo="isLogoShown"
@@ -33,7 +35,7 @@
     </div>
 
     <main
-      class="flex flex-col justify-center p-4 sm:p-6"
+      class="p-4 sm:p-6"
       :class="{
         'sm:col-start-2': !isLogoShown,
         'sm:col-start-1 sm:col-span-2': isLogoShown,
@@ -41,9 +43,7 @@
       }"
     >
       <boards-column
-        v-if="!isDashboardEmpty"
-        :selectedMultiOptionItems="['Todo', 'Doing']"
-        :columns="boardsStore.boardColumns"
+        v-if="!isDashboardEmpty && !boardsStore.isLoading"
         :logo="isLogoShown"
       />
       <empty-info
@@ -66,27 +66,25 @@ import BoardsNavbar from '../components/Navbar/BoardsNavbar.vue'
 import EmptyInfo from '../components/EmptyInfo.vue'
 import BoardsColumn from '../components/BoardsColumn.vue'
 import UserOptions from '../components/UserOptions.vue'
-import ConfirmationPopup from '../components/shared/ConfirmationPopup.vue'
 import Spinner from '../components/Spinner.vue'
 import { useBoardsStore } from '../stores/boards'
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useWindowSize } from '@vueuse/core'
 
 const boardsStore = useBoardsStore()
+onMounted(async () => {
+  await boardsStore.getColumns()
+})
+
 const isDashboardEmpty = computed(() =>
   boardsStore.boards.length === 0 ? true : false
 )
 const isBoardEmpty = computed(() =>
-  boardsStore.boardColumns && boardsStore.boardColumns.length === 0
+  boardsStore.boardColumnsNames && boardsStore.boardColumnsNames.length === 0
     ? true
     : false
 )
-
 const areBoardOptionsShown = ref(false)
-const boardsNavbarProps = computed(() => ({
-  boards: boardsStore.boards,
-  boardName: boardsStore.currentBoard?.name || ''
-}))
 
 const isSidebarShown = ref(true)
 const isNavOpen = ref(false)

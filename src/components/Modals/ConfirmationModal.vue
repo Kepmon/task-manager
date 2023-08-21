@@ -34,37 +34,49 @@
 </template>
 
 <script setup lang="ts">
+import type { Board, BoardColumn, Task } from '../../api/boardsTypes'
 import ModalsTemplate from './ModalsTemplate.vue'
 import TheButton from '../shared/TheButton.vue'
 import { computed } from 'vue'
 import { useBoardsStore } from '../../stores/boards'
+import { useTasksStore } from '../../stores/tasks'
 
+type ElementID = Board['boardID'] | BoardColumn['columnID'] | Task['taskID']
 const props = defineProps<{
-  elementToDelete: 'board' | 'task'
+  elementToDelete: 'board' | 'column' | 'task'
   elementName: string
+  elementID: ElementID
+  columnOfClickedTask?: BoardColumn['columnID']
 }>()
 const emits = defineEmits(['close-modal'])
 
 const message = computed(() => {
   const prefix = `Are you sure you want to delete the '${props.elementName}'`
-  const suffix =
-    props.elementToDelete === 'board'
-      ? 'This action will remove all columns and tasks and cannot be reversed.'
-      : 'This action cannot be reversed.'
+  const suffix = {
+    board:
+      'This action will remove all columns and its tasks and cannot be reversed.',
+    column:
+      'This action will remove this column and all its tasks and cannot be reversed.',
+    task: 'This action will remove this task and all its subtasks and cannot be reversed.'
+  }
 
-  return `${prefix} ${props.elementToDelete}${
-    props.elementToDelete === 'task' ? ' and its subtasks' : ''
-  }?
-    ${suffix}`
+  return `${prefix} ${props.elementToDelete}? ${suffix[props.elementToDelete]}`
 })
 
 const boardsStore = useBoardsStore()
-const submit = () => {
+const tasksStore = useTasksStore()
+const submitFns = {
+  board: () => boardsStore.deleteBoard(props.elementID),
+  column: () => boardsStore.deleteColumn(props.elementID),
+  task: () =>
+    tasksStore.deleteTask(props.columnOfClickedTask as string, props.elementID)
+}
+
+const submit = async () => {
   emits('close-modal')
 
-  if (props.elementToDelete === 'board') {
-    boardsStore.deleteBoard()
-  }
+  await submitFns[props.elementToDelete]()
+  await boardsStore.getColumns()
 }
 </script>
 
