@@ -11,7 +11,7 @@
 
       <div class="flex flex-col s:flex-row gap-4">
         <the-button
-          @click="() => submit(elementID)"
+          @click="submit"
           :regularButton="true"
           :isInForm="true"
           class="red-button"
@@ -34,12 +34,12 @@
 </template>
 
 <script setup lang="ts">
+import type { Board, BoardColumn, Task } from '../../api/boardsTypes'
 import ModalsTemplate from './ModalsTemplate.vue'
 import TheButton from '../shared/TheButton.vue'
 import { computed } from 'vue'
 import { useBoardsStore } from '../../stores/boards'
 import { useTasksStore } from '../../stores/tasks'
-import { Board, BoardColumn, Task } from '../../api/boardsTypes'
 
 type ElementID = Board['boardID'] | BoardColumn['columnID'] | Task['taskID']
 const props = defineProps<{

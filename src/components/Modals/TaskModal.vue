@@ -36,9 +36,7 @@
       <div>
         <p class="mb-2 text-xs text-gray-400 dark:text-white">Status</p>
         <v-select
-          @update:model-value="
-            (newItem: string) => (selectedStatusItem = (boardsStore.boardColumns).find((item) => item.name === newItem) as BoardColumn)
-          "
+          @update:model-value="(newItem: BoardColumn['name']) => updateStatusItem(newItem)"
           :options="statusItemsNames"
           :searchable="false"
           :placeholder="selectedStatusItem.name"
@@ -86,28 +84,60 @@ const selectedStatusItem = ref(
     : boardsStore.boardColumns[0]
 )
 const statusItemsNames = boardsStore.boardColumns?.map((column) => column.name)
+const prevStatusItem = ref<null | BoardColumn>(null)
 
-const updatedSubtasks = ref(['', ''])
+const isStatusUpdated = ref(false)
+const updateStatusItem = (newItem: BoardColumn['name']) => {
+  isStatusUpdated.value = true
+
+  prevStatusItem.value = boardsStore.boardColumns.find(
+    (item) => item.name === selectedStatusItem.value.name
+  ) as BoardColumn
+
+  selectedStatusItem.value = boardsStore.boardColumns.find(
+    (item) => item.name === newItem
+  ) as BoardColumn
+}
+
+const updatedSubtasks =
+  props.action === 'add'
+    ? ref(['', ''])
+    : ref(
+        (tasksStore.subtasksOfClickedTask as Subtask[]).map(
+          (subtask) => subtask.title
+        )
+      )
 const updateSubtaskValues = (emittedValue: string[]) => {
   updatedSubtasks.value = emittedValue
 }
 
 const submit = async () => {
-  if (
-    formName.value === '' ||
-    updatedSubtasks.value?.some((item) => item === '')
-  )
-    return
+  if (formName.value === '') return
 
   emits('close-modal')
-  await tasksStore.addNewTask(
-    selectedStatusItem.value.columnID as BoardColumn['columnID'],
-    {
-      title: formName.value.trim(),
-      description: taskDescription.value.trim()
-    },
-    updatedSubtasks.value as string[]
-  )
+
+  if (props.action === 'add') {
+    await tasksStore.addNewTask(
+      selectedStatusItem.value.columnID as BoardColumn['columnID'],
+      {
+        title: formName.value.trim(),
+        description: taskDescription.value.trim()
+      },
+      updatedSubtasks.value as string[]
+    )
+  }
+
+  if (props.action === 'edit') {
+    await tasksStore.editTask(
+      formName.value,
+      taskDescription.value,
+      updatedSubtasks.value,
+      prevStatusItem.value?.columnID,
+      selectedStatusItem.value.columnID,
+      isStatusUpdated.value
+    )
+  }
+
   await boardsStore.getColumns()
 }
 </script>

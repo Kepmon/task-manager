@@ -105,13 +105,14 @@
 
 <script setup lang="ts">
 import type { BoardColumn, Task, Subtask } from '../api/boardsTypes'
+import type { Ref } from 'vue'
 import TaskCard from './TaskCard.vue'
 import SeeTaskModal from './Modals/SeeTaskModal.vue'
 import ConfirmationModal from '../components/Modals/ConfirmationModal.vue'
 import TaskModal from '../components/Modals/TaskModal.vue'
 import BoardModal from '../components/Modals/BoardModal.vue'
 import CloseIcon from './Svgs/CloseIcon.vue'
-import { computed, ref, Ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useBoardsStore } from '../stores/boards'
 import { useTasksStore } from '../stores/tasks'
 defineProps<{
@@ -224,13 +225,8 @@ const moveTask = async (value: BoardColumn['name']) => {
       (boardColumn) => boardColumn.name === value
     ) as BoardColumn
   ).columnID
-  const taskToBeMoved = tasksStore.clickedTask as Task
 
-  await tasksStore.moveTaskBetweenColumns(
-    prevColumnID,
-    nextColumnID,
-    taskToBeMoved
-  )
+  await tasksStore.moveTaskBetweenColumns(prevColumnID, nextColumnID)
   await boardsStore.getColumns()
 
   modals.value.isSeeTaskModalShown = false

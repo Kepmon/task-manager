@@ -32,6 +32,7 @@
 </template>
 
 <script setup lang="ts">
+import type { Ref } from 'vue'
 import UserIcon from './Svgs/UserIcon.vue'
 import ConfirmationPopup from './shared/ConfirmationPopup.vue'
 import { useUserStore } from '../stores/user'
@@ -41,7 +42,7 @@ import {
   handleAuthResponse
 } from '../composables/authHandler'
 import { onClickOutside } from '@vueuse/core'
-import { ref, Ref, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 defineProps<{
