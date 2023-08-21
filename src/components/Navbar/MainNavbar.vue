@@ -37,14 +37,24 @@
       <div class="flex items-center gap-2 sm:gap-3 text-white">
         <button
           @click="isAddTaskModalShown = true"
-          class="regular-button purple-class"
+          aria-labelledby="add-new-task"
+          :aria-hidden="isBoardEmpty ? `true` : undefined"
+          class="regular-button purple-class focus-visible:outline-white"
           :class="{
             'opacity-25 cursor-not-allowed': isBoardEmpty,
             'cursor-pointer': !isBoardEmpty
           }"
         >
-          <span class="leading-none text-2xl md:text-base">+</span>
-          <span class="hidden md:block">Add New Task</span>
+          <p class="flex">
+            <span
+              aria-hidden="true"
+              class="leading-none text-2xl md:text-base mr-1"
+              >+</span
+            >
+            <span id="add-new-task" aria-hidden="true" class="hidden md:block"
+              >Add New Task</span
+            >
+          </p>
         </button>
         <div class="relative">
           <more-options-icon

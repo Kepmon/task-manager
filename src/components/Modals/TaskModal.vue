@@ -10,6 +10,8 @@
           formName === '' ? (formNameError = true) : (formNameError = false)
         "
         v-model="formName"
+        forAttr="task-title"
+        idAttr="task-title"
         :isError="formNameError"
         label="Title"
         :placeholder="action === 'add' ? 'e.g. Take coffee break' : ''"
@@ -20,6 +22,8 @@
       <description-field
         v-model="taskDescription"
         label="Description"
+        forAttr="task-description"
+        idAttr="task-description"
         :whitePlaceholder="action === 'add' ? false : true"
       />
 
@@ -42,7 +46,9 @@
       </div>
 
       <the-button :regularButton="true" :isInForm="true" class="purple-class">
-        {{ action === 'add' ? 'Create Task' : 'Save Changes' }}
+        <span aria-hidden="true">{{
+          action === 'add' ? 'Create Task' : 'Save Changes'
+        }}</span>
       </the-button>
     </template>
   </modals-template>

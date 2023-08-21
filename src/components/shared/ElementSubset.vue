@@ -37,12 +37,18 @@
   </div>
   <the-button
     @click="addNewColumn"
+    aria-labelledby="add-new-element"
     :regularButton="true"
     :isInForm="true"
     class="white-button"
     type="button"
   >
-    + Add New {{ element === 'board' ? 'Column' : 'Subtask' }}
+    <p>
+      <span aria-hidden="true" class="mr-1">+</span>
+      <span id="add-new-element" aria-hidden="true"
+        >Add New {{ element === 'board' ? 'Column' : 'Subtask' }}</span
+      >
+    </p>
   </the-button>
 </template>
 

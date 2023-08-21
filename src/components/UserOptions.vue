@@ -12,7 +12,7 @@
       @click="areUserOptionsShown = !areUserOptionsShown"
       ref="target"
       aria-label="Click here to see the user options"
-      class="sm:relative rounded-md"
+      class="sm:relative rounded-full outline-offset-3"
     >
       <user-icon />
     </button>

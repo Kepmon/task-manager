@@ -27,7 +27,8 @@
         <board-label
           @keydown.enter="isAddBoardModalShown = true"
           @click="isAddBoardModalShown = true"
-          name="+ Create New Board"
+          name="Create New Board"
+          :isPlusSignAdded="true"
           tabindex="0"
           class="text-purple-400 fill-purple-400"
         />

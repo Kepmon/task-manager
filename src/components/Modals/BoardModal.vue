@@ -12,6 +12,8 @@
         v-model="formName"
         :isError="formNameError"
         label="Board Name"
+        forAttr="board-title"
+        idAttr="board-title"
         :placeholder="action === 'add' ? 'e.g. Web Design' : ''"
         :whitePlaceholder="action === 'add' ? false : true"
         :class="{ 'input-error after:translate-y-full': formNameError }"
@@ -24,7 +26,9 @@
       />
 
       <the-button :regularButton="true" :isInForm="true" class="purple-class">
-        {{ action === 'add' ? 'Create New Board' : 'Save Changes' }}
+        <span aria-hidden="true">{{
+          action === 'add' ? 'Create New Board' : 'Save Changes'
+        }}</span>
       </the-button>
     </template>
   </modals-template>

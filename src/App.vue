@@ -44,7 +44,7 @@ button {
 
 button,
 [tabindex='0'] {
-  @apply outline outline-transparent focus-visible:outline-purple-400 outline-[3px];
+  @apply outline outline-transparent focus-visible:outline-purple-600 outline-[3px];
 }
 
 .input {

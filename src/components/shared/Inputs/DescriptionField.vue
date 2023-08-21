@@ -1,10 +1,11 @@
 <template>
   <div class="grid gap-2">
-    <label v-if="label" class="text-xs">{{ label }}</label>
+    <label v-if="label" :for="forAttr" class="text-xs">{{ label }}</label>
     <textarea
       @input="
         $emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)
       "
+      :id="idAttr"
       :value="modelValue"
       class="input min-h-[80px] max-h-[150px] scrollbar-invisible border-blue-40 focus:border-purple-400"
       placeholder="e.g. It’s always good to take a break. This 15 minute break will recharge the batteries a little."
@@ -15,6 +16,8 @@
 <script setup lang="ts">
 defineProps<{
   label: string
+  forAttr: string
+  idAttr: string
   modelValue: string
 }>()
 

@@ -40,10 +40,13 @@
       </div>
       <div
         @click="modals.isEditBoardModalShown = true"
+        aria-labelledby="add-new-column"
         class="new-column group"
         tabindex="0"
       >
-        <span class="new-column-text">+ New Column</span>
+        <span aria-hidden="true" class="new-column-text">+</span>
+        <span aria-hidden="true" class="new-column-text">New Column</span>
+        <span id="add-new-column" class="sr-only">Add New Column</span>
       </div>
     </div>
     <Teleport to="body">
@@ -252,7 +255,7 @@ const moveTask = async (value: BoardColumn['name']) => {
 }
 
 .new-column-text {
-  @apply flex p-2 text-gray-400 text-xl group-hover:text-purple-400;
+  @apply flex text-gray-400 text-xl group-hover:text-purple-400;
   @apply group-focus:text-purple-400 transition-colors duration-300;
 }
 </style>

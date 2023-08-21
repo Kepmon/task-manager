@@ -7,7 +7,7 @@
       'focus-visible:outline-red-400': isError
     }"
     :aria-label="
-      listItem || isPolicy
+      listItem != null || isPolicy
         ? 'click here to close off this field'
         : 'click here to delete the whole column'
     "

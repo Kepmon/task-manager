@@ -1,11 +1,12 @@
 <template>
   <div class="grid gap-2">
-    <label v-if="label" class="text-xs">{{ label }}</label>
+    <label v-if="label" :for="forAttr" class="text-xs">{{ label }}</label>
     <input
       @blur="$emit('handle-blur')"
       @input="
         $emit('update:modelValue', ($event.target as HTMLInputElement).value)
       "
+      :id="idAttr"
       :ref="condition ? 'newInput' : undefined"
       :value="modelValue"
       type="text"
@@ -25,6 +26,8 @@ import { ref, onMounted } from 'vue'
 
 const props = defineProps<{
   label?: string
+  forAttr?: string
+  idAttr?: string
   isError?: boolean
   placeholder?: string
   whitePlaceholder?: boolean
