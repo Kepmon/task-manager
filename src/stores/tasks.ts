@@ -284,6 +284,20 @@ export const useTasksStore = defineStore('tasks', () => {
     await deleteDoc(tasksDocRef)
   }
 
+  const toggleSubtask = async (subtask: Subtask) => {
+    const subtasksColRef = collection(
+      db,
+      `users/${userStore.userID}/boards/${boardsStore.currentBoardID}/columns/${
+        boardsStore.boardColumns[columnOfClickedTask.value as number].columnID
+      }/tasks/${(clickedTask.value as Task).taskID}/subtasks`
+    )
+    const subtaskDocRef = doc(subtasksColRef, subtask.subtaskID)
+
+    await updateDoc(subtaskDocRef, {
+      isCompleted: !subtask.isCompleted
+    })
+  }
+
   return {
     tasks,
     subtasks,
@@ -297,6 +311,7 @@ export const useTasksStore = defineStore('tasks', () => {
     addNewTask,
     moveTaskBetweenColumns,
     editTask,
-    deleteTask
+    deleteTask,
+    toggleSubtask
   }
 })

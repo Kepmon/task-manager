@@ -26,16 +26,21 @@
           {{ task.description }}
         </p>
 
-        <div v-if="subtasks.length">
+        <div v-if="tasksStore.subtasksOfClickedTask != null">
           <p class="mb-4 text-xs text-gray-400 dark:text-white">
             Subtasks ({{
-              subtasks.filter((subtask) => subtask.isCompleted).length
+              tasksStore.subtasksOfClickedTask.filter(
+                (subtask) => subtask.isCompleted
+              ).length
             }}
-            of {{ subtasks.length }})
+            of {{ tasksStore.subtasksOfClickedTask.length }})
           </p>
           <div
-            v-for="{ title, isCompleted } in subtasks"
-            :key="title"
+            @click.once="() => toggleSubtask(index)"
+            v-for="(
+              { title, isCompleted }, index
+            ) in tasksStore.subtasksOfClickedTask"
+            :key="index"
             class="subtask"
           >
             <label class="flex items-center gap-4 px-1 cursor-pointer">
@@ -77,6 +82,7 @@ import ModalsTemplate from './ModalsTemplate.vue'
 import MoreOptions from '../shared/MoreOptions.vue'
 import MoreOptionsIcon from '../Svgs/MoreOptionsIcon.vue'
 import moreOptionsPopup from '../../composables/moreOptionsPopup'
+import { useTasksStore } from '../../stores/tasks'
 import { useBoardsStore } from '../../stores/boards'
 import type { Ref } from 'vue'
 import { ref } from 'vue'
@@ -84,7 +90,6 @@ import { ref } from 'vue'
 defineProps<{
   columnIndex: number
   task: Task
-  subtasks: Subtask[]
 }>()
 defineEmits([
   'close-modal',
@@ -93,7 +98,9 @@ defineEmits([
   'handle-move-task'
 ])
 
+const tasksStore = useTasksStore()
 const boardsStore = useBoardsStore()
+
 const taskStatuses = ref(boardsStore.boardColumns.map((column) => column.name))
 const areTaskOptionsShown = ref(false)
 
@@ -103,6 +110,13 @@ const handleMoreOptionsFn = (
   cb: (e: Event, conditionToChange: Ref<boolean>) => void
 ) => {
   cb(e, areTaskOptionsShown)
+}
+
+const toggleSubtask = async (index: number) => {
+  const clickedSubtask = (tasksStore.subtasksOfClickedTask as Subtask[])[index]
+
+  await tasksStore.toggleSubtask(clickedSubtask)
+  await boardsStore.getColumns()
 }
 </script>
 
