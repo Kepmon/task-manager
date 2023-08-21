@@ -41,6 +41,9 @@ export const useBoardsStore = defineStore('boards', () => {
     return boards.value[0]
   })
   const currentBoardID = computed(() => currentBoard.value?.boardID || null)
+  watch(boards, async () => {
+    await getColumns()
+  })
   watch(chosenBoard, async () => {
     await getColumns()
     localStorage.setItem('currentBoard', JSON.stringify(chosenBoard.value))
