@@ -35,12 +35,10 @@
       </div>
     </div>
   </div>
-  <the-button
+  <button
     @click="addNewColumn"
     aria-labelledby="add-new-element"
-    :regularButton="true"
-    :isInForm="true"
-    class="white-button"
+    class="regular-button white-button"
     type="button"
   >
     <p>
@@ -49,13 +47,12 @@
         >Add New {{ element === 'board' ? 'Column' : 'Subtask' }}</span
       >
     </p>
-  </the-button>
+  </button>
 </template>
 
 <script setup lang="ts">
 import TextInput from './Inputs/TextInput.vue'
 import CloseIcon from '../Svgs/CloseIcon.vue'
-import TheButton from './TheButton.vue'
 import { addNewInput } from '../../composables/addNewInput'
 import { useTasksStore } from '../../stores/tasks'
 import { useBoardsStore } from '../../stores/boards'

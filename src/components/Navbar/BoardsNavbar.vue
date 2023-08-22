@@ -77,12 +77,6 @@ const boardsStore = useBoardsStore()
 </script>
 
 <style lang="postcss" scoped>
-.create-board {
-  @apply mx-auto px-4 py-2 w-[max-content] text-purple-400 rounded-3xl;
-  @apply outline outline-transparent hover:bg-white focus-visible:bg-white;
-  @apply transition-colors duration-300;
-}
-
 .boards {
   @apply absolute top-[calc(12vh+1rem)] right-1/2 py-4 translate-x-1/2 w-[70vw];
   @apply rounded-lg shadow-sm bg-white dark:bg-gray-700 sm:scale-100 z-50;

@@ -29,7 +29,7 @@ const link = computed(() => {
 
 <style lang="postcss">
 .link {
-  @apply block px-6 py-3 mx-auto w-[max-content] rounded-b-3xl;
+  @apply block px-6 py-3 mx-auto w-max rounded-b-3xl;
   @apply bg-white dark:bg-gray-700 outline outline-transparent;
   @apply bg-purple-400 hover:bg-purple-600 focus:bg-purple-600;
   @apply transition-colors duration-300;

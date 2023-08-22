@@ -22,14 +22,12 @@
           name="repeatPassword"
           type="password"
         />
-        <the-button
-          :regularButton="true"
-          :isInForm="true"
-          class="purple-class"
+        <button
+          class="regular-button purple-class"
           :disabled="form.meta.value.valid === false"
         >
           {{ currentAccountLink.action }}
-        </the-button>
+        </button>
         <p class="text-center">
           {{ currentAccountLink.question }}
           <router-link :to="currentAccountLink.goTo" class="purple-text">
@@ -41,13 +39,9 @@
         <span v-if="currentPath === '/sign-up'"
           >By clicking 'Sign up' you agree to</span
         >&nbsp;
-        <the-button
-          @click="isPrivacyPolicyShown = true"
-          :regularButton="false"
-          class="purple-text"
-        >
+        <button @click="isPrivacyPolicyShown = true" class="purple-text">
           Privacy Policy
-        </the-button>
+        </button>
       </div>
     </main>
     <transition name="privacy-policy">
@@ -69,7 +63,6 @@
 
 <script setup lang="ts">
 import AuthInput from '../../components/shared/Inputs/AuthInput.vue'
-import TheButton from '../../components/shared/TheButton.vue'
 import ThemeToggle from '../../components/shared/ThemeToggle.vue'
 import ConfirmationPopup from '../../components/shared/ConfirmationPopup.vue'
 import PrivacyPolicyLayout from './PrivacyPolicyLayout.vue'
@@ -155,9 +148,10 @@ const onSubmit = form.handleSubmit(async (values) => {
 }
 
 .purple-text {
-  @apply block mx-auto relative w-[max-content] text-purple-400 cursor-pointer;
-  @apply after:absolute after:-bottom-1 after:left-0 after:h-[2px];
-  @apply after:w-full after:bg-purple-400 after:scale-0 hover:after:scale-100 focus-visible:after:scale-100;
+  @apply block mx-auto relative w-max text-purple-400 cursor-pointer;
+  @apply after:absolute after:-bottom-1 after:left-0 after:h-[3px];
+  @apply after:w-full after:bg-purple-400 after:scale-x-0;
+  @apply hover:after:scale-x-100 focus-visible:after:scale-x-100;
   @apply after:origin-left after:transition-transform after:duration-300 outline outline-transparent;
 }
 

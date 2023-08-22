@@ -145,7 +145,7 @@ const handleMoreOptionsFn = (
 
 <style lang="postcss" scoped>
 .regular-button {
-  @apply gap-[2px] px-4 py-[2px] rounded-2xl w-[max-content];
+  @apply gap-[2px] px-4 py-[2px] rounded-2xl w-max;
 }
 
 @screen md {

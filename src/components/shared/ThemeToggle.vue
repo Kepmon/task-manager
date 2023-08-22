@@ -1,7 +1,7 @@
 <template>
   <div class="flex items-center justify-center gap-x-6 mx-auto h-12">
     <img src="/img/icon-light-theme.svg" alt="" />
-    <the-button
+    <button
       @click="() => toggleDark()"
       :regularButton="false"
       :aria-label="`Click here to switch the theme from ${
@@ -16,13 +16,12 @@
           :class="{ 'ml-auto': isDark }"
         ></div>
       </transition-group>
-    </the-button>
+    </button>
     <img src="/img/icon-dark-theme.svg" alt="" />
   </div>
 </template>
 
 <script setup lang="ts">
-import TheButton from '../shared/TheButton.vue'
 import { useDark, useToggle } from '@vueuse/core'
 
 const isDark = useDark()

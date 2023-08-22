@@ -19,7 +19,7 @@
     <transition name="options">
       <div
         v-if="areUserOptionsShown"
-        class="options-container w-[max-content] -top-9 right-0"
+        class="options-container w-max -top-9 right-0"
         :class="{
           'sm:-top-9 sm:right-0': isDashboardEmpty,
           'sm:top-[calc(100%+.5rem)] sm:right-1': !isDashboardEmpty

@@ -8,14 +8,14 @@
     >
       {{ message }}
     </p>
-    <the-button
+    <button
       @click="isBoardModalShown = true"
       :regularButton="true"
-      class="gap-[2px] w-max purple-class"
+      class="w-max regular-button purple-class"
     >
       + Add New
       <span class="capitalize">{{ emptyDashboard ? 'board' : 'column' }}</span>
-    </the-button>
+    </button>
     <transition name="modal">
       <board-modal
         v-if="isBoardModalShown"
@@ -27,7 +27,6 @@
 </template>
 
 <script setup lang="ts">
-import TheButton from '../components/shared/TheButton.vue'
 import BoardModal from './Modals/BoardModal.vue'
 import { ref, computed } from 'vue'
 

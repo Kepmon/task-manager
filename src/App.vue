@@ -47,6 +47,10 @@ button,
   @apply outline outline-transparent focus-visible:outline-purple-600 outline-[3px];
 }
 
+.regular-button {
+  @apply flex items-center grow justify-center gap-2 py-[10px] px-4 rounded-3xl text-sm;
+}
+
 .input {
   @apply py-3 px-4 w-full bg-transparent rounded-[4px] text-sm font-normal;
   @apply outline outline-transparent border;
