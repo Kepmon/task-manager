@@ -42,7 +42,7 @@
     type="button"
   >
     <p>
-      <span aria-hidden="true" class="mr-1">+</span>
+      <span aria-hidden="true">&#65291;</span>
       <span id="add-new-element" aria-hidden="true"
         >Add New {{ element === 'board' ? 'Column' : 'Subtask' }}</span
       >

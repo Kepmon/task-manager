@@ -15,6 +15,11 @@ const isDark = useDark()
 </script>
 
 <style lang="postcss">
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  src: url('./fonts/PlusJakartaSans-VariableFont_wght.woff2') format('woff2');
+}
+
 @supports (scrollbar-width: thin) {
   * {
     scrollbar-width: thin;
@@ -30,7 +35,7 @@ html.dark {
 }
 
 body {
-  @apply min-h-screen text-base font-semibold;
+  @apply min-h-screen text-baseFluid font-[500];
   @apply scrollbar-visibleLight dark:scrollbar-visibleDark;
 }
 
@@ -48,7 +53,8 @@ button,
 }
 
 .regular-button {
-  @apply flex items-center grow justify-center gap-2 py-[10px] px-4 rounded-3xl text-sm;
+  @apply flex items-center grow justify-center gap-2 py-[10px] px-4;
+  @apply rounded-3xl text-sm font-bold;
 }
 
 .input {

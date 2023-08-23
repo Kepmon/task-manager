@@ -7,19 +7,19 @@
       <p class="all-boards">
         all boards <span v-if="boards">({{ boards.length }})</span>
       </p>
-      <div class="sm:flex sm:flex-col grow">
+      <div>
         <ul v-if="boards != null" class="boards-list">
-          <board-label
-            @click="() => (boardsStore.chosenBoard = board)"
-            v-for="(board, index) in boards"
-            :key="index"
-            :name="board.name"
-            tabindex="0"
-            :class="{
-              'bg-purple-400 fill-white text-white': board.name === boardName,
-              'text-gray-400 fill-gray-400': board.name !== boardName
-            }"
-          />
+          <li v-for="(board, index) in boards" :key="index">
+            <board-label
+              @click="() => (boardsStore.chosenBoard = board)"
+              :name="board.name"
+              tabindex="0"
+              :class="{
+                'bg-purple-400 fill-white text-white': board.name === boardName,
+                'text-gray-400 fill-gray-400': board.name !== boardName
+              }"
+            />
+          </li>
         </ul>
         <p v-else class="px-4 text-gray-400 text-center">
           There are no boards to display

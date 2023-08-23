@@ -39,22 +39,16 @@
           @click="isAddTaskModalShown = true"
           aria-labelledby="add-new-task"
           :aria-hidden="isBoardEmpty ? `true` : undefined"
-          class="regular-button purple-class focus-visible:outline-white"
+          class="regular-button purple-class add-new-task-btn"
           :class="{
             'opacity-25 cursor-not-allowed': isBoardEmpty,
             'cursor-pointer': !isBoardEmpty
           }"
         >
-          <p class="flex">
-            <span
-              aria-hidden="true"
-              class="leading-none text-2xl md:text-base mr-1"
-              >+</span
-            >
-            <span id="add-new-task" aria-hidden="true" class="hidden md:block"
-              >Add New Task</span
-            >
-          </p>
+          <span aria-hidden="true" class="text-lg md:text-base">&#65291;</span>
+          <span id="add-new-task" aria-hidden="true" class="hidden md:block"
+            >Add New Task</span
+          >
         </button>
         <div class="relative">
           <more-options-icon
@@ -144,15 +138,11 @@ const handleMoreOptionsFn = (
 </script>
 
 <style lang="postcss" scoped>
-.regular-button {
-  @apply gap-[2px] px-4 py-[2px] rounded-2xl w-max;
+.add-new-task-btn {
+  @apply px-4 py-1 gap-[2px] md:py-[10px] w-max;
+  @apply text-base focus-visible:outline-white;
 }
 
-@screen md {
-  .regular-button {
-    @apply flex items-center grow justify-center gap-2 py-[10px] px-4 rounded-3xl;
-  }
-}
 .main-nav {
   @apply flex items-center relative px-3;
   @apply xs:px-6 shadow-xs bg-white dark:bg-gray-700;

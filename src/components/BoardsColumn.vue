@@ -44,7 +44,7 @@
         class="new-column group"
         tabindex="0"
       >
-        <span aria-hidden="true" class="new-column-text">+</span>
+        <span aria-hidden="true" class="new-column-text">&#65291;</span>
         <span aria-hidden="true" class="new-column-text">New Column</span>
         <span id="add-new-column" class="sr-only">Add New Column</span>
       </div>
