@@ -3,20 +3,17 @@
     <Spinner v-if="boardsStore.isLoading" />
 
     <boards-navbar
-      v-if="!boardsStore.isLoading && windowWidth >= 640 ? true : isNavOpen"
       @toggle-sidebar="toggleSidebar"
       :boards="boardsStore.boards"
       :boardName="boardsStore.currentBoard?.name || ''"
-      :isLoading="boardsStore.isLoading"
+      :condition="windowWidth >= 640 ? isSidebarShown : isNavOpen"
     />
 
     <main-navbar
       v-if="!isDashboardEmpty && !boardsStore.isLoading"
       @toggle-boards-nav="toggleBoardsNav"
-      :sidebar="isSidebarShown"
       :isLogo="isLogoShown"
       :isBoardEmpty="isBoardEmpty"
-      :areOptionsShown="areBoardOptionsShown"
       :navOpen="isNavOpen"
     />
 
@@ -80,7 +77,6 @@ const isBoardEmpty = computed(() =>
     ? true
     : false
 )
-const areBoardOptionsShown = ref(false)
 
 const isSidebarShown = ref(true)
 const isNavOpen = ref(false)
@@ -95,9 +91,8 @@ const toggleSidebar = () => {
   }, 500)
 }
 const toggleBoardsNav = () => {
-  if (windowWidth.value >= 640) {
-    return
-  }
+  if (windowWidth.value >= 640) return
+
   isNavOpen.value = !isNavOpen.value
 }
 

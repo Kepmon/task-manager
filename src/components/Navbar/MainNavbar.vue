@@ -113,7 +113,6 @@ import type { Ref } from 'vue'
 import { ref } from 'vue'
 
 defineProps<{
-  sidebar: boolean
   isLogo: boolean
   isBoardEmpty: boolean
   navOpen: boolean

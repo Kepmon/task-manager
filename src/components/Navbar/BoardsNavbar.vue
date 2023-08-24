@@ -1,6 +1,10 @@
 <template>
   <transition name="nav">
-    <nav aria-label="boards navigation" class="boards">
+    <nav
+      v-if="!boardsStore.isLoading && condition"
+      aria-label="boards navigation"
+      class="boards"
+    >
       <div class="hidden sm:block px-[10%] mt-4 mb-[54px]">
         <logo-icon aria-label="The app logo" />
       </div>
@@ -8,7 +12,7 @@
         all boards <span v-if="boards">({{ boards.length }})</span>
       </p>
       <div>
-        <ul v-if="boards != null" class="boards-list">
+        <ul v-if="boards.length !== 0" class="boards-list">
           <li v-for="(board, index) in boards" :key="index">
             <board-label
               @click="() => (boardsStore.chosenBoard = board)"
@@ -21,7 +25,7 @@
             />
           </li>
         </ul>
-        <p v-else class="px-4 text-gray-400 text-center">
+        <p v-else class="py-4 ml-5 text-gray-400">
           There are no boards to display
         </p>
         <board-label
@@ -66,9 +70,9 @@ import { useBoardsStore } from '../../stores/boards'
 import { ref } from 'vue'
 
 defineProps<{
-  boards: Board[] | null
+  boards: Board[]
   boardName: Board['name']
-  isLoading: boolean
+  condition: boolean
 }>()
 defineEmits(['toggle-sidebar'])
 
