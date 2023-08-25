@@ -6,7 +6,7 @@
         :key="columnIndex"
       >
         <div
-          class="flex items-center gap-2 py-room-for-outline mb-4 min-w-[280px]"
+          class="flex items-center gap-2 py-[var(--room-for-outline)] mb-4 min-w-[280px]"
         >
           <div
             class="h-[15px] w-[15px] rounded-full"
@@ -235,7 +235,7 @@ const moveTask = async (value: BoardColumn['name']) => {
 
 <style lang="postcss" scoped>
 .columns-container {
-  @apply px-room-for-outline h-full overflow-auto;
+  @apply px-[var(--room-for-outline)] h-full overflow-auto;
   @apply scrollbar-invisible hover:scrollbar-visibleLight dark:hover:scrollbar-visibleDark;
 }
 

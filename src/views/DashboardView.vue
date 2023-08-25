@@ -1,6 +1,21 @@
 <template>
-  <div class="main-container">
+  <div
+    class="grid grid-rows-[auto_1fr] min-h-screen"
+    :class="{
+      'grid-cols-[280px_1fr]': isSidebarShown,
+      'grid-cols-[auto_1fr]': !isSidebarShown
+    }"
+  >
     <Spinner v-if="boardsStore.isLoading" />
+
+    <logo-icon :isSidebarShown="isSidebarShown" aria-label="The app logo" />
+
+    <main-navbar
+      v-if="!isDashboardEmpty && !boardsStore.isLoading"
+      @toggle-boards-nav="toggleBoardsNav"
+      :isBoardEmpty="isBoardEmpty"
+      :navOpen="isNavOpen"
+    />
 
     <boards-navbar
       @toggle-sidebar="toggleSidebar"
@@ -9,20 +24,12 @@
       :condition="windowWidth >= 640 ? isSidebarShown : isNavOpen"
     />
 
-    <main-navbar
-      v-if="!isDashboardEmpty && !boardsStore.isLoading"
-      @toggle-boards-nav="toggleBoardsNav"
-      :isLogo="isLogoShown"
-      :isBoardEmpty="isBoardEmpty"
-      :navOpen="isNavOpen"
-    />
-
     <div
-      v-show="isLogoShown"
+      v-show="!isSidebarShown"
       @click="toggleSidebar"
       @keydown.enter="toggleSidebar"
       tabindex="0"
-      class="show-sidebar purple-class hidden sm:block"
+      class="show-sidebar purple-class"
     >
       <img src="/img/icon-show-sidebar.svg" alt="show sidebar" />
     </div>
@@ -30,8 +37,8 @@
     <main
       class="p-4 sm:p-6"
       :class="{
-        'sm:col-start-2': !isLogoShown,
-        'sm:col-start-1 sm:col-span-2': isLogoShown,
+        'sm:col-start-2': isSidebarShown,
+        'sm:col-start-1 sm:col-span-2': !isSidebarShown,
         'sm:row-start-1 sm:row-span-2': isDashboardEmpty
       }"
     >
@@ -54,6 +61,7 @@
 </template>
 
 <script setup lang="ts">
+import LogoIcon from '../components/Svgs/LogoIcon.vue'
 import MainNavbar from '../components/Navbar/MainNavbar.vue'
 import BoardsNavbar from '../components/Navbar/BoardsNavbar.vue'
 import EmptyInfo from '../components/EmptyInfo.vue'
@@ -100,13 +108,8 @@ const { width: windowWidth } = useWindowSize()
 </script>
 
 <style lang="postcss" scoped>
-.main-container {
-  @apply grid grid-rows-[80px_calc(100vh-80px)];
-  @apply sm:grid-cols-[33%_67%] lg:grid-cols-[25%_75%] xl:grid-cols-[20%_80%];
-}
-
 .show-sidebar {
-  @apply flex items-center justify-center absolute left-0 bottom-6;
-  @apply h-12 w-14 rounded-r-[100px] cursor-pointer;
+  @apply hidden sm:grid place-items-center absolute;
+  @apply left-0 bottom-6 h-12 w-14 rounded-r-[100px] cursor-pointer;
 }
 </style>

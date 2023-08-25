@@ -7,6 +7,7 @@
     </transition>
     <main class="auth-main">
       <logo-icon
+        :bgNone="true"
         aria-label="The app logo"
         class="mb-4 scale-125 sm:scale-150"
       />

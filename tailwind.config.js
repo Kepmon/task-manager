@@ -74,9 +74,6 @@ module.exports = {
       content: {
         'checked': 'url("/img/icon-check.svg")'
       },
-      spacing: {
-        'room-for-outline': '3px',
-      },
       animation: {
         'ping-once': 'ping 1s ease-in-out forwards',
         'lds-roller-1': 'lds-roller 1.2s -0.036s cubic-bezier(0.5, 0, 0.5, 1) infinite',

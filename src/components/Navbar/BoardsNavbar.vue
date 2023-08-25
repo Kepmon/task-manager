@@ -5,9 +5,6 @@
       aria-label="boards navigation"
       class="boards"
     >
-      <div class="hidden sm:block px-[10%] mt-4 mb-[54px]">
-        <logo-icon aria-label="The app logo" />
-      </div>
       <p class="all-boards">
         all boards <span v-if="boards">({{ boards.length }})</span>
       </p>
@@ -65,7 +62,6 @@ import type { Board } from '../../api/boardsTypes'
 import ThemeToggle from '../shared/ThemeToggle.vue'
 import BoardLabel from './BoardLabel.vue'
 import BoardModal from '../Modals/BoardModal.vue'
-import LogoIcon from '../Svgs/LogoIcon.vue'
 import { useBoardsStore } from '../../stores/boards'
 import { ref } from 'vue'
 
@@ -83,13 +79,14 @@ const boardsStore = useBoardsStore()
 <style lang="postcss" scoped>
 .boards {
   @apply absolute top-[calc(12vh+1rem)] right-1/2 py-4 translate-x-1/2 w-[70vw];
-  @apply rounded-lg shadow-sm bg-white dark:bg-gray-700 sm:scale-100 z-50;
+  @apply rounded-lg bg-white dark:bg-gray-700 sm:scale-100 z-50;
+  @apply border-r border-blue-300 dark:border-gray-600;
 }
 
 @screen sm {
   .boards {
     @apply static translate-x-0 w-auto;
-    @apply row-span-2 flex flex-col pt-4 rounded-none shadow-xs;
+    @apply row-span-2 flex flex-col pt-4 rounded-none;
   }
 }
 

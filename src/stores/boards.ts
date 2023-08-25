@@ -5,7 +5,7 @@ import type {
   DocumentData
 } from 'firebase/firestore'
 import { defineStore } from 'pinia'
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, watchEffect } from 'vue'
 import {
   onSnapshot,
   query,
@@ -44,9 +44,9 @@ export const useBoardsStore = defineStore('boards', () => {
   watch(boards, async () => {
     await getColumns()
   })
-  watch(chosenBoard, async () => {
+  watchEffect(async () => {
     await getColumns()
-    localStorage.setItem('currentBoard', JSON.stringify(chosenBoard.value))
+    localStorage.setItem('currentBoard', JSON.stringify(currentBoard.value))
   })
 
   const boardColumns = ref<BoardColumn[]>([])

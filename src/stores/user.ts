@@ -24,6 +24,7 @@ export const useUserStore = defineStore('user', () => {
   onAuthStateChanged(auth, (user) => {
     if (!user) {
       localStorage.removeItem('user')
+      localStorage.removeItem('currentBoard')
       return
     }
 

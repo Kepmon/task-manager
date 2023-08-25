@@ -1,77 +1,75 @@
 <template>
-  <div class="grid" :class="{ 'col-span-2': isLogo }">
-    <nav aria-label="main navigation" class="main-nav">
-      <div class="flex items-center gap-2 grow">
-        <svg width="24" height="25" class="sm:hidden" aria-label="The app logo">
-          <g fill="#635FC7" fill-rule="evenodd">
-            <rect width="6" height="25" rx="2" />
-            <rect opacity=".75" x="9" width="6" height="25" rx="2" />
-            <rect opacity=".5" x="18" width="6" height="25" rx="2" />
-          </g>
-        </svg>
-        <div v-if="isLogo" class="main-nav__logo hidden sm:flex">
-          <logo-icon aria-label="The app logo" class="mr-8" />
-        </div>
-        <div
-          @click="$emit('toggle-boards-nav')"
-          class="flex items-center gap-2 grow pr-4"
-        >
-          <h1 class="py-4 font-bold xs:text-lg" :class="{ 'sm:pl-6': isLogo }">
-            {{ boardsStore.currentBoard?.name }}
-          </h1>
-          <svg
-            width="10"
-            height="7"
-            class="transition-transform duration-500 block sm:hidden"
-            :class="{ 'rotate-180': navOpen }"
-          >
-            <path
-              stroke-width="2"
-              fill="none"
-              d="m1 1 4 4 4-4"
-              class="stroke-purple-400"
-            />
-          </svg>
-        </div>
-      </div>
-      <div class="flex items-center gap-2 sm:gap-3 text-white">
-        <button
-          @click="isAddTaskModalShown = true"
-          aria-labelledby="add-new-task"
-          :aria-hidden="isBoardEmpty ? `true` : undefined"
-          class="regular-button purple-class add-new-task-btn"
-          :class="{
-            'opacity-25 cursor-not-allowed': isBoardEmpty,
-            'cursor-pointer': !isBoardEmpty
-          }"
-        >
-          <span aria-hidden="true" class="text-lg md:text-base">&#65291;</span>
-          <span id="add-new-task" aria-hidden="true" class="hidden md:block"
-            >Add New Task</span
-          >
-        </button>
-        <div class="relative">
-          <more-options-icon
-            @toggle-options="areBoardOptionsShown = !areBoardOptionsShown"
-            element="board"
-          />
-          <more-options
-            @toggle-options="(e: Event) => handleMoreOptionsFn(e, toggleOptions)"
-            @show-edit-form="isEditBoardModalShown = true"
-            @show-delete-form="isDeleteBoardModalShown = true"
-            @close-more-options="(e: Event) => handleMoreOptionsFn(e, closeOptions)"
-            :condition="areBoardOptionsShown"
-            element="board"
-          />
-        </div>
-      </div>
-      <user-options
-        class="fixed grid items-center ml-3 sm:static scale-125 sm:scale-100"
+  <div class="top-bar">
+    <svg
+      width="24"
+      height="25"
+      class="sm:hidden mr-2"
+      aria-label="The app logo"
+    >
+      <g fill="#635FC7" fill-rule="evenodd">
+        <rect width="6" height="25" rx="2" />
+        <rect opacity=".75" x="9" width="6" height="25" rx="2" />
+        <rect opacity=".5" x="18" width="6" height="25" rx="2" />
+      </g>
+    </svg>
+    <div
+      @click="$emit('toggle-boards-nav')"
+      class="flex items-center gap-2 grow pr-4"
+    >
+      <h1 class="font-bold xs:text-lg">
+        {{ boardsStore.currentBoard?.name }}
+      </h1>
+      <svg
+        width="10"
+        height="7"
+        class="transition-transform duration-500 block sm:hidden"
+        :class="{ 'rotate-180': navOpen }"
+      >
+        <path
+          stroke-width="2"
+          fill="none"
+          d="m1 1 4 4 4-4"
+          class="stroke-purple-400"
+        />
+      </svg>
+    </div>
+    <div class="flex items-center gap-2 sm:gap-3 text-white">
+      <button
+        @click="isAddTaskModalShown = true"
+        aria-labelledby="add-new-task"
+        :aria-hidden="isBoardEmpty ? `true` : undefined"
+        class="regular-button purple-class add-new-task-btn"
         :class="{
-          'sm:fixed sm:scale-125': boardsStore.currentBoard == null
+          'opacity-25 cursor-not-allowed': isBoardEmpty,
+          'cursor-pointer': !isBoardEmpty
         }"
-      />
-    </nav>
+      >
+        <span aria-hidden="true" class="text-lg md:text-base">&#65291;</span>
+        <span id="add-new-task" aria-hidden="true" class="hidden md:block"
+          >Add New Task</span
+        >
+      </button>
+      <div class="relative">
+        <more-options-icon
+          @toggle-options="areBoardOptionsShown = !areBoardOptionsShown"
+          element="board"
+        />
+        <more-options
+          @toggle-options="(e: Event) => handleMoreOptionsFn(e, toggleOptions)"
+          @show-edit-form="isEditBoardModalShown = true"
+          @show-delete-form="isDeleteBoardModalShown = true"
+          @close-more-options="(e: Event) => handleMoreOptionsFn(e, closeOptions)"
+          :condition="areBoardOptionsShown"
+          element="board"
+        />
+      </div>
+    </div>
+    <user-options
+      class="fixed grid items-center ml-3 sm:static scale-125 sm:scale-100"
+      :class="{
+        'sm:fixed sm:scale-125': boardsStore.currentBoard == null
+      }"
+    />
     <transition name="modal">
       <task-modal
         v-if="isAddTaskModalShown"
@@ -105,7 +103,6 @@ import MoreOptionsIcon from '../Svgs/MoreOptionsIcon.vue'
 import TaskModal from '../Modals/TaskModal.vue'
 import ConfirmationModal from '../Modals/ConfirmationModal.vue'
 import BoardModal from '../Modals/BoardModal.vue'
-import LogoIcon from '../Svgs/LogoIcon.vue'
 import UserOptions from '../UserOptions.vue'
 import moreOptionsPopup from '../../composables/moreOptionsPopup'
 import { useBoardsStore } from '../../stores/boards'
@@ -113,7 +110,6 @@ import type { Ref } from 'vue'
 import { ref } from 'vue'
 
 defineProps<{
-  isLogo: boolean
   isBoardEmpty: boolean
   navOpen: boolean
 }>()
@@ -137,18 +133,13 @@ const handleMoreOptionsFn = (
 </script>
 
 <style lang="postcss" scoped>
+.top-bar {
+  @apply flex items-center col-span-2 sm:col-start-2 sm:col-span-1 py-5 sm:py-0 px-[var(--padding-sm)] sm:px-[var(--padding-lg)];
+  @apply border-b border-blue-300 dark:border-gray-600 bg-white dark:bg-gray-700;
+}
+
 .add-new-task-btn {
   @apply px-4 py-1 gap-[2px] md:py-[10px] w-max;
   @apply text-base focus-visible:outline-white;
-}
-
-.main-nav {
-  @apply flex items-center relative px-3;
-  @apply xs:px-6 shadow-xs bg-white dark:bg-gray-700;
-}
-
-.main-nav__logo {
-  @apply flex items-center h-full sm:border-r;
-  @apply sm:border-blue-300 dark:border-gray-600;
 }
 </style>
