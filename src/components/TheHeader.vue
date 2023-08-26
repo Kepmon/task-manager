@@ -1,5 +1,5 @@
 <template>
-  <div class="top-bar">
+  <header class="top-bar">
     <svg
       width="24"
       height="25"
@@ -12,17 +12,14 @@
         <rect opacity=".5" x="18" width="6" height="25" rx="2" />
       </g>
     </svg>
-    <div
-      @click="$emit('toggle-boards-nav')"
-      class="flex items-center gap-2 grow pr-4"
-    >
-      <h1 class="font-bold xs:text-lg">
+    <div @click="$emit('toggle-boards-nav')">
+      <h1 class="inline font-bold xs:text-lg">
         {{ boardsStore.currentBoard?.name }}
       </h1>
       <svg
         width="10"
         height="7"
-        class="transition-transform duration-500 block sm:hidden"
+        class="inline sm:hidden ml-2 transition-transform duration-500"
         :class="{ 'rotate-180': navOpen }"
       >
         <path
@@ -93,19 +90,19 @@
         action="edit"
       />
     </transition>
-  </div>
+  </header>
 </template>
 
 <script setup lang="ts">
-import type { Board } from '../../api/boardsTypes'
-import MoreOptions from '../shared/MoreOptions.vue'
-import MoreOptionsIcon from '../Svgs/MoreOptionsIcon.vue'
-import TaskModal from '../Modals/TaskModal.vue'
-import ConfirmationModal from '../Modals/ConfirmationModal.vue'
-import BoardModal from '../Modals/BoardModal.vue'
-import UserOptions from '../UserOptions.vue'
-import moreOptionsPopup from '../../composables/moreOptionsPopup'
-import { useBoardsStore } from '../../stores/boards'
+import type { Board } from '../api/boardsTypes'
+import MoreOptions from './shared/MoreOptions.vue'
+import MoreOptionsIcon from './Svgs/MoreOptionsIcon.vue'
+import TaskModal from './Modals/TaskModal.vue'
+import ConfirmationModal from './Modals/ConfirmationModal.vue'
+import BoardModal from './Modals/BoardModal.vue'
+import UserOptions from './UserOptions.vue'
+import moreOptionsPopup from '../composables/moreOptionsPopup'
+import { useBoardsStore } from '../stores/boards'
 import type { Ref } from 'vue'
 import { ref } from 'vue'
 

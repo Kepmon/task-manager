@@ -14,7 +14,7 @@
       aria-label="The app logo"
     />
 
-    <main-navbar
+    <the-header
       v-if="!isDashboardEmpty && !userStore.isLoading"
       @toggle-boards-nav="toggleBoardsNav"
       :isBoardEmpty="isBoardEmpty"
@@ -66,7 +66,7 @@
 
 <script setup lang="ts">
 import LogoIcon from '../components/Svgs/LogoIcon.vue'
-import MainNavbar from '../components/Navbar/MainNavbar.vue'
+import TheHeader from '../components/TheHeader.vue'
 import BoardsNavbar from '../components/Navbar/BoardsNavbar.vue'
 import EmptyInfo from '../components/EmptyInfo.vue'
 import BoardsColumn from '../components/BoardsColumn.vue'

@@ -44,7 +44,6 @@ defineProps<{
 }
 
 .boards-name {
-  @apply w-[calc(100%-2rem)] text-sm xs:text-baseFluid;
-  @apply text-ellipsis overflow-hidden whitespace-nowrap;
+  @apply w-[calc(100%-2rem)] text-sm xs:text-baseFluid truncate;
 }
 </style>
