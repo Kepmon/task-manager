@@ -1,6 +1,6 @@
 <template>
   <div
-    class="fixed bottom-6 right-8 sm:static"
+    class="absolute bottom-6 right-8 sm:static"
     :class="{ 'sm:fixed': isDashboardEmpty }"
   >
     <Teleport to="body">

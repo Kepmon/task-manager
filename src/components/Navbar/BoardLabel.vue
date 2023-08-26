@@ -36,7 +36,7 @@ defineProps<{
 
 <style lang="postcss" scoped>
 .board-label {
-  @apply flex items-center gap-2 w-[90%] pl-4 h-12;
+  @apply flex items-center gap-2 pl-4 w-[90%] h-12;
   @apply rounded-r-[100px] cursor-pointer overflow-hidden;
   @apply hover:bg-purple-320 hover:text-purple-400 hover:fill-purple-400;
   @apply focus:bg-purple-320 focus:text-purple-400 focus:fill-purple-400;

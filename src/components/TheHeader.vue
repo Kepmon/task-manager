@@ -1,9 +1,9 @@
 <template>
   <div class="header-content">
     <svg
-      width="24"
+      width="40"
       height="25"
-      class="sm:hidden mr-2"
+      class="sm:hidden mr-1"
       aria-label="The app logo"
     >
       <g fill="#635FC7" fill-rule="evenodd">
@@ -12,8 +12,8 @@
         <rect opacity=".5" x="18" width="6" height="25" rx="2" />
       </g>
     </svg>
-    <div @click="$emit('toggle-boards-nav')">
-      <h1 class="inline font-bold xs:text-lg">
+    <div @click="$emit('toggle-boards-nav')" class="mr-6">
+      <h1 class="inline font-bold text-lgFluid">
         {{ boardsStore.currentBoard?.name }}
       </h1>
       <svg
@@ -133,7 +133,8 @@ const handleMoreOptionsFn = (
 
 <style lang="postcss" scoped>
 .header-content {
-  @apply flex items-center py-5 sm:py-0 px-[var(--padding-sm)] sm:px-[var(--padding-lg)];
+  @apply col-span-2 sm:col-start-2 flex items-center;
+  @apply py-5 sm:py-0 px-[var(--padding-sm)] sm:px-[var(--padding-lg)];
   @apply border-b border-blue-300 dark:border-gray-600;
 }
 

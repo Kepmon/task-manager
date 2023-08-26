@@ -6,7 +6,7 @@
       ref="target"
       class="options-container w-max"
       :class="{
-        'left-1/2 -translate-x-1/2 top-[calc(100%+1rem)]': element === 'board',
+        'right-2 top-[calc(100%+1rem)]': element === 'board',
         'right-3 -top-6': element === 'task'
       }"
     >

@@ -57,7 +57,6 @@ export const useBoardsStore = defineStore('boards', () => {
         ...(snap.data() as Omit<Board, 'boardID'>),
         boardID: snap.id
       }))
-      currentBoard.value = boards.value[0]
       await getColumns()
     }
   }
@@ -173,11 +172,11 @@ export const useBoardsStore = defineStore('boards', () => {
       })
     }
 
+    const lastCurrentBoardID = (currentBoard.value as Board).boardID
     await getBoards()
     currentBoard.value =
-      boards.value.find(
-        (board) => board.boardID === (currentBoard.value as Board).boardID
-      ) || boards.value[0]
+      boards.value.find((board) => board.boardID === lastCurrentBoardID) ||
+      boards.value[0]
     localStorage.setItem(
       `currentBoard-${userStore.userID}`,
       JSON.stringify(currentBoard.value)

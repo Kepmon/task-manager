@@ -9,7 +9,7 @@
     <Spinner v-if="userStore.isLoading" />
 
     <header
-      class="grid grid-cols-[auto_1fr] col-span-2 bg-white dark:bg-gray-700"
+      class="col-span-2 grid grid-cols-[auto_1fr] bg-white dark:bg-gray-700"
     >
       <logo-icon
         v-if="!userStore.isLoading"
@@ -26,6 +26,7 @@
 
     <boards-navbar
       @toggle-sidebar="toggleSidebar"
+      @close-boards-navbar="isNavOpen = false"
       :boards="boardsStore.boards"
       :boardName="boardsStore.currentBoard?.name || ''"
       :condition="windowWidth >= 640 ? isSidebarShown : isNavOpen"
@@ -43,9 +44,8 @@
     </div>
 
     <main
-      class="p-4 sm:p-6 row-start-2 col-start-2"
+      class="p-4 sm:p-6 row-start-2 col-span-2 sm:col-start-2"
       :class="{
-        'sm:col-start-2': isSidebarShown,
         'sm:row-start-1 sm:row-span-2': isDashboardEmpty
       }"
     >
@@ -115,7 +115,7 @@ const { width: windowWidth } = useWindowSize()
 
 <style lang="postcss" scoped>
 .show-sidebar {
-  @apply hidden sm:grid place-items-center absolute;
+  @apply grid place-items-center absolute;
   @apply left-0 bottom-6 h-12 w-14 rounded-r-[100px] cursor-pointer;
 }
 </style>

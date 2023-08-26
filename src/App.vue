@@ -93,7 +93,7 @@ button,
 }
 
 .option {
-  @apply py-[7px] s:py-[10px] pl-3 pr-16 text-start text-sm text-gray-400;
+  @apply py-[7px] s:py-[10px] pl-3 pr-10 text-start text-sm text-gray-400;
   @apply hover:bg-gray-200 dark:hover:bg-gray-500 focus-visible:bg-gray-200 dark:focus-visible:bg-gray-500;
   @apply outline-transparent transition-colors duration-300;
 }

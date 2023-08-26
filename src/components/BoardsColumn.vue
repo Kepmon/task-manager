@@ -46,7 +46,7 @@
       >
         <span aria-hidden="true" class="new-column-text">&#65291;</span>
         <span aria-hidden="true" class="new-column-text">New Column</span>
-        <span id="add-new-column" class="sr-only">Add New Column</span>
+        <span id="add-new-column" class="hidden">Add New Column</span>
       </div>
     </div>
     <Teleport to="body">

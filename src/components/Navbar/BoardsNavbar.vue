@@ -69,7 +69,7 @@ defineProps<{
   condition: boolean
   width: number
 }>()
-defineEmits(['toggle-sidebar'])
+const emits = defineEmits(['toggle-sidebar', 'close-boards-navbar'])
 
 const isAddBoardModalShown = ref(false)
 const userStore = useUserStore()
@@ -81,6 +81,8 @@ const afterEnter = () => {
 }
 
 const saveCurrentBoard = async (board: Board) => {
+  emits('close-boards-navbar')
+
   boardsStore.currentBoard = board
   localStorage.setItem(
     `currentBoard-${userStore.userID}`,
@@ -93,7 +95,7 @@ const saveCurrentBoard = async (board: Board) => {
 
 <style lang="postcss" scoped>
 .boards {
-  @apply absolute top-[calc(12vh+1rem)] right-1/2 py-4 translate-x-1/2 w-[70vw];
+  @apply absolute top-[calc(12vh+1rem)] right-1/2 py-4 translate-x-1/2 w-[80vw];
   @apply rounded-lg bg-white dark:bg-gray-700 sm:scale-100 z-50 sm:z-0;
   @apply border-r border-blue-300 dark:border-gray-600;
 }
