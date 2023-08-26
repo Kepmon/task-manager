@@ -58,7 +58,6 @@ module.exports = {
       fontSize: {
         xs: ['12px', '15px'],
         sm: ['13px', '16px'],
-        base: ['15px', '19px'],
         baseFluid: 'clamp(0.81rem, calc(0.78rem + 0.21vw), 0.94rem)',
         lg: ['18px', '23px'],
         lgFluid: 'clamp(0.88rem, calc(0.80rem + 0.42vw), 1.13rem)',

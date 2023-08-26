@@ -7,9 +7,8 @@
     </transition>
     <main class="auth-main">
       <logo-icon
-        :bgNone="true"
         aria-label="The app logo"
-        class="mb-4 scale-125 sm:scale-150"
+        class="mb-4 scale-125 sm:scale-150 border-none"
       />
       <form @submit.prevent="onSubmit" class="form">
         <header class="xs:text-lg first-letter:uppercase">

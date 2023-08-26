@@ -1,5 +1,5 @@
 <template>
-  <header class="top-bar">
+  <div class="header-content">
     <svg
       width="24"
       height="25"
@@ -30,7 +30,7 @@
         />
       </svg>
     </div>
-    <div class="flex items-center gap-2 sm:gap-3 text-white">
+    <div class="flex items-center gap-2 sm:gap-3 ml-auto text-white">
       <button
         @click="isAddTaskModalShown = true"
         aria-labelledby="add-new-task"
@@ -41,7 +41,9 @@
           'cursor-pointer': !isBoardEmpty
         }"
       >
-        <span aria-hidden="true" class="text-lg md:text-base">&#65291;</span>
+        <span aria-hidden="true" class="text-lg md:text-baseFluid"
+          >&#65291;</span
+        >
         <span id="add-new-task" aria-hidden="true" class="hidden md:block"
           >Add New Task</span
         >
@@ -90,7 +92,7 @@
         action="edit"
       />
     </transition>
-  </header>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -130,13 +132,13 @@ const handleMoreOptionsFn = (
 </script>
 
 <style lang="postcss" scoped>
-.top-bar {
-  @apply flex items-center col-span-2 sm:col-start-2 sm:col-span-1 py-5 sm:py-0 px-[var(--padding-sm)] sm:px-[var(--padding-lg)];
-  @apply border-b border-blue-300 dark:border-gray-600 bg-white dark:bg-gray-700;
+.header-content {
+  @apply flex items-center py-5 sm:py-0 px-[var(--padding-sm)] sm:px-[var(--padding-lg)];
+  @apply border-b border-blue-300 dark:border-gray-600;
 }
 
 .add-new-task-btn {
   @apply px-4 py-1 gap-[2px] md:py-[10px] w-max;
-  @apply text-base focus-visible:outline-white;
+  @apply text-baseFluid focus-visible:outline-white;
 }
 </style>

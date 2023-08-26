@@ -1,12 +1,10 @@
 <template>
   <div
     aria-label="The app logo"
-    class="main-nav__logo"
+    class="header__logo"
     :class="{
       'border-b w-max': !isSidebarShown,
-      'w-[calc(280px-2*var(--padding-lg)-1px)]': isSidebarShown,
-      'bg-none border-none': bgNone,
-      'bg-white dark:bg-gray-700': !bgNone
+      'w-[calc(280px-2*var(--padding-lg)-1px)]': isSidebarShown
     }"
   >
     <svg id="svg14" height="26" width="153">
@@ -53,7 +51,6 @@
 <script setup lang="ts">
 defineProps<{
   isSidebarShown?: boolean
-  bgNone?: true
 }>()
 </script>
 
@@ -62,7 +59,7 @@ svg > g {
   @apply fill-black dark:fill-white;
 }
 
-.main-nav__logo {
+.header__logo {
   @apply hidden sm:block py-7 px-[var(--padding-lg)];
   @apply border-r border-blue-300 dark:border-gray-600 box-content;
 }

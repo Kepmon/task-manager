@@ -1,10 +1,6 @@
 <template>
   <transition name="nav">
-    <nav
-      v-if="!userStore.isLoading && condition"
-      aria-label="boards navigation"
-      class="boards"
-    >
+    <nav v-if="!userStore.isLoading && condition" class="boards">
       <p class="all-boards">
         all boards <span v-if="boards">({{ boards.length }})</span>
       </p>
@@ -126,6 +122,6 @@ const saveCurrentBoard = async (board: Board) => {
 
 .nav-enter-active,
 .nav-leave-active {
-  @apply transition-all duration-500;
+  @apply transition-all duration-100 ease-out;
 }
 </style>

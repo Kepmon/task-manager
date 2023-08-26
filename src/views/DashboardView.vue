@@ -8,18 +8,21 @@
   >
     <Spinner v-if="userStore.isLoading" />
 
-    <logo-icon
-      v-if="!userStore.isLoading"
-      :isSidebarShown="isSidebarShown"
-      aria-label="The app logo"
-    />
-
-    <the-header
-      v-if="!isDashboardEmpty && !userStore.isLoading"
-      @toggle-boards-nav="toggleBoardsNav"
-      :isBoardEmpty="isBoardEmpty"
-      :navOpen="isNavOpen"
-    />
+    <header
+      class="grid grid-cols-[auto_1fr] col-span-2 bg-white dark:bg-gray-700"
+    >
+      <logo-icon
+        v-if="!userStore.isLoading"
+        :isSidebarShown="isSidebarShown"
+        aria-label="The app logo"
+      />
+      <the-header
+        v-if="!isDashboardEmpty && !userStore.isLoading"
+        @toggle-boards-nav="toggleBoardsNav"
+        :isBoardEmpty="isBoardEmpty"
+        :navOpen="isNavOpen"
+      />
+    </header>
 
     <boards-navbar
       @toggle-sidebar="toggleSidebar"
@@ -39,10 +42,9 @@
     </div>
 
     <main
-      class="p-4 sm:p-6"
+      class="p-4 sm:p-6 row-start-2 col-start-2"
       :class="{
         'sm:col-start-2': isSidebarShown,
-        'sm:col-start-1 sm:col-span-2': !isSidebarShown,
         'sm:row-start-1 sm:row-span-2': isDashboardEmpty
       }"
     >

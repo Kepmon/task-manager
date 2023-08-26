@@ -1,5 +1,5 @@
 <template>
-  <div class="columns-container" :class="{ 'columns-container--sizes': !logo }">
+  <div class="columns-container">
     <div class="flex gap-6 h-full">
       <div
         v-for="(column, columnIndex) in boardsStore.boardColumns"
@@ -237,11 +237,6 @@ const moveTask = async (value: BoardColumn['name']) => {
 .columns-container {
   @apply px-[var(--room-for-outline)] h-full overflow-auto;
   @apply scrollbar-invisible hover:scrollbar-visibleLight dark:hover:scrollbar-visibleDark;
-}
-
-.columns-container--sizes {
-  @apply w-[calc(100vw-32px)] sm:w-[calc(67vw-48px)];
-  @apply lg:w-[calc(75vw-48px)] xl:w-[calc(80vw-48px)];
 }
 
 .new-column {
