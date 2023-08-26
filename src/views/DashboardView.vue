@@ -29,6 +29,7 @@
       :boards="boardsStore.boards"
       :boardName="boardsStore.currentBoard?.name || ''"
       :condition="windowWidth >= 640 ? isSidebarShown : isNavOpen"
+      :width="windowWidth"
     />
 
     <div

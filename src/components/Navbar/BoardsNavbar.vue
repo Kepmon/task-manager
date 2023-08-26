@@ -1,9 +1,10 @@
 <template>
-  <transition name="nav">
+  <transition
+    @after-enter="afterEnter"
+    :name="noAnimation && width > 640 ? undefined : 'nav'"
+  >
     <nav v-if="!userStore.isLoading && condition" class="boards">
-      <p class="all-boards">
-        all boards <span v-if="boards">({{ boards.length }})</span>
-      </p>
+      <p class="all-boards">all boards ({{ boards.length }})</p>
       <div>
         <ul v-if="boards.length !== 0" class="boards-list">
           <li v-for="(board, index) in boards" :key="index">
@@ -66,12 +67,18 @@ defineProps<{
   boards: Board[]
   boardName: Board['name']
   condition: boolean
+  width: number
 }>()
 defineEmits(['toggle-sidebar'])
 
 const isAddBoardModalShown = ref(false)
 const userStore = useUserStore()
 const boardsStore = useBoardsStore()
+
+const noAnimation = ref(true)
+const afterEnter = () => {
+  noAnimation.value = false
+}
 
 const saveCurrentBoard = async (board: Board) => {
   boardsStore.currentBoard = board
@@ -113,15 +120,20 @@ const saveCurrentBoard = async (board: Board) => {
   @apply origin-top opacity-50 scale-0;
 }
 
+.nav-enter-active,
+.nav-leave-active {
+  @apply transition-transform duration-500 ease-out;
+}
+
 @screen sm {
   .nav-enter-from,
   .nav-leave-to {
     @apply -translate-x-full scale-100;
   }
-}
 
-.nav-enter-active,
-.nav-leave-active {
-  @apply transition-all duration-100 ease-out;
+  .nav-enter-active,
+  .nav-leave-active {
+    @apply transition-transform duration-100 ease-out;
+  }
 }
 </style>
