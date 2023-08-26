@@ -1,7 +1,7 @@
 <template>
   <transition name="nav">
     <nav
-      v-if="!boardsStore.isLoading && condition"
+      v-if="!userStore.isLoading && condition"
       aria-label="boards navigation"
       class="boards"
     >
@@ -12,7 +12,7 @@
         <ul v-if="boards.length !== 0" class="boards-list">
           <li v-for="(board, index) in boards" :key="index">
             <board-label
-              @click="() => (boardsStore.chosenBoard = board)"
+              @click="() => saveCurrentBoard(board)"
               :name="board.name"
               tabindex="0"
               :class="{
@@ -62,6 +62,7 @@ import type { Board } from '../../api/boardsTypes'
 import ThemeToggle from '../shared/ThemeToggle.vue'
 import BoardLabel from './BoardLabel.vue'
 import BoardModal from '../Modals/BoardModal.vue'
+import { useUserStore } from '../../stores/user'
 import { useBoardsStore } from '../../stores/boards'
 import { ref } from 'vue'
 
@@ -73,13 +74,24 @@ defineProps<{
 defineEmits(['toggle-sidebar'])
 
 const isAddBoardModalShown = ref(false)
+const userStore = useUserStore()
 const boardsStore = useBoardsStore()
+
+const saveCurrentBoard = async (board: Board) => {
+  boardsStore.currentBoard = board
+  localStorage.setItem(
+    `currentBoard-${userStore.userID}`,
+    JSON.stringify(boardsStore.currentBoard)
+  )
+
+  await boardsStore.getColumns()
+}
 </script>
 
 <style lang="postcss" scoped>
 .boards {
   @apply absolute top-[calc(12vh+1rem)] right-1/2 py-4 translate-x-1/2 w-[70vw];
-  @apply rounded-lg bg-white dark:bg-gray-700 sm:scale-100 z-50;
+  @apply rounded-lg bg-white dark:bg-gray-700 sm:scale-100 z-50 sm:z-0;
   @apply border-r border-blue-300 dark:border-gray-600;
 }
 

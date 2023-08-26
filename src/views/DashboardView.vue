@@ -6,12 +6,16 @@
       'grid-cols-[auto_1fr]': !isSidebarShown
     }"
   >
-    <Spinner v-if="boardsStore.isLoading" />
+    <Spinner v-if="userStore.isLoading" />
 
-    <logo-icon :isSidebarShown="isSidebarShown" aria-label="The app logo" />
+    <logo-icon
+      v-if="!userStore.isLoading"
+      :isSidebarShown="isSidebarShown"
+      aria-label="The app logo"
+    />
 
     <main-navbar
-      v-if="!isDashboardEmpty && !boardsStore.isLoading"
+      v-if="!isDashboardEmpty && !userStore.isLoading"
       @toggle-boards-nav="toggleBoardsNav"
       :isBoardEmpty="isBoardEmpty"
       :navOpen="isNavOpen"
@@ -43,16 +47,16 @@
       }"
     >
       <boards-column
-        v-if="!isDashboardEmpty && !boardsStore.isLoading"
+        v-if="!isDashboardEmpty && !userStore.isLoading"
         :logo="isLogoShown"
       />
       <empty-info
-        v-if="!boardsStore.isLoading"
+        v-if="!userStore.isLoading"
         :emptyDashboard="isDashboardEmpty"
         :emptyBoard="isBoardEmpty"
       />
       <user-options
-        v-if="isDashboardEmpty && !boardsStore.isLoading"
+        v-if="isDashboardEmpty && !userStore.isLoading"
         :isDashboardEmpty="isDashboardEmpty"
         class="absolute bottom-8 right-8 scale-125"
       />
@@ -68,14 +72,13 @@ import EmptyInfo from '../components/EmptyInfo.vue'
 import BoardsColumn from '../components/BoardsColumn.vue'
 import UserOptions from '../components/UserOptions.vue'
 import Spinner from '../components/Spinner.vue'
+import { useUserStore } from '../stores/user'
 import { useBoardsStore } from '../stores/boards'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useWindowSize } from '@vueuse/core'
 
+const userStore = useUserStore()
 const boardsStore = useBoardsStore()
-onMounted(async () => {
-  await boardsStore.getColumns()
-})
 
 const isDashboardEmpty = computed(() =>
   boardsStore.boards.length === 0 ? true : false

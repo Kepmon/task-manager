@@ -68,7 +68,6 @@ const submit = async () => {
   emits('close-modal')
 
   await submitFns[props.elementToDelete]()
-  await boardsStore.getColumns()
 }
 </script>
 
