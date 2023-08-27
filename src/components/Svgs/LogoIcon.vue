@@ -61,6 +61,6 @@ svg > g {
 
 .header__logo {
   @apply hidden sm:block py-7 px-[var(--padding-lg)];
-  @apply border-r border-blue-300 dark:border-gray-600 box-content;
+  @apply border-r border-gray-350 dark:border-gray-600 box-content;
 }
 </style>

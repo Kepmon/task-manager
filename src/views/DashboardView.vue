@@ -32,16 +32,14 @@
       :condition="windowWidth >= 640 ? isSidebarShown : isNavOpen"
       :width="windowWidth"
     />
-
-    <div
-      v-show="!isSidebarShown"
+    <button
+      v-if="isShownSidebarShown && windowWidth > 640"
       @click="toggleSidebar"
-      @keydown.enter="toggleSidebar"
-      tabindex="0"
+      aria-label="show sidebar"
       class="show-sidebar purple-class"
     >
-      <img src="/img/icon-show-sidebar.svg" alt="show sidebar" />
-    </div>
+      <img src="/img/icon-show-sidebar.svg" alt="" />
+    </button>
 
     <main
       class="p-4 sm:p-6 row-start-2 col-span-2 sm:col-start-2"
@@ -49,10 +47,7 @@
         'sm:row-start-1 sm:row-span-2': isDashboardEmpty
       }"
     >
-      <boards-column
-        v-if="!isDashboardEmpty && !userStore.isLoading"
-        :logo="isLogoShown"
-      />
+      <boards-column v-if="!isDashboardEmpty && !userStore.isLoading" />
       <empty-info
         v-if="!userStore.isLoading"
         :emptyDashboard="isDashboardEmpty"
@@ -77,7 +72,7 @@ import UserOptions from '../components/UserOptions.vue'
 import Spinner from '../components/Spinner.vue'
 import { useUserStore } from '../stores/user'
 import { useBoardsStore } from '../stores/boards'
-import { ref, computed } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 import { useWindowSize } from '@vueuse/core'
 
 const userStore = useUserStore()
@@ -93,16 +88,16 @@ const isBoardEmpty = computed(() =>
 )
 
 const isSidebarShown = ref(true)
+const isShownSidebarShown = ref(false)
 const isNavOpen = ref(false)
-const isLogoShown = ref(false)
 const toggleSidebar = () => {
   isSidebarShown.value = !isSidebarShown.value
-  isLogoShown.value = false
+  isShownSidebarShown.value = false
   setTimeout(() => {
     if (!isSidebarShown.value) {
-      isLogoShown.value = true
+      isShownSidebarShown.value = true
     }
-  }, 500)
+  }, 100)
 }
 const toggleBoardsNav = () => {
   if (windowWidth.value >= 640) return
@@ -110,12 +105,33 @@ const toggleBoardsNav = () => {
   isNavOpen.value = !isNavOpen.value
 }
 
+const closeOpenedBoardsNav = (e: Event) => {
+  const isMeantToOpenMobileNav =
+    (e.target as HTMLElement).closest('div')?.getAttribute('data-toggle') ===
+    'boards-nav'
+  if (windowWidth.value >= 640 || isMeantToOpenMobileNav) return
+
+  const isInsideNav = (e.target as HTMLElement).closest('nav') != null
+  if (!isInsideNav) {
+    isNavOpen.value = false
+  }
+}
+
+window.addEventListener('click', (e: Event) => {
+  closeOpenedBoardsNav(e)
+})
+onUnmounted(() => {
+  window.removeEventListener('click', (e: Event) => {
+    closeOpenedBoardsNav(e)
+  })
+})
+
 const { width: windowWidth } = useWindowSize()
 </script>
 
 <style lang="postcss" scoped>
 .show-sidebar {
-  @apply grid place-items-center absolute;
-  @apply left-0 bottom-6 h-12 w-14 rounded-r-[100px] cursor-pointer;
+  @apply grid place-items-center absolute left-0 bottom-6;
+  @apply h-12 w-14 rounded-r-[100px] focus-visible:outline-white;
 }
 </style>

@@ -1,7 +1,7 @@
 <template>
   <transition
     @after-enter="afterEnter"
-    :name="noAnimation && width > 640 ? undefined : 'nav'"
+    :name="noAnimation && width >= 640 ? undefined : 'nav'"
   >
     <nav v-if="!userStore.isLoading && condition" class="boards">
       <p class="all-boards">all boards ({{ boards.length }})</p>
@@ -11,7 +11,6 @@
             <board-label
               @click="() => saveCurrentBoard(board)"
               :name="board.name"
-              tabindex="0"
               :class="{
                 'bg-purple-400 fill-white text-white': board.name === boardName,
                 'text-gray-400 fill-gray-400': board.name !== boardName
@@ -23,11 +22,9 @@
           There are no boards to display
         </p>
         <board-label
-          @keydown.enter="isAddBoardModalShown = true"
           @click="isAddBoardModalShown = true"
           name="Create New Board"
           :isPlusSignAdded="true"
-          tabindex="0"
           class="text-purple-400 fill-purple-400"
         />
       </div>
@@ -36,10 +33,9 @@
           class="mt-4 w-[90%] bg-blue-200 dark:bg-gray-800 rounded-md"
         />
         <board-label
+          v-if="width > 640"
           @click="$emit('toggle-sidebar')"
-          @keydown.enter="$emit('toggle-sidebar')"
           name="Hide Sidebar"
-          tabindex="0"
           class="hidden sm:flex my-2 text-gray-400 fill-gray-400"
         />
       </div>
@@ -97,7 +93,7 @@ const saveCurrentBoard = async (board: Board) => {
 .boards {
   @apply absolute top-[calc(12vh+1rem)] right-1/2 py-4 translate-x-1/2 w-[80vw];
   @apply rounded-lg bg-white dark:bg-gray-700 sm:scale-100 z-50 sm:z-0;
-  @apply border-r border-blue-300 dark:border-gray-600;
+  @apply border-r border-gray-350 dark:border-gray-600;
 }
 
 @screen sm {

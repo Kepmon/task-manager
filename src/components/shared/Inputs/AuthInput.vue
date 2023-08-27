@@ -8,7 +8,7 @@
       class="input"
       :class="{
         'border-red-400': errorMessage,
-        'border-blue-40 focus:border-purple-400': !errorMessage
+        'border-blue-40 focus-visible:border-purple-400': !errorMessage
       }"
     />
     <ErrorMessage :name="name" class="font-normal text-xs text-red-400" />

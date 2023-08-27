@@ -31,6 +31,7 @@ module.exports = {
         gray: {
           200: 'hsl(0 0% 91%)',
           300: 'hsl(0 0% 85%)',
+          350: 'hsl(0 0% 73%)',
           400: 'hsl(216 15% 57%)',
           500: 'hsl(237 16% 32%)',
           600: 'hsl(237 12% 27%)',
@@ -66,7 +67,6 @@ module.exports = {
       },
       boxShadow: {
         xs: '0 0 2px -1px hsl(0 0% 59%)',
-        sm: '0 0 8px -4px hsl(0 0% 59%)',
         column: '1px 1px 10px -8px hsl(198 7% 71%)',
         option: '0px 0px 1px hsl(216 15% 57%)'
       },

@@ -19,12 +19,12 @@ defineProps<{
 
 <style lang="postcss" scoped>
 .task-card {
-  @apply p-4 mb-[20px] w-[280px] text-left shadow-sm cursor-pointer rounded-lg;
+  @apply p-4 mb-[20px] w-[280px] text-left shadow-xs cursor-pointer rounded-lg;
   @apply bg-white dark:bg-gray-700;
 }
 
 .task-card__title {
-  @apply mb-1 group-hover:text-purple-400 group-focus:text-purple-400;
+  @apply mb-1 group-hover:text-purple-400 group-focus-visible:text-purple-400;
   @apply transition-colors duration-300;
 }
 </style>

@@ -115,9 +115,6 @@ import CloseIcon from './Svgs/CloseIcon.vue'
 import { computed, ref } from 'vue'
 import { useBoardsStore } from '../stores/boards'
 import { useTasksStore } from '../stores/tasks'
-defineProps<{
-  logo: boolean
-}>()
 
 const boardsStore = useBoardsStore()
 const tasksStore = useTasksStore()
@@ -242,11 +239,11 @@ const moveTask = async (value: BoardColumn['name']) => {
 .new-column {
   @apply flex items-center justify-center mt-[44px] min-w-[280px] shadow-column;
   @apply bg-gradient-to-b from-blue-100 to-blue-80 cursor-pointer;
-  @apply dark:from-gray-700 dark:to-gray-680;
+  @apply dark:from-gray-700 dark:to-gray-680 rounded-md;
 }
 
 .new-column-text {
   @apply flex text-gray-400 text-xl group-hover:text-purple-400;
-  @apply group-focus:text-purple-400 transition-colors duration-300;
+  @apply group-focus-visible:text-purple-400 transition-colors duration-300;
 }
 </style>

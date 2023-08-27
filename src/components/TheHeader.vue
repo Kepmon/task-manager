@@ -12,7 +12,11 @@
         <rect opacity=".5" x="18" width="6" height="25" rx="2" />
       </g>
     </svg>
-    <div @click="$emit('toggle-boards-nav')" class="mr-6">
+    <div
+      @click="$emit('toggle-boards-nav')"
+      data-toggle="boards-nav"
+      class="mr-6"
+    >
       <h1 class="inline font-bold text-lgFluid">
         {{ boardsStore.currentBoard?.name }}
       </h1>
@@ -135,7 +139,7 @@ const handleMoreOptionsFn = (
 .header-content {
   @apply col-span-2 sm:col-start-2 flex items-center;
   @apply py-5 sm:py-0 px-[var(--padding-sm)] sm:px-[var(--padding-lg)];
-  @apply border-b border-blue-300 dark:border-gray-600;
+  @apply border-b border-gray-350 dark:border-gray-600;
 }
 
 .add-new-task-btn {

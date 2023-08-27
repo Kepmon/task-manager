@@ -44,7 +44,7 @@ body {
 }
 
 button {
-  @apply border-none cursor-pointer;
+  @apply border-none;
 }
 
 button,
