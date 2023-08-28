@@ -67,12 +67,8 @@ export const useBoardsStore = defineStore('boards', () => {
         db,
         `${boardsColRefGlobal.value.path}/${currentBoardID.value}/columns`
       )
-      const columnsColRefOrdered = query(
-        columnsColRef,
-        orderBy('createdAt', 'asc')
-      )
 
-      const columnDocs = (await getDocs(columnsColRefOrdered)).docs
+      const columnDocs = (await getDocs(columnsColRef)).docs
       boardColumns.value =
         columnDocs.length !== 0
           ? await Promise.all(
