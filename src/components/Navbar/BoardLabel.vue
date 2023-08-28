@@ -39,8 +39,8 @@ defineProps<{
   @apply flex items-center gap-2 pl-4 w-[90%] h-12 text-left;
   @apply rounded-r-[100px] cursor-pointer overflow-hidden;
   @apply hover:bg-purple-320 hover:text-purple-400 hover:fill-purple-400;
-  @apply focus:bg-purple-320 focus:text-purple-400 focus:fill-purple-400;
-  @apply dark:hover:bg-white dark:focus:bg-white transition-colors duration-300;
+  @apply focus-visible:bg-purple-320 focus-visible:text-purple-400 focus-visible:fill-purple-400;
+  @apply dark:hover:bg-white dark:focus-visible:bg-white transition-colors duration-300;
 }
 
 .boards-name {

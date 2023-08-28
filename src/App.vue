@@ -35,12 +35,8 @@ html.dark {
 }
 
 body {
-  @apply min-h-screen text-baseFluid font-[500];
+  @apply text-baseFluid font-[500];
   @apply scrollbar-visibleLight dark:scrollbar-visibleDark;
-}
-
-#app {
-  @apply overflow-hidden;
 }
 
 button {

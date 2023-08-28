@@ -232,8 +232,7 @@ const moveTask = async (value: BoardColumn['name']) => {
 
 <style lang="postcss" scoped>
 .columns-container {
-  @apply px-[var(--room-for-outline)] h-full overflow-auto;
-  @apply scrollbar-invisible hover:scrollbar-visibleLight dark:hover:scrollbar-visibleDark;
+  @apply px-[var(--room-for-outline)] h-full;
 }
 
 .new-column {

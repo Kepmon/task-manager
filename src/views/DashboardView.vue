@@ -1,6 +1,6 @@
 <template>
   <div
-    class="grid grid-rows-[auto_1fr] min-h-screen"
+    class="grid grid-rows-[auto_1fr] h-screen"
     :class="{
       'grid-cols-[280px_1fr]': isSidebarShown,
       'grid-cols-[auto_1fr]': !isSidebarShown
@@ -44,7 +44,7 @@
     </button>
 
     <main
-      class="p-4 sm:p-6 row-start-2 col-span-2 sm:col-start-2"
+      class="main"
       :class="{
         'sm:row-start-1 sm:row-span-2': isDashboardEmpty
       }"
@@ -132,6 +132,11 @@ const { width: windowWidth } = useWindowSize()
 </script>
 
 <style lang="postcss" scoped>
+.main {
+  @apply p-4 sm:p-6 row-start-2 col-span-2 sm:col-start-2 h-[calc(100vh-82px)];
+  @apply overflow-auto scrollbar-invisible;
+  @apply hover:scrollbar-visibleLight dark:hover:scrollbar-visibleDark;
+}
 .show-sidebar {
   @apply grid place-items-center absolute left-0 bottom-6;
   @apply h-12 w-14 rounded-r-[100px] focus-visible:outline-white;
