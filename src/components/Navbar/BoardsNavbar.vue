@@ -149,15 +149,15 @@ const saveCurrentBoard = async (board: Board) => {
 
 <style lang="postcss" scoped>
 .boards {
-  @apply absolute top-[calc(12vh+1rem)] right-1/2 py-4 translate-x-1/2 w-[80vw];
-  @apply rounded-lg bg-white dark:bg-gray-700 sm:scale-100 z-50;
-  @apply border-r border-gray-350 dark:border-gray-600;
+  @apply absolute top-[70px] right-1/2 py-4 translate-x-1/2 w-[80vw];
+  @apply rounded-lg bg-white dark:bg-gray-700 sm:scale-100 z-50 origin-top;
+  @apply border border-gray-350 dark:border-gray-600;
 }
 
 @screen sm {
   .boards {
     @apply static pt-4 pb-0 translate-x-0 w-auto z-0;
-    @apply row-span-2 grid rounded-none;
+    @apply border-y-0 border-x-0 border-r row-span-2 grid rounded-none;
   }
 }
 
@@ -173,7 +173,7 @@ const saveCurrentBoard = async (board: Board) => {
 
 .nav-enter-from,
 .nav-leave-to {
-  @apply origin-top opacity-50 scale-0;
+  @apply opacity-50 scale-0;
 }
 
 .nav-enter-active,
