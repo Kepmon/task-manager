@@ -1,7 +1,12 @@
 <template>
   <transition
     @after-enter="afterEnter"
-    :name="noAnimation && width >= 640 ? undefined : 'nav'"
+    @after-leave="afterLeave"
+    :name="
+      (noDesktopAnimation && width >= 640) || (noMobileAnimation && width < 640)
+        ? undefined
+        : 'nav'
+    "
   >
     <nav v-if="!userStore.isLoading && condition" class="boards">
       <p class="all-boards">all boards ({{ boards.length }})</p>
@@ -59,11 +64,13 @@ import { useUserStore } from '../../stores/user'
 import { useBoardsStore } from '../../stores/boards'
 import { ref } from 'vue'
 
-defineProps<{
+const props = defineProps<{
   boards: Board[]
   boardName: Board['name']
   condition: boolean
   width: number
+  isSidebarOpen: boolean
+  isNavOpen: boolean
 }>()
 const emits = defineEmits(['toggle-sidebar', 'close-boards-navbar'])
 
@@ -71,9 +78,54 @@ const isAddBoardModalShown = ref(false)
 const userStore = useUserStore()
 const boardsStore = useBoardsStore()
 
-const noAnimation = ref(true)
+const noDesktopAnimation = ref(true)
+const noMobileAnimation = ref(false)
 const afterEnter = () => {
-  noAnimation.value = false
+  if (props.width < 640 && props.isNavOpen) {
+    noMobileAnimation.value = false
+  }
+
+  if (props.width < 640 && props.isSidebarOpen) {
+    noDesktopAnimation.value = false
+    return
+  }
+
+  if (props.width < 640 && !props.isSidebarOpen) {
+    noDesktopAnimation.value = true
+    return
+  }
+
+  if (props.isNavOpen) {
+    noMobileAnimation.value = false
+  }
+
+  noMobileAnimation.value = true
+  noDesktopAnimation.value = false
+}
+const afterLeave = () => {
+  if (props.width > 640 && !props.isSidebarOpen) {
+    noDesktopAnimation.value = false
+  }
+
+  if (props.width > 640 && props.isNavOpen) {
+    noMobileAnimation.value = true
+    return
+  }
+
+  if (props.width > 640 && !props.isNavOpen) {
+    noMobileAnimation.value = false
+    return
+  }
+
+  if (props.isSidebarOpen) {
+    noDesktopAnimation.value = true
+  }
+
+  if (!props.isSidebarOpen) {
+    noDesktopAnimation.value = false
+  }
+
+  noMobileAnimation.value = false
 }
 
 const saveCurrentBoard = async (board: Board) => {

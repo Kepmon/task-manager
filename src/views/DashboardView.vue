@@ -31,6 +31,8 @@
       :boardName="boardsStore.currentBoard?.name || ''"
       :condition="windowWidth >= 640 ? isSidebarShown : isNavOpen"
       :width="windowWidth"
+      :isSidebarOpen="isSidebarShown"
+      :isNavOpen="isNavOpen"
     />
     <button
       v-if="isShownSidebarShown && windowWidth > 640"
