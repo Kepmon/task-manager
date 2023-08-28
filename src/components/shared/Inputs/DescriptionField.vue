@@ -7,7 +7,7 @@
       "
       :id="idAttr"
       :value="modelValue"
-      class="input min-h-[80px] max-h-[150px] scrollbar-invisible border-blue-40 focus:border-purple-400"
+      class="input min-h-[80px] max-h-[150px] scrollbar-invisible border-blue-40 focus-visible:border-purple-400"
       placeholder="e.g. It’s always good to take a break. This 15 minute break will recharge the batteries a little."
     ></textarea>
   </div>

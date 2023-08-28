@@ -10,24 +10,17 @@
       </p>
 
       <div class="flex flex-col s:flex-row gap-4">
-        <the-button
-          @click="submit"
-          :regularButton="true"
-          :isInForm="true"
-          class="red-button"
-        >
+        <button @click="submit" class="regular-button red-button">
           Delete
-        </the-button>
+        </button>
 
-        <the-button
+        <button
           @click="$emit('close-modal')"
-          :regularButton="true"
-          :isInForm="true"
           type="button"
-          class="white-button"
+          class="regular-button white-button"
         >
           Cancel
-        </the-button>
+        </button>
       </div>
     </template>
   </modals-template>
@@ -36,7 +29,6 @@
 <script setup lang="ts">
 import type { Board, BoardColumn, Task } from '../../api/boardsTypes'
 import ModalsTemplate from './ModalsTemplate.vue'
-import TheButton from '../shared/TheButton.vue'
 import { computed } from 'vue'
 import { useBoardsStore } from '../../stores/boards'
 import { useTasksStore } from '../../stores/tasks'
@@ -76,7 +68,6 @@ const submit = async () => {
   emits('close-modal')
 
   await submitFns[props.elementToDelete]()
-  await boardsStore.getColumns()
 }
 </script>
 

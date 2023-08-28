@@ -31,6 +31,7 @@ module.exports = {
         gray: {
           200: 'hsl(0 0% 91%)',
           300: 'hsl(0 0% 85%)',
+          350: 'hsl(0 0% 73%)',
           400: 'hsl(216 15% 57%)',
           500: 'hsl(237 16% 32%)',
           600: 'hsl(237 12% 27%)',
@@ -58,7 +59,6 @@ module.exports = {
       fontSize: {
         xs: ['12px', '15px'],
         sm: ['13px', '16px'],
-        base: ['15px', '19px'],
         baseFluid: 'clamp(0.81rem, calc(0.78rem + 0.21vw), 0.94rem)',
         lg: ['18px', '23px'],
         lgFluid: 'clamp(0.88rem, calc(0.80rem + 0.42vw), 1.13rem)',
@@ -67,15 +67,11 @@ module.exports = {
       },
       boxShadow: {
         xs: '0 0 2px -1px hsl(0 0% 59%)',
-        sm: '0 0 8px -4px hsl(0 0% 59%)',
         column: '1px 1px 10px -8px hsl(198 7% 71%)',
         option: '0px 0px 1px hsl(216 15% 57%)'
       },
       content: {
         'checked': 'url("/img/icon-check.svg")'
-      },
-      spacing: {
-        'room-for-outline': '3px',
       },
       animation: {
         'ping-once': 'ping 1s ease-in-out forwards',

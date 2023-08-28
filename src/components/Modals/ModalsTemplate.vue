@@ -44,7 +44,7 @@ onUnmounted(() => {
 
 .form {
   @apply grid gap-6 relative p-6 max-h-[95vh];
-  @apply sm:w-[480px] rounded-md bg-white dark:bg-gray-700;
+  @apply w-[min(90vw,480px)] rounded-md bg-white dark:bg-gray-700;
   @apply overflow-auto scrollbar-invisible;
 }
 </style>

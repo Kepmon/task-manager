@@ -1,3 +1,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    :root {
+        --padding-sm: 12px;
+        --padding-lg: 24px;
+        --room-for-outline: 3px;
+    }
+}

@@ -15,6 +15,11 @@ const isDark = useDark()
 </script>
 
 <style lang="postcss">
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  src: url('./fonts/PlusJakartaSans-VariableFont_wght.woff2') format('woff2');
+}
+
 @supports (scrollbar-width: thin) {
   * {
     scrollbar-width: thin;
@@ -30,21 +35,22 @@ html.dark {
 }
 
 body {
-  @apply min-h-screen text-base font-semibold;
+  @apply text-baseFluid font-[500];
   @apply scrollbar-visibleLight dark:scrollbar-visibleDark;
 }
 
-#app {
-  @apply overflow-hidden;
-}
-
 button {
-  @apply border-none cursor-pointer;
+  @apply border-none;
 }
 
 button,
 [tabindex='0'] {
   @apply outline outline-transparent focus-visible:outline-purple-600 outline-[3px];
+}
+
+.regular-button {
+  @apply flex items-center grow justify-center gap-2 py-[10px] px-4;
+  @apply rounded-3xl text-sm font-bold;
 }
 
 .input {
@@ -55,7 +61,7 @@ button,
 .input-error {
   @apply relative after:content-['Can\'t_be_empty'] after:text-sm;
   @apply after:text-red-400 after:font-normal after:absolute;
-  @apply after:right-4 after:bottom-1/2 after:translate-y-1/2;
+  @apply after:top-5 after:right-2;
 }
 
 ::selection {
@@ -83,7 +89,7 @@ button,
 }
 
 .option {
-  @apply py-[7px] s:py-[10px] pl-3 pr-16 text-start text-sm text-gray-400;
+  @apply py-[7px] s:py-[10px] pl-3 pr-10 text-start text-sm text-gray-400;
   @apply hover:bg-gray-200 dark:hover:bg-gray-500 focus-visible:bg-gray-200 dark:focus-visible:bg-gray-500;
   @apply outline-transparent transition-colors duration-300;
 }

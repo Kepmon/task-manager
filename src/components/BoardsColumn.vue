@@ -1,12 +1,12 @@
 <template>
-  <div class="columns-container" :class="{ 'columns-container--sizes': !logo }">
+  <div class="columns-container">
     <div class="flex gap-6 h-full">
       <div
         v-for="(column, columnIndex) in boardsStore.boardColumns"
         :key="columnIndex"
       >
         <div
-          class="flex items-center gap-2 py-room-for-outline mb-4 min-w-[280px]"
+          class="flex items-center gap-2 py-[var(--room-for-outline)] mb-4 min-w-[280px]"
         >
           <div
             class="h-[15px] w-[15px] rounded-full"
@@ -44,9 +44,9 @@
         class="new-column group"
         tabindex="0"
       >
-        <span aria-hidden="true" class="new-column-text">+</span>
+        <span aria-hidden="true" class="new-column-text">&#65291;</span>
         <span aria-hidden="true" class="new-column-text">New Column</span>
-        <span id="add-new-column" class="sr-only">Add New Column</span>
+        <span id="add-new-column" class="hidden">Add New Column</span>
       </div>
     </div>
     <Teleport to="body">
@@ -115,9 +115,6 @@ import CloseIcon from './Svgs/CloseIcon.vue'
 import { computed, ref } from 'vue'
 import { useBoardsStore } from '../stores/boards'
 import { useTasksStore } from '../stores/tasks'
-defineProps<{
-  logo: boolean
-}>()
 
 const boardsStore = useBoardsStore()
 const tasksStore = useTasksStore()
@@ -235,23 +232,17 @@ const moveTask = async (value: BoardColumn['name']) => {
 
 <style lang="postcss" scoped>
 .columns-container {
-  @apply px-room-for-outline h-full overflow-auto;
-  @apply scrollbar-invisible hover:scrollbar-visibleLight dark:hover:scrollbar-visibleDark;
-}
-
-.columns-container--sizes {
-  @apply w-[calc(100vw-32px)] sm:w-[calc(67vw-48px)];
-  @apply lg:w-[calc(75vw-48px)] xl:w-[calc(80vw-48px)];
+  @apply px-[var(--room-for-outline)] h-full;
 }
 
 .new-column {
   @apply flex items-center justify-center mt-[44px] min-w-[280px] shadow-column;
   @apply bg-gradient-to-b from-blue-100 to-blue-80 cursor-pointer;
-  @apply dark:from-gray-700 dark:to-gray-680;
+  @apply dark:from-gray-700 dark:to-gray-680 rounded-md;
 }
 
 .new-column-text {
   @apply flex text-gray-400 text-xl group-hover:text-purple-400;
-  @apply group-focus:text-purple-400 transition-colors duration-300;
+  @apply group-focus-visible:text-purple-400 transition-colors duration-300;
 }
 </style>

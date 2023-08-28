@@ -25,11 +25,11 @@
         element="board"
       />
 
-      <the-button :regularButton="true" :isInForm="true" class="purple-class">
+      <button class="regular-button purple-class">
         <span aria-hidden="true">{{
           action === 'add' ? 'Create New Board' : 'Save Changes'
         }}</span>
-      </the-button>
+      </button>
     </template>
   </modals-template>
 </template>
@@ -38,7 +38,6 @@
 import type { Board } from '../../api/boardsTypes'
 import ModalsTemplate from './ModalsTemplate.vue'
 import TextInput from '../shared/Inputs/TextInput.vue'
-import TheButton from '../../components/shared/TheButton.vue'
 import ElementSubset from '../shared/ElementSubset.vue'
 import { useBoardsStore } from '../../stores/boards'
 import { ref } from 'vue'

@@ -282,6 +282,7 @@ export const useTasksStore = defineStore('tasks', () => {
     }
 
     await deleteDoc(tasksDocRef)
+    await boardsStore.getColumns()
   }
 
   const toggleSubtask = async (subtask: Subtask) => {

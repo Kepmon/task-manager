@@ -14,7 +14,7 @@
       class="input"
       :class="{
         'border-red-400': isError,
-        'border-blue-40 focus:border-purple-400': !isError,
+        'border-blue-40 focus-visible:border-purple-400': !isError,
         'placeholder:text-inherit': whitePlaceholder
       }"
     />

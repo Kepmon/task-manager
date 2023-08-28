@@ -8,26 +8,41 @@ import {
 } from 'firebase/auth'
 import { doc, setDoc } from 'firebase/firestore'
 import { auth, usersColRef } from '../firebase'
-import { computed } from 'vue'
+import { ref } from 'vue'
 import { useBoardsStore } from './boards'
 
 export const useUserStore = defineStore('user', () => {
-  const userID = computed(() => {
-    const activeUser = JSON.parse(localStorage.getItem('user') || '{}')
-    if (Object.keys(activeUser).length !== 0) {
-      return activeUser.uid
-    }
+  const userID = ref<null | string>(null)
 
-    return null
-  })
+  const boardsStore = useBoardsStore()
+  const isLoading = ref(true)
 
-  onAuthStateChanged(auth, (user) => {
+  onAuthStateChanged(auth, async (user) => {
     if (!user) {
       localStorage.removeItem('user')
       return
     }
 
+    userID.value = user.uid
     localStorage.setItem('user', JSON.stringify(user))
+
+    await boardsStore.getBoards()
+
+    const savedBoardJSON = localStorage.getItem(`currentBoard-${userID.value}`)
+    if (savedBoardJSON != null) {
+      boardsStore.currentBoard = JSON.parse(savedBoardJSON as string)
+      await boardsStore.getColumns()
+      isLoading.value = false
+      return
+    }
+
+    boardsStore.currentBoard = boardsStore.boards[0]
+    localStorage.setItem(
+      `currentBoard-${userID.value}`,
+      JSON.stringify(boardsStore.currentBoard)
+    )
+    await boardsStore.getColumns()
+    isLoading.value = false
   })
 
   const register = async (email: string, password: string) => {
@@ -70,9 +85,6 @@ export const useUserStore = defineStore('user', () => {
 
   const logout = async () => {
     try {
-      const boardsStore = useBoardsStore()
-      boardsStore.removeBoardsSnapshot()
-
       await signOut(auth)
 
       return true
@@ -82,6 +94,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
   return {
+    isLoading,
     userID,
     register,
     logIn,

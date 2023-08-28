@@ -17,7 +17,7 @@
 
 <style lang="postcss" scoped>
 div {
-  @apply hidden xs:block w-[max-content];
+  @apply hidden xs:block w-max;
 }
 
 svg {

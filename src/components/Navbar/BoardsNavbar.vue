@@ -1,47 +1,52 @@
 <template>
-  <transition name="nav">
-    <nav aria-label="boards navigation" class="boards">
-      <div class="hidden sm:block px-[10%] mt-4 mb-[54px]">
-        <logo-icon aria-label="The app logo" />
-      </div>
-      <p class="all-boards">
-        all boards <span v-if="boards">({{ boards.length }})</span>
-      </p>
-      <div class="sm:flex sm:flex-col grow">
-        <ul v-if="boards != null" class="boards-list">
+  <transition
+    @after-enter="afterEnter"
+    @after-leave="afterLeave"
+    :name="
+      (noDesktopAnimation && width >= 640) || (noMobileAnimation && width < 640)
+        ? undefined
+        : 'nav'
+    "
+  >
+    <nav
+      v-if="!userStore.isLoading && condition"
+      class="boards max-h-[calc(100vh-82px)]"
+    >
+      <div class="board-labels-container">
+        <p class="all-boards">all boards ({{ boards.length }})</p>
+        <div>
+          <ul v-if="boards.length !== 0">
+            <li v-for="(board, index) in boards" :key="index">
+              <board-label
+                @click="() => saveCurrentBoard(board)"
+                :name="board.name"
+                :class="{
+                  'bg-purple-400 fill-white text-white':
+                    board.name === boardName,
+                  'text-gray-400 fill-gray-400': board.name !== boardName
+                }"
+              />
+            </li>
+          </ul>
+          <p v-else class="py-4 ml-5 text-gray-400">
+            There are no boards to display
+          </p>
           <board-label
-            @click="() => (boardsStore.chosenBoard = board)"
-            v-for="(board, index) in boards"
-            :key="index"
-            :name="board.name"
-            tabindex="0"
-            :class="{
-              'bg-purple-400 fill-white text-white': board.name === boardName,
-              'text-gray-400 fill-gray-400': board.name !== boardName
-            }"
+            @click="isAddBoardModalShown = true"
+            name="Create New Board"
+            :isPlusSignAdded="true"
+            class="text-purple-400 fill-purple-400"
           />
-        </ul>
-        <p v-else class="px-4 text-gray-400 text-center">
-          There are no boards to display
-        </p>
-        <board-label
-          @keydown.enter="isAddBoardModalShown = true"
-          @click="isAddBoardModalShown = true"
-          name="Create New Board"
-          :isPlusSignAdded="true"
-          tabindex="0"
-          class="text-purple-400 fill-purple-400"
-        />
+        </div>
       </div>
-      <div class="mt-auto">
+      <div class="self-end">
         <theme-toggle
           class="mt-4 w-[90%] bg-blue-200 dark:bg-gray-800 rounded-md"
         />
         <board-label
+          v-if="width > 640"
           @click="$emit('toggle-sidebar')"
-          @keydown.enter="$emit('toggle-sidebar')"
           name="Hide Sidebar"
-          tabindex="0"
           class="hidden sm:flex my-2 text-gray-400 fill-gray-400"
         />
       </div>
@@ -61,38 +66,104 @@ import type { Board } from '../../api/boardsTypes'
 import ThemeToggle from '../shared/ThemeToggle.vue'
 import BoardLabel from './BoardLabel.vue'
 import BoardModal from '../Modals/BoardModal.vue'
-import LogoIcon from '../Svgs/LogoIcon.vue'
+import { useUserStore } from '../../stores/user'
 import { useBoardsStore } from '../../stores/boards'
 import { ref } from 'vue'
 
-defineProps<{
-  boards: Board[] | null
+const props = defineProps<{
+  boards: Board[]
   boardName: Board['name']
-  isLoading: boolean
+  condition: boolean
+  width: number
+  isSidebarOpen: boolean
+  isNavOpen: boolean
 }>()
-defineEmits(['toggle-sidebar'])
+const emits = defineEmits(['toggle-sidebar', 'close-boards-navbar'])
 
 const isAddBoardModalShown = ref(false)
+const userStore = useUserStore()
 const boardsStore = useBoardsStore()
+
+const noDesktopAnimation = ref(true)
+const noMobileAnimation = ref(false)
+const afterEnter = () => {
+  if (props.width < 640 && props.isNavOpen) {
+    noMobileAnimation.value = false
+  }
+
+  if (props.width < 640 && props.isSidebarOpen) {
+    noDesktopAnimation.value = false
+    return
+  }
+
+  if (props.width < 640 && !props.isSidebarOpen) {
+    noDesktopAnimation.value = true
+    return
+  }
+
+  if (props.isNavOpen) {
+    noMobileAnimation.value = false
+  }
+
+  noMobileAnimation.value = true
+  noDesktopAnimation.value = false
+}
+const afterLeave = () => {
+  if (props.width > 640 && !props.isSidebarOpen) {
+    noDesktopAnimation.value = false
+  }
+
+  if (props.width > 640 && props.isNavOpen) {
+    noMobileAnimation.value = true
+    return
+  }
+
+  if (props.width > 640 && !props.isNavOpen) {
+    noMobileAnimation.value = false
+    return
+  }
+
+  if (props.isSidebarOpen) {
+    noDesktopAnimation.value = true
+  }
+
+  if (!props.isSidebarOpen) {
+    noDesktopAnimation.value = false
+  }
+
+  noMobileAnimation.value = false
+}
+
+const saveCurrentBoard = async (board: Board) => {
+  emits('close-boards-navbar')
+
+  boardsStore.currentBoard = board
+  localStorage.setItem(
+    `currentBoard-${userStore.userID}`,
+    JSON.stringify(boardsStore.currentBoard)
+  )
+
+  await boardsStore.getColumns()
+}
 </script>
 
 <style lang="postcss" scoped>
-.create-board {
-  @apply mx-auto px-4 py-2 w-[max-content] text-purple-400 rounded-3xl;
-  @apply outline outline-transparent hover:bg-white focus-visible:bg-white;
-  @apply transition-colors duration-300;
-}
-
 .boards {
-  @apply absolute top-[calc(12vh+1rem)] right-1/2 py-4 translate-x-1/2 w-[70vw];
-  @apply rounded-lg shadow-sm bg-white dark:bg-gray-700 sm:scale-100 z-50;
+  @apply absolute top-[70px] right-1/2 py-4 translate-x-1/2 w-[80vw];
+  @apply rounded-lg bg-white dark:bg-gray-700 sm:scale-100 z-50 origin-top;
+  @apply border border-gray-350 dark:border-gray-600;
 }
 
 @screen sm {
   .boards {
-    @apply static translate-x-0 w-auto;
-    @apply row-span-2 flex flex-col pt-4 rounded-none shadow-xs;
+    @apply static pt-4 pb-0 translate-x-0 w-auto z-0;
+    @apply border-y-0 border-x-0 border-r row-span-2 grid rounded-none;
   }
+}
+
+.board-labels-container {
+  @apply max-h-[calc(100vh-210px)] overflow-auto scrollbar-invisible;
+  @apply hover:scrollbar-visibleLight dark:hover:scrollbar-visibleDark;
 }
 
 .all-boards {
@@ -100,14 +171,14 @@ const boardsStore = useBoardsStore()
   @apply uppercase tracking-[2.4px] font-normal;
 }
 
-.boards-list {
-  @apply grid max-h-[calc(100vh-310px)];
-  @apply scrollbar-visibleLight dark:scrollbar-visibleDark;
-}
-
 .nav-enter-from,
 .nav-leave-to {
-  @apply origin-top opacity-50 scale-0;
+  @apply opacity-50 scale-0;
+}
+
+.nav-enter-active,
+.nav-leave-active {
+  @apply transition-transform duration-500 ease-out;
 }
 
 @screen sm {
@@ -115,10 +186,10 @@ const boardsStore = useBoardsStore()
   .nav-leave-to {
     @apply -translate-x-full scale-100;
   }
-}
 
-.nav-enter-active,
-.nav-leave-active {
-  @apply transition-all duration-500;
+  .nav-enter-active,
+  .nav-leave-active {
+    @apply transition-transform duration-100 ease-out;
+  }
 }
 </style>
