@@ -142,6 +142,6 @@ const { width: windowWidth } = useWindowSize()
 }
 .show-sidebar {
   @apply grid place-items-center absolute left-0 bottom-6;
-  @apply h-12 w-14 rounded-r-[100px] focus-visible:outline-white;
+  @apply h-12 w-14 rounded-r-[100vmax];
 }
 </style>

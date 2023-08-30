@@ -7,7 +7,7 @@
       :aria-label="`Click here to switch the theme from ${
         isDark ? 'dark' : 'light'
       } to ${isDark ? 'light' : 'dark'}`"
-      class="toggle-theme purple-class focus-visible:outline-white"
+      class="toggle-theme purple-class"
     >
       <transition-group name="theme-toggle">
         <div

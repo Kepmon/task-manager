@@ -40,6 +40,7 @@
       </div>
       <div
         @click="modals.isEditBoardModalShown = true"
+        @keydown.enter="modals.isEditBoardModalShown = true"
         aria-labelledby="add-new-column"
         class="new-column group"
         tabindex="0"
@@ -81,7 +82,9 @@
             : (modals.columnToDelete as BoardColumn).columnID
         "
         :columnOfClickedTask="
-          boardsStore.boardColumns[tasksStore.columnOfClickedTask as number].columnID
+          tasksStore.columnOfClickedTask
+            ? boardsStore.boardColumns[tasksStore.columnOfClickedTask].columnID
+            : undefined
         "
       />
     </transition>

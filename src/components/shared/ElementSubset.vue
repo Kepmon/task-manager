@@ -1,9 +1,9 @@
 <template>
-  <div v-if="itemsToBeIteratedOver?.length">
+  <div>
     <p class="mb-2 text-xs">
       {{ element === 'board' ? 'Columns' : 'Subtasks' }}
     </p>
-    <div class="grid gap-3">
+    <div v-if="itemsToBeIteratedOver.length !== 0" class="grid gap-3">
       <div
         v-for="(item, index) in itemsToBeIteratedOver"
         :key="index"
@@ -34,6 +34,9 @@
         />
       </div>
     </div>
+    <p v-else class="text-xs text-gray-400">
+      There are no {{ element === 'board' ? 'columns' : 'subtasks' }} to display
+    </p>
   </div>
   <button
     @click="addNewColumn"
@@ -84,7 +87,7 @@ const formData = ref({
     errors: tasksStore.subtasksErrors
   })
 })
-const itemsToBeIteratedOver = ref(formData.value[props.element].items)
+const itemsToBeIteratedOver = ref([...formData.value[props.element].items])
 const errorsArr = ref(formData.value[props.element].errors)
 
 const isNewInputAdded = ref(false)

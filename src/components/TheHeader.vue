@@ -143,7 +143,6 @@ const handleMoreOptionsFn = (
 }
 
 .add-new-task-btn {
-  @apply px-4 py-1 gap-[2px] md:py-[10px] w-max;
-  @apply text-baseFluid focus-visible:outline-white;
+  @apply px-4 py-1 gap-[2px] md:py-[10px] w-max text-baseFluid;
 }
 </style>

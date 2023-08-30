@@ -54,7 +54,10 @@ const formName = ref(
 )
 const formNameError = ref(false)
 
-const updatedColumns = ref(['Todo', 'Doing'])
+const updatedColumns =
+  props.action === 'add'
+    ? ref(['Todo', 'Doing'])
+    : ref(boardsStore.boardColumnsNames)
 const updateColumnValues = (emittedValue: string[]) => {
   updatedColumns.value = emittedValue
 }
