@@ -36,11 +36,14 @@ export const useUserStore = defineStore('user', () => {
       return
     }
 
-    boardsStore.currentBoard = boardsStore.boards[0]
-    localStorage.setItem(
-      `currentBoard-${userID.value}`,
-      JSON.stringify(boardsStore.currentBoard)
-    )
+    if (boardsStore.boards.length !== 0) {
+      boardsStore.currentBoard = boardsStore.boards[0]
+      localStorage.setItem(
+        `currentBoard-${userID.value}`,
+        JSON.stringify(boardsStore.currentBoard)
+      )
+    }
+
     await boardsStore.getColumns()
     isLoading.value = false
   })

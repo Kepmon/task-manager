@@ -57,8 +57,13 @@ export const useBoardsStore = defineStore('boards', () => {
         ...(snap.data() as Omit<Board, 'boardID'>),
         boardID: snap.id
       }))
-      await getColumns()
     }
+
+    if (boardDocs.docs.length === 0) {
+      boards.value = []
+    }
+
+    await getColumns()
   }
 
   const getColumns = async () => {
