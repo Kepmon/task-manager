@@ -58,9 +58,7 @@ export const useUserStore = defineStore('user', () => {
 
       if (!authResponse) throw new Error()
 
-      await setDoc(doc(usersColRef, authResponse.user.uid), {
-        userID: authResponse.user.uid
-      })
+      await setDoc(doc(usersColRef, authResponse.user.uid), {})
 
       await logout()
 

@@ -21,9 +21,9 @@
         />
         <button
           class="regular-button purple-class"
-          :disabled="form.meta.value.valid === false"
+          :disabled="form.meta.value.valid === false || buttonLoading"
         >
-          {{ currentAccountLink.action }}
+          {{ buttonLoading ? 'Loading...' : currentAccountLink.action }}
         </button>
         <p class="text-center">
           {{ currentAccountLink.question }}
@@ -124,17 +124,19 @@ const form = useForm({
   )
 })
 
-const errorMessage = ref<string>('')
+const errorMessage = ref('')
+const buttonLoading = ref(false)
 const onSubmit = form.handleSubmit(async (values) => {
   const method = currentPath === '/' ? userStore.logIn : userStore.register
 
+  buttonLoading.value = true
   const response = await method(values.email, values.password)
 
   if (response !== true) {
     errorMessage.value = response
   }
 
-  handleAuthResponse(response, currentPath)
+  handleAuthResponse(response, currentPath, buttonLoading)
 })
 </script>
 

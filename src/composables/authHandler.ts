@@ -1,3 +1,4 @@
+import type { Ref } from 'vue'
 import { ref } from 'vue'
 import router from '../router'
 
@@ -6,7 +7,8 @@ export const isPopupShown = ref(false)
 
 export const handleAuthResponse = (
   response: boolean | string,
-  currentPath: string
+  currentPath: string,
+  loading?: Ref<boolean>
 ) => {
   response === true ? (isAuthError.value = false) : (isAuthError.value = true)
 
@@ -18,6 +20,12 @@ export const handleAuthResponse = (
   if (response === true) {
     setTimeout(() => {
       router.push(`${currentPath === '/sign-up' ? '/' : '/dashboard'}`)
+    }, 3000)
+
+    setTimeout(() => {
+      if (loading != null) {
+        loading.value = false
+      }
     }, 3000)
   }
 }
