@@ -1,20 +1,23 @@
 <template>
   <div class="grid gap-2">
     <label v-if="label" :for="forAttr" class="text-xs">{{ label }}</label>
-    <input
-      @input="(e: Event) => handleInput(e)"
-      :id="idAttr"
-      :ref="condition ? 'newInput' : undefined"
-      :value="modelValue"
-      type="text"
-      :placeholder="placeholder"
-      class="input"
-      :class="{
-        'border-red-400': isError,
-        'border-blue-40 focus-visible:border-purple-400': !isError,
-        'placeholder:text-inherit': whitePlaceholder
-      }"
-    />
+    <div :class="{ 'input-error': isError }">
+      <input
+        @input="(e: Event) => handleInput(e)"
+        @keydown="(e: KeyboardEvent) => handleBlur(e)"
+        :id="idAttr"
+        :ref="condition ? 'newInput' : undefined"
+        :value="modelValue"
+        type="text"
+        :placeholder="placeholder"
+        class="input"
+        :class="{
+          'border-red-400': isError,
+          'border-blue-40 focus-visible:border-purple-400': !isError,
+          'placeholder:text-inherit': whitePlaceholder
+        }"
+      />
+    </div>
   </div>
 </template>
 
@@ -38,6 +41,12 @@ const newInput = ref<null | HTMLInputElement>(null)
 
 const handleInput = (e: Event) => {
   emits('update:modelValue', (e.target as HTMLInputElement).value)
+  emits('handle-blur')
+}
+
+const handleBlur = (e: KeyboardEvent) => {
+  if (e.key !== 'Tab') return
+
   emits('handle-blur')
 }
 

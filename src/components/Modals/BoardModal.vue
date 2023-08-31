@@ -16,7 +16,6 @@
         idAttr="board-title"
         :placeholder="action === 'add' ? 'e.g. Web Design' : ''"
         :whitePlaceholder="action === 'add' ? false : true"
-        :class="{ 'input-error after:translate-y-full': formNameError }"
       />
 
       <element-subset :action="action" element="board" />

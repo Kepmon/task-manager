@@ -61,7 +61,7 @@ button,
 .input-error {
   @apply relative after:content-['Can\'t_be_empty'] after:text-sm;
   @apply after:text-red-400 after:font-normal after:absolute;
-  @apply after:top-5 after:right-2;
+  @apply after:top-3 after:right-2;
 }
 
 ::selection {

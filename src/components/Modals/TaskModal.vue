@@ -16,7 +16,6 @@
         label="Title"
         :placeholder="action === 'add' ? 'e.g. Take coffee break' : ''"
         :whitePlaceholder="action === 'add' ? false : true"
-        :class="{ 'input-error after:translate-y-full': formNameError }"
       />
 
       <description-field
@@ -100,11 +99,9 @@ const updateStatusItem = (newItem: BoardColumn['name']) => {
 const handleCloseModal = () => {
   emits('change-var-to-false')
 
-  if (props.action != null) {
-    formSubsetData.errors.forEach((err) => {
-      err = false
-    })
-  }
+  formSubsetData.errors.forEach((err) => {
+    err = false
+  })
 }
 
 const submit = async () => {

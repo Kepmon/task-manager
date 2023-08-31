@@ -1,7 +1,7 @@
 <template>
   <button
     @click="$emit('handle-close')"
-    class="p-2 box-content rounded-[4px]"
+    class="p-2 box-content rounded-[4px] translate-x-1"
     :class="{
       'ml-auto group': isColumn,
       'focus-visible:outline-red-400': isError

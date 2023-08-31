@@ -23,9 +23,6 @@
             index === formData.items.length - 1 && formsStore.isNewInputAdded
           "
           class="grow"
-          :class="{
-            'input-error': formData.errors[index]
-          }"
         ></text-input>
         <close-icon
           @handle-close="() => formsStore.removeInput(formData, index)"

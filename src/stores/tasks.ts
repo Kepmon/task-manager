@@ -5,7 +5,7 @@ import type {
   DocumentData
 } from 'firebase/firestore'
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { query, orderBy, getDocs } from 'firebase/firestore'
 import {
   collection,
