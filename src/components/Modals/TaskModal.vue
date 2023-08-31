@@ -1,5 +1,5 @@
 <template>
-  <modals-template @submit-form="submit" @close-modal="$emit('close-modal')">
+  <modals-template @submit-form="submit" @close-modal="handleCloseModal">
     <template #form-title>
       <h2>{{ action }} {{ action === 'add' ? 'New' : '' }} Task</h2>
     </template>
@@ -27,11 +27,7 @@
         :whitePlaceholder="action === 'add' ? false : true"
       />
 
-      <element-subset
-        @change-array-item="(emittedValue) => updateSubtaskValues(emittedValue)"
-        :action="action"
-        element="task"
-      />
+      <element-subset :action="action" element="task" />
 
       <div>
         <p class="mb-2 text-xs text-gray-400 dark:text-white">Status</p>
@@ -60,6 +56,7 @@ import DescriptionField from '../shared/Inputs/DescriptionField.vue'
 import ElementSubset from '../shared/ElementSubset.vue'
 import { useBoardsStore } from '../../stores/boards'
 import { useTasksStore } from '../../stores/tasks'
+import { useFormsStore } from '../../stores/forms'
 import { ref } from 'vue'
 
 const props = defineProps<{
@@ -68,14 +65,16 @@ const props = defineProps<{
   task?: Task
   subtasks?: Subtask[]
 }>()
-const emits = defineEmits(['close-modal'])
+const emits = defineEmits(['change-var-to-false'])
 
 const tasksStore = useTasksStore()
 const boardsStore = useBoardsStore()
+const formsStore = useFormsStore()
 
 const formName = ref(props.task != null ? props.task.title : '')
 const formNameError = ref(false)
 const taskDescription = ref(props.task != null ? props.task.description : '')
+const formSubsetData = formsStore.returnFormSubsetData('task', props.action)
 
 const selectedStatusItem = ref(
   props.columnIndex != null
@@ -98,22 +97,25 @@ const updateStatusItem = (newItem: BoardColumn['name']) => {
   ) as BoardColumn
 }
 
-const updatedSubtasks =
-  props.action === 'add'
-    ? ref(['', ''])
-    : ref(
-        (tasksStore.subtasksOfClickedTask as Subtask[]).map(
-          (subtask) => subtask.title
-        )
-      )
-const updateSubtaskValues = (emittedValue: string[]) => {
-  updatedSubtasks.value = emittedValue
+const handleCloseModal = () => {
+  emits('change-var-to-false')
+
+  if (props.action != null) {
+    formSubsetData.errors.forEach((err) => {
+      err = false
+    })
+  }
 }
 
 const submit = async () => {
-  if (formName.value === '') return
+  const isFormValid = formsStore.validateForm(
+    formName,
+    formNameError,
+    formSubsetData
+  )
+  if (!isFormValid) return
 
-  emits('close-modal')
+  emits('change-var-to-false')
 
   if (props.action === 'add') {
     await tasksStore.addNewTask(
@@ -122,7 +124,7 @@ const submit = async () => {
         title: formName.value.trim(),
         description: taskDescription.value.trim()
       },
-      updatedSubtasks.value as string[]
+      formSubsetData.items
     )
   }
 
@@ -130,7 +132,7 @@ const submit = async () => {
     await tasksStore.editTask(
       formName.value,
       taskDescription.value,
-      updatedSubtasks.value,
+      formSubsetData.items,
       prevStatusItem.value?.columnID,
       selectedStatusItem.value.columnID,
       isStatusUpdated.value

@@ -1,5 +1,5 @@
 <template>
-  <modals-template @submit-form="submit" @close-modal="$emit('close-modal')">
+  <modals-template @submit-form="submit" @close-modal="handleCloseModal">
     <template #form-title>
       <h2>{{ action }} {{ action === 'add' ? 'New' : '' }} Board</h2>
     </template>
@@ -19,11 +19,7 @@
         :class="{ 'input-error after:translate-y-full': formNameError }"
       />
 
-      <element-subset
-        @change-array-item="(emittedValue) => updateColumnValues(emittedValue)"
-        :action="action"
-        element="board"
-      />
+      <element-subset :action="action" element="board" />
 
       <button class="regular-button purple-class">
         <span aria-hidden="true">{{
@@ -40,39 +36,43 @@ import ModalsTemplate from './ModalsTemplate.vue'
 import TextInput from '../shared/Inputs/TextInput.vue'
 import ElementSubset from '../shared/ElementSubset.vue'
 import { useBoardsStore } from '../../stores/boards'
+import { useFormsStore } from '../../stores/forms'
 import { ref } from 'vue'
 
 const props = defineProps<{
   action: 'add' | 'edit'
 }>()
-const emits = defineEmits(['update:modelValue', 'close-modal'])
+const emits = defineEmits(['update:modelValue', 'change-var-to-false'])
 
 const boardsStore = useBoardsStore()
+const formsStore = useFormsStore()
 
 const formName = ref(
   props.action === 'add' ? '' : (boardsStore.currentBoard as Board).name
 )
 const formNameError = ref(false)
+const formSubsetData = formsStore.returnFormSubsetData('task', props.action)
 
-const updatedColumns =
-  props.action === 'add'
-    ? ref(['Todo', 'Doing'])
-    : ref(boardsStore.boardColumnsNames)
-const updateColumnValues = (emittedValue: string[]) => {
-  updatedColumns.value = emittedValue
+const handleCloseModal = () => {
+  emits('change-var-to-false')
+
+  formSubsetData.errors.forEach((err) => {
+    err = false
+  })
 }
 
 const submit = () => {
-  if (
-    formName.value === '' ||
-    updatedColumns.value?.some((item) => item === '')
+  const isFormValid = formsStore.validateForm(
+    formName,
+    formNameError,
+    formSubsetData
   )
-    return
+  if (!isFormValid) return
 
-  emits('close-modal')
+  emits('change-var-to-false')
   const submitFn =
     props.action === 'add' ? boardsStore.addNewBoard : boardsStore.editBoard
 
-  submitFn(formName.value.trim(), updatedColumns.value as string[])
+  submitFn(formName.value.trim(), formSubsetData.items as string[])
 }
 </script>

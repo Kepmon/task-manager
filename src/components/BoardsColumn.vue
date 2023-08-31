@@ -54,7 +54,7 @@
       <transition name="modal">
         <see-task-modal
           v-if="modals.isSeeTaskModalShown && tasksConditions"
-          @close-modal="modals.isSeeTaskModalShown = false"
+          @change-var-to-false="modals.isSeeTaskModalShown = false"
           @show-edit-form="modals.showEditForm"
           @show-delete-form="modals.showDeleteForm"
           @handle-move-task="(value) => moveTask(value)"
@@ -65,7 +65,7 @@
     <transition name="modal">
       <confirmation-modal
         v-if="modals.isDeleteTaskModalShown || modals.isDeleteColumnModalShown"
-        @close-modal="
+        @change-var-to-false="
           modals.isDeleteTaskModalShown
             ? (modals.isDeleteTaskModalShown = false)
             : (modals.isDeleteColumnModalShown = false)
@@ -91,7 +91,7 @@
     <transition name="modal">
       <task-modal
         v-if="modals.isEditTaskModalShown && tasksConditions"
-        @close-modal="modals.isEditTaskModalShown = false"
+        @change-var-to-false="modals.isEditTaskModalShown = false"
         action="edit"
         v-bind="tasksProps"
       />
@@ -99,7 +99,7 @@
     <transition name="modal">
       <board-modal
         v-if="modals.isEditBoardModalShown"
-        @close-modal="modals.isEditBoardModalShown = false"
+        @change-var-to-false="modals.isEditBoardModalShown = false"
         action="edit"
       />
     </transition>
@@ -107,8 +107,8 @@
 </template>
 
 <script setup lang="ts">
-import type { BoardColumn, Task, Subtask } from '../api/boardsTypes'
 import type { Ref } from 'vue'
+import type { BoardColumn, Task, Subtask } from '../api/boardsTypes'
 import TaskCard from './TaskCard.vue'
 import SeeTaskModal from './Modals/SeeTaskModal.vue'
 import ConfirmationModal from '../components/Modals/ConfirmationModal.vue'

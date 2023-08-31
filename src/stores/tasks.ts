@@ -31,15 +31,6 @@ export const useTasksStore = defineStore('tasks', () => {
   const clickedTask = ref<null | Task>(null)
   const subtasksOfClickedTask = ref<null | Subtask[]>(null)
 
-  const subtasksNames = computed(() =>
-    subtasksOfClickedTask.value
-      ? subtasksOfClickedTask.value.map((subtask) => subtask.title)
-      : null
-  )
-  const subtasksErrors = computed(() =>
-    subtasksNames.value ? subtasksNames.value.map(() => false) : [false, false]
-  )
-
   const getTasks = async (
     columnsColRef: CollectionReference<DocumentData>,
     columns: BoardColumn[]
@@ -305,8 +296,6 @@ export const useTasksStore = defineStore('tasks', () => {
     clickedTask,
     columnOfClickedTask,
     subtasksOfClickedTask,
-    subtasksNames,
-    subtasksErrors,
     getTasks,
     getSubtasks,
     addNewTask,

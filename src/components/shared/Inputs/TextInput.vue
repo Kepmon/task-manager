@@ -2,10 +2,7 @@
   <div class="grid gap-2">
     <label v-if="label" :for="forAttr" class="text-xs">{{ label }}</label>
     <input
-      @blur="$emit('handle-blur')"
-      @input="
-        $emit('update:modelValue', ($event.target as HTMLInputElement).value)
-      "
+      @input="(e: Event) => handleInput(e)"
       :id="idAttr"
       :ref="condition ? 'newInput' : undefined"
       :value="modelValue"
@@ -35,9 +32,15 @@ const props = defineProps<{
   value?: string
   condition?: boolean
 }>()
-defineEmits(['handle-blur', 'update:modelValue'])
+const emits = defineEmits(['handle-blur', 'update:modelValue'])
 
 const newInput = ref<null | HTMLInputElement>(null)
+
+const handleInput = (e: Event) => {
+  emits('update:modelValue', (e.target as HTMLInputElement).value)
+  emits('handle-blur')
+}
+
 onMounted(() => {
   if (props.condition) {
     ;(newInput.value as HTMLInputElement).focus()

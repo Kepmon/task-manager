@@ -76,7 +76,7 @@
     <transition name="modal">
       <task-modal
         v-if="isAddTaskModalShown"
-        @close-modal="isAddTaskModalShown = false"
+        @change-var-to-false="isAddTaskModalShown = false"
         action="add"
       />
     </transition>
@@ -92,7 +92,7 @@
     <transition name="modal">
       <board-modal
         v-if="isEditBoardModalShown"
-        @close-modal="isEditBoardModalShown = false"
+        @change-var-to-false="isEditBoardModalShown = false"
         action="edit"
       />
     </transition>

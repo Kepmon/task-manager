@@ -33,11 +33,6 @@ export const useBoardsStore = defineStore('boards', () => {
   const boardColumnsNames = computed(() =>
     boardColumns.value ? boardColumns.value.map((column) => column.name) : null
   )
-  const columnErrors = computed(() =>
-    boardColumnsNames.value
-      ? boardColumnsNames.value.map(() => false)
-      : [false, false]
-  )
 
   const boardsColRefGlobal = ref<null | CollectionReference<DocumentData>>(null)
 
@@ -288,7 +283,6 @@ export const useBoardsStore = defineStore('boards', () => {
     currentBoardID,
     boardColumns,
     boardColumnsNames,
-    columnErrors,
     getBoards,
     getColumns,
     addNewBoard,
