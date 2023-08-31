@@ -50,7 +50,7 @@ const formName = ref(
   props.action === 'add' ? '' : (boardsStore.currentBoard as Board).name
 )
 const formNameError = ref(false)
-const formSubsetData = formsStore.returnFormSubsetData('task', props.action)
+const formSubsetData = formsStore.returnFormSubsetData('board', props.action)
 
 const handleCloseModal = () => {
   emits('change-var-to-false')

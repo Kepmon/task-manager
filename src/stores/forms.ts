@@ -95,9 +95,9 @@ export const useFormsStore = defineStore('forms', () => {
 
         formSubsetData.errors[index] = true
       })
-
-      return isFormValid
     }
+
+    return isFormValid
   }
 
   const clearAllErrors = (element: Element) => {

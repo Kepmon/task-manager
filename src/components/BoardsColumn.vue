@@ -65,7 +65,7 @@
     <transition name="modal">
       <confirmation-modal
         v-if="modals.isDeleteTaskModalShown || modals.isDeleteColumnModalShown"
-        @change-var-to-false="
+        @close-modal="
           modals.isDeleteTaskModalShown
             ? (modals.isDeleteTaskModalShown = false)
             : (modals.isDeleteColumnModalShown = false)
