@@ -99,9 +99,7 @@ const updateStatusItem = (newItem: BoardColumn['name']) => {
 const handleCloseModal = () => {
   emits('change-var-to-false')
 
-  formSubsetData.errors.forEach((err) => {
-    err = false
-  })
+  formsStore.clearAllErrors('task')
 }
 
 const submit = async () => {

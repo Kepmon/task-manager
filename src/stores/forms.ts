@@ -21,7 +21,7 @@ export const useFormsStore = defineStore('forms', () => {
       ? boardsStore.boardColumns.map((column) => column.name)
       : []
   )
-  const columnErrors = computed(() =>
+  const columnErrors = ref(
     boardColumnsNames.value
       ? boardColumnsNames.value.map(() => false)
       : [false, false]
@@ -100,6 +100,18 @@ export const useFormsStore = defineStore('forms', () => {
     }
   }
 
+  const clearAllErrors = (element: Element) => {
+    if (element === 'board') {
+      columnErrors.value = boardColumnsNames.value
+        ? boardColumnsNames.value.map(() => false)
+        : [false, false]
+      return
+    }
+    subtasksErrors.value = subtasksNames.value
+      ? subtasksNames.value.map(() => false)
+      : [false, false]
+  }
+
   return {
     columnErrors,
     subtasksErrors,
@@ -108,6 +120,7 @@ export const useFormsStore = defineStore('forms', () => {
     addNewInput,
     handleBlur,
     removeInput,
-    validateForm
+    validateForm,
+    clearAllErrors
   }
 })

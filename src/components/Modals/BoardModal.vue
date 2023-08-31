@@ -55,9 +55,7 @@ const formSubsetData = formsStore.returnFormSubsetData('task', props.action)
 const handleCloseModal = () => {
   emits('change-var-to-false')
 
-  formSubsetData.errors.forEach((err) => {
-    err = false
-  })
+  formsStore.clearAllErrors('board')
 }
 
 const submit = () => {
