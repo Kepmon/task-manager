@@ -54,7 +54,7 @@
       <transition name="modal">
         <see-task-modal
           v-if="modals.isSeeTaskModalShown && tasksConditions"
-          @change-var-to-false="modals.isSeeTaskModalShown = false"
+          @close-modal="modals.isSeeTaskModalShown = false"
           @show-edit-form="modals.showEditForm"
           @show-delete-form="modals.showDeleteForm"
           @handle-move-task="(value) => moveTask(value)"

@@ -32,6 +32,7 @@ import ModalsTemplate from './ModalsTemplate.vue'
 import { computed } from 'vue'
 import { useBoardsStore } from '../../stores/boards'
 import { useTasksStore } from '../../stores/tasks'
+import { useFormsStore } from '../../stores/forms'
 
 type ElementID = Board['boardID'] | BoardColumn['columnID'] | Task['taskID']
 const props = defineProps<{
@@ -57,6 +58,7 @@ const message = computed(() => {
 
 const boardsStore = useBoardsStore()
 const tasksStore = useTasksStore()
+const formsStore = useFormsStore()
 const submitFns = {
   board: () => boardsStore.deleteBoard(props.elementID),
   column: () => boardsStore.deleteColumn(props.elementID),
@@ -71,6 +73,9 @@ const submit = async () => {
   emits('close-modal')
 
   await submitFns[props.elementToDelete]()
+
+  const fnArgument = props.elementToDelete === 'task' ? 'task' : 'board'
+  formsStore.updateFormData(fnArgument)
 }
 </script>
 

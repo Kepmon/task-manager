@@ -1,11 +1,13 @@
+import type { BoardColumn, Subtask } from '../api/boardsTypes'
 import type { Ref } from 'vue'
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useBoardsStore } from './boards'
 import { useTasksStore } from './tasks'
 
 type Action = 'add' | 'edit'
 type Element = 'board' | 'task'
+type StoreItems = BoardColumn['name'][] | Subtask['title'][]
 interface FormData {
   items: string[]
   placeholderItems: string[] | undefined
@@ -16,45 +18,32 @@ export const useFormsStore = defineStore('forms', () => {
   const boardsStore = useBoardsStore()
   const tasksStore = useTasksStore()
 
-  const boardColumnsNames = computed(() =>
-    boardsStore.boardColumns
-      ? boardsStore.boardColumns.map((column) => column.name)
-      : []
-  )
-  const columnErrors = ref(
-    boardColumnsNames.value
-      ? boardColumnsNames.value.map(() => false)
-      : [false, false]
-  )
-
-  const subtasksNames = computed(() =>
-    tasksStore.subtasksOfClickedTask
-      ? tasksStore.subtasksOfClickedTask.map((subtask) => subtask.title)
-      : []
-  )
-  const subtasksErrors = ref(
-    subtasksNames.value ? subtasksNames.value.map(() => false) : [false, false]
-  )
-
-  const returnFormSubsetData = (element: Element, action: Action) => {
-    const formsData = ref({
-      board: ref({
-        items: action === 'add' ? ['Todo', 'Doing'] : boardColumnsNames.value,
+  const formsData = ref({
+    board: ref({
+      add: ref({
+        items: ['Todo', 'Doing'],
         placeholderItems: undefined,
-        errors: columnErrors.value
+        errors: [false, false]
       }),
-      task: ref({
-        items: action === 'add' ? ['', ''] : (subtasksNames.value as string[]),
-        placeholderItems:
-          action === 'add'
-            ? ['e.g. Make coffee', 'e.g. Drink coffee & smile']
-            : undefined,
-        errors: subtasksErrors.value
+      edit: ref({
+        items: [...boardsStore.boardColumnsNames],
+        placeholderItems: undefined,
+        errors: boardsStore.boardColumnsNames.map(() => false)
+      })
+    }),
+    task: ref({
+      add: ref({
+        items: ['', ''],
+        placeholderItems: ['e.g. Make coffee', 'e.g. Drink coffee & smile'],
+        errors: [false, false]
+      }),
+      edit: ref({
+        items: [...tasksStore.subtasksNames],
+        placeholderItems: undefined,
+        errors: tasksStore.subtasksNames.map(() => false)
       })
     })
-
-    return formsData.value[element]
-  }
+  })
 
   const isNewInputAdded = ref(false)
   const addNewInput = (formData: FormData) => {
@@ -80,47 +69,84 @@ export const useFormsStore = defineStore('forms', () => {
   const validateForm = (
     formName: Ref<string>,
     formNameError: Ref<boolean>,
-    formSubsetData: FormData
+    formSubsetData: Ref<FormData>
   ) => {
     const isFormValid =
-      formName.value !== '' && formSubsetData.items.every((item) => item !== '')
+      formName.value !== '' &&
+      formSubsetData.value.items.every((item) => item !== '')
 
     if (!isFormValid) {
       if (formName.value === '') {
         formNameError.value = true
       }
 
-      formSubsetData.items.forEach((column, index) => {
+      formSubsetData.value.items.forEach((column, index) => {
         if (column !== '') return
 
-        formSubsetData.errors[index] = true
+        formSubsetData.value.errors[index] = true
       })
     }
 
     return isFormValid
   }
 
-  const clearAllErrors = (element: Element) => {
-    if (element === 'board') {
-      columnErrors.value = boardColumnsNames.value
-        ? boardColumnsNames.value.map(() => false)
-        : [false, false]
+  const clearAllErrors = (
+    element: Element,
+    action: Action,
+    itemsToIterateOver: StoreItems
+  ) => {
+    if (action === 'add') {
+      formsData.value[element].add.errors = [false, false]
       return
     }
-    subtasksErrors.value = subtasksNames.value
-      ? subtasksNames.value.map(() => false)
-      : [false, false]
+
+    formsData.value[element].edit.errors = itemsToIterateOver.map(() => false)
+  }
+
+  const resetFormData = (
+    element: Element,
+    action: Action,
+    storeItems: StoreItems
+  ) => {
+    if (action === 'edit') {
+      formsData.value[element].edit.items = [...storeItems]
+      return
+    }
+
+    if (action === 'add' && element === 'board') {
+      formsData.value.board.add.items = ['Todo', 'Doing']
+      return
+    }
+
+    formsData.value.task.add.items = ['', '']
+  }
+
+  const updateFormData = (element: Element) => {
+    formsData.value[element].edit.items = [...boardsStore.boardColumnsNames]
+    formsData.value[element].edit.errors = boardsStore.boardColumnsNames.map(
+      () => false
+    )
+
+    if (element === 'board') {
+      formsData.value.board.add.items = ['Todo', 'Doing']
+    }
+
+    if (element === 'task') {
+      formsData.value.task.add.items = ['', '']
+    }
+
+    formsData.value[element].add.errors = [false, false]
   }
 
   return {
-    columnErrors,
-    subtasksErrors,
+    formsData,
     isNewInputAdded,
-    returnFormSubsetData,
     addNewInput,
     handleBlur,
     removeInput,
     validateForm,
-    clearAllErrors
+    clearAllErrors,
+    resetFormData,
+    updateFormData
   }
 })

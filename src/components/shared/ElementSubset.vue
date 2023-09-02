@@ -60,5 +60,5 @@ const props = defineProps<{
   element: 'board' | 'task'
 }>()
 const formsStore = useFormsStore()
-const formData = formsStore.returnFormSubsetData(props.element, props.action)
+const formData = formsStore.formsData[props.element][props.action]
 </script>

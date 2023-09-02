@@ -56,7 +56,7 @@ import ElementSubset from '../shared/ElementSubset.vue'
 import { useBoardsStore } from '../../stores/boards'
 import { useTasksStore } from '../../stores/tasks'
 import { useFormsStore } from '../../stores/forms'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps<{
   action: 'add' | 'edit'
@@ -73,7 +73,7 @@ const formsStore = useFormsStore()
 const formName = ref(props.task != null ? props.task.title : '')
 const formNameError = ref(false)
 const taskDescription = ref(props.task != null ? props.task.description : '')
-const formSubsetData = formsStore.returnFormSubsetData('task', props.action)
+const formSubsetData = computed(() => formsStore.formsData.task[props.action])
 
 const selectedStatusItem = ref(
   props.columnIndex != null
@@ -99,7 +99,7 @@ const updateStatusItem = (newItem: BoardColumn['name']) => {
 const handleCloseModal = () => {
   emits('change-var-to-false')
 
-  formsStore.clearAllErrors('task')
+  formsStore.clearAllErrors('task', props.action, tasksStore.subtasksNames)
 }
 
 const submit = async () => {
@@ -119,7 +119,7 @@ const submit = async () => {
         title: formName.value.trim(),
         description: taskDescription.value.trim()
       },
-      formSubsetData.items
+      formSubsetData.value.items
     )
   }
 
@@ -127,7 +127,7 @@ const submit = async () => {
     await tasksStore.editTask(
       formName.value,
       taskDescription.value,
-      formSubsetData.items,
+      formSubsetData.value.items,
       prevStatusItem.value?.columnID,
       selectedStatusItem.value.columnID,
       isStatusUpdated.value
@@ -135,5 +135,7 @@ const submit = async () => {
   }
 
   await boardsStore.getColumns()
+
+  formsStore.updateFormData('task')
 }
 </script>

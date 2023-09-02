@@ -31,7 +31,7 @@ export const useBoardsStore = defineStore('boards', () => {
 
   const boardColumns = ref<BoardColumn[]>([])
   const boardColumnsNames = computed(() =>
-    boardColumns.value ? boardColumns.value.map((column) => column.name) : null
+    boardColumns.value ? boardColumns.value.map((column) => column.name) : []
   )
 
   const boardsColRefGlobal = ref<null | CollectionReference<DocumentData>>(null)
@@ -193,6 +193,7 @@ export const useBoardsStore = defineStore('boards', () => {
 
         if (boardColumns[index] == null) {
           await deleteColumn(columnDocsRefs[index].id)
+          await getColumns()
           return
         }
 
