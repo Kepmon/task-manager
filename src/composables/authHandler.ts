@@ -12,20 +12,26 @@ export const handleAuthResponse = (
 ) => {
   response === true ? (isAuthError.value = false) : (isAuthError.value = true)
 
+  const durationOfShowingPopup = response === true ? 1500 : 2500
   isPopupShown.value = true
   setTimeout(() => {
     isPopupShown.value = false
-  }, 2000)
+  }, durationOfShowingPopup)
 
   if (response === true) {
+    const pathToGo = {
+      'sign-up': '/',
+      '/': '/dashboard',
+      '/dashboard': '/'
+    }
     setTimeout(() => {
-      router.push(`${currentPath === '/sign-up' ? '/' : '/dashboard'}`)
-    }, 3000)
+      router.push(pathToGo[currentPath as keyof typeof pathToGo])
+    }, durationOfShowingPopup + 500)
+  }
 
+  if (loading != null) {
     setTimeout(() => {
-      if (loading != null) {
-        loading.value = false
-      }
-    }, 3000)
+      loading.value = false
+    }, durationOfShowingPopup + 500)
   }
 }
