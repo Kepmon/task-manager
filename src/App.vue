@@ -48,6 +48,14 @@ button,
   @apply outline outline-transparent focus-visible:outline-purple-600 outline-[3px];
 }
 
+:disabled {
+  @apply disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+::selection {
+  @apply bg-purple-400;
+}
+
 .regular-button {
   @apply flex items-center grow justify-center gap-2 py-[10px] px-4;
   @apply rounded-3xl text-sm font-bold;
@@ -64,14 +72,9 @@ button,
   @apply after:top-3 after:right-2;
 }
 
-::selection {
-  @apply bg-purple-400;
-}
-
 .purple-class {
   @apply bg-purple-400 hover:bg-purple-600 focus-visible:bg-purple-600;
   @apply text-white outline outline-transparent transition-colors duration-300;
-  @apply disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-purple-400;
   @apply focus-visible:outline-white;
 }
 

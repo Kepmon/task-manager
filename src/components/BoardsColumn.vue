@@ -91,7 +91,7 @@
     <transition name="modal">
       <task-modal
         v-if="modals.isEditTaskModalShown && tasksConditions"
-        @change-var-to-false="modals.closeTaskModal"
+        @change-var-to-false="modals.isEditTaskModalShown = false"
         action="edit"
         v-bind="tasksProps"
       />
@@ -99,7 +99,7 @@
     <transition name="modal">
       <board-modal
         v-if="modals.isEditBoardModalShown"
-        @change-var-to-false="modals.closeBoardModal"
+        @change-var-to-false="modals.isEditBoardModalShown = false"
         action="edit"
       />
     </transition>
@@ -156,14 +156,6 @@ const modals = ref({
   handleDeleteIconClick: (column: BoardColumn) => {
     modals.value.isDeleteColumnModalShown = true
     modals.value.columnToDelete = column
-  },
-  closeBoardModal: () => {
-    modals.value.isEditBoardModalShown = false
-    formsStore.isNewInputAdded = false
-  },
-  closeTaskModal: () => {
-    modals.value.isEditTaskModalShown = false
-    formsStore.isNewInputAdded = false
   }
 })
 

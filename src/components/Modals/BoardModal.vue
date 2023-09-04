@@ -20,8 +20,9 @@
 
       <element-subset :action="action" element="board" />
 
-      <button class="regular-button purple-class">
-        <span aria-hidden="true">{{
+      <button :disabled="isPending" class="regular-button purple-class">
+        <span v-if="isPending">Loading...</span>
+        <span v-if="!isPending" aria-hidden="true">{{
           action === 'add' ? 'Create New Board' : 'Save Changes'
         }}</span>
       </button>
@@ -58,6 +59,7 @@ const handleCloseModal = () => {
   formsStore.updateFormData('board')
 }
 
+const isPending = ref(false)
 const submit = async () => {
   const isFormValid = formsStore.validateForm(
     formName,
@@ -66,7 +68,7 @@ const submit = async () => {
   )
   if (!isFormValid) return
 
-  emits('change-var-to-false')
+  isPending.value = true
 
   const columnNames = formSubsetData.value.items.map(({ name }) => name.trim())
 
@@ -81,6 +83,9 @@ const submit = async () => {
     )
   }
 
+  emits('change-var-to-false')
+
   formsStore.updateFormData('board')
+  isPending.value = false
 }
 </script>

@@ -22,7 +22,7 @@
           element="task"
         />
 
-        <p class="text-gray-400 text-xs xs::text-sm">
+        <p v-if="task.description" class="text-gray-400 text-xs xs::text-sm">
           {{ task.description }}
         </p>
 
@@ -63,13 +63,14 @@
             Current Status
           </p>
           <v-select
-            @update:model-value="
-              (newColumnName: BoardColumn['name']) => $emit('handle-move-task', newColumnName)
-            "
+            @update:model-value="(newColumnName: BoardColumn['name']) => handleChangeColumn(newColumnName)"
             :options="taskStatuses"
             :searchable="false"
             :placeholder="taskStatuses[columnIndex]"
           ></v-select>
+          <p v-if="isPending" class="mt-4 text-purple-400 text-center">
+            Loading...
+          </p>
         </div>
       </div>
     </template>
@@ -78,20 +79,20 @@
 
 <script setup lang="ts">
 import type { BoardColumn, Task, Subtask } from '../../api/boardsTypes'
+import type { Ref } from 'vue'
 import ModalsTemplate from './ModalsTemplate.vue'
 import MoreOptions from '../shared/MoreOptions.vue'
 import MoreOptionsIcon from '../Svgs/MoreOptionsIcon.vue'
 import moreOptionsPopup from '../../composables/moreOptionsPopup'
 import { useTasksStore } from '../../stores/tasks'
 import { useBoardsStore } from '../../stores/boards'
-import type { Ref } from 'vue'
-import { ref } from 'vue'
+import { ref, onUnmounted } from 'vue'
 
 defineProps<{
   columnIndex: number
   task: Task
 }>()
-defineEmits([
+const emits = defineEmits([
   'close-modal',
   'show-edit-form',
   'show-delete-form',
@@ -118,6 +119,16 @@ const toggleSubtask = async (index: number) => {
   await tasksStore.toggleSubtask(clickedSubtask)
   await boardsStore.getColumns()
 }
+
+const isPending = ref(false)
+const handleChangeColumn = (newColumnName: BoardColumn['name']) => {
+  isPending.value = true
+  emits('handle-move-task', newColumnName)
+}
+
+onUnmounted(() => {
+  isPending.value = false
+})
 </script>
 
 <style lang="postcss" scoped>

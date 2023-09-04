@@ -10,8 +10,13 @@
       </p>
 
       <div class="flex flex-col s:flex-row gap-4">
-        <button @click="submit" class="regular-button red-button">
-          Delete
+        <button
+          @click="submit"
+          :disabled="isPending"
+          class="regular-button red-button"
+        >
+          <span v-if="isPending">Loading...</span>
+          <span v-if="!isPending">Delete</span>
         </button>
 
         <button
@@ -33,6 +38,7 @@ import { computed } from 'vue'
 import { useBoardsStore } from '../../stores/boards'
 import { useTasksStore } from '../../stores/tasks'
 import { useFormsStore } from '../../stores/forms'
+import { ref } from 'vue'
 
 type ElementID = Board['boardID'] | BoardColumn['columnID'] | Task['taskID']
 const props = defineProps<{
@@ -65,13 +71,18 @@ const submitFns = {
   task: () => tasksStore.deleteTask()
 }
 
+const isPending = ref(false)
 const submit = async () => {
-  emits('close-modal')
+  isPending.value = true
 
   await submitFns[props.elementToDelete]()
 
+  emits('close-modal')
+
   const fnArgument = props.elementToDelete === 'task' ? 'task' : 'board'
   formsStore.updateFormData(fnArgument)
+
+  isPending.value = false
 }
 </script>
 

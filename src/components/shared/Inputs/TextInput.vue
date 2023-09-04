@@ -22,7 +22,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { useFormsStore } from '../../../stores/forms'
 
 const props = defineProps<{
   label?: string
@@ -37,6 +38,7 @@ const props = defineProps<{
 }>()
 const emits = defineEmits(['handle-blur', 'update:modelValue'])
 
+const formsStore = useFormsStore()
 const newInput = ref<null | HTMLInputElement>(null)
 
 const handleInput = (e: Event) => {
@@ -48,5 +50,9 @@ onMounted(() => {
   if (props.condition && newInput.value) {
     newInput.value.focus()
   }
+})
+
+onUnmounted(() => {
+  formsStore.isNewInputAdded = false
 })
 </script>

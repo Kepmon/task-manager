@@ -38,8 +38,9 @@
         ></v-select>
       </div>
 
-      <button class="regular-button purple-class">
-        <span aria-hidden="true">{{
+      <button :disabled="isPending" class="regular-button purple-class">
+        <span v-if="isPending">Loading...</span>
+        <span v-if="!isPending" aria-hidden="true">{{
           action === 'add' ? 'Create Task' : 'Save Changes'
         }}</span>
       </button>
@@ -102,6 +103,7 @@ const handleCloseModal = () => {
   formsStore.updateFormData('task')
 }
 
+const isPending = ref(false)
 const submit = async () => {
   const isFormValid = formsStore.validateForm(
     formName,
@@ -110,7 +112,7 @@ const submit = async () => {
   )
   if (!isFormValid) return
 
-  emits('change-var-to-false')
+  isPending.value = true
 
   const subtaskNames = formSubsetData.value.items.map(({ name }) => name.trim())
 
@@ -135,8 +137,10 @@ const submit = async () => {
     )
   }
 
+  emits('change-var-to-false')
   await boardsStore.getColumns()
 
   formsStore.updateFormData('task')
+  isPending.value = false
 }
 </script>
