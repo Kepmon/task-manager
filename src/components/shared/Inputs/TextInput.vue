@@ -51,8 +51,8 @@ const handleBlur = (e: KeyboardEvent) => {
 }
 
 onMounted(() => {
-  if (props.condition) {
-    ;(newInput.value as HTMLInputElement).focus()
+  if (props.condition && newInput.value) {
+    newInput.value.focus()
   }
 })
 </script>
