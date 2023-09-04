@@ -5,28 +5,26 @@
     </p>
     <div v-if="formData.items.length !== 0" class="grid gap-3">
       <div
-        v-for="(item, index) in formData.items"
-        :key="index"
+        v-for="({ name, id }, index) in formData.items"
+        :key="id"
         class="flex items-center"
       >
         <text-input
           @handle-blur="() => formsStore.handleBlur(formData, index)"
-          @update:model-value="(newValue: string) => formData.items[index] = newValue"
-          :modelValue="item"
+          @update:model-value="(newValue: string) => formData.items[index].name = newValue"
+          :modelValue="name"
           :placeholder="
             formData.placeholderItems
               ? formData.placeholderItems[index]
               : undefined
           "
           :isError="formData.errors[index]"
-          :condition="
-            index === formData.items.length - 1 && formsStore.isNewInputAdded
-          "
+          :condition="formsStore.isNewInputAdded"
           class="grow"
         ></text-input>
         <close-icon
           @handle-close="() => formsStore.removeInput(formData, index)"
-          :listItem="item"
+          :listItem="true"
           :isError="formData.errors[index]"
         />
       </div>

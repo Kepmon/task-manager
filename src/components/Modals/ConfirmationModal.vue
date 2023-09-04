@@ -62,11 +62,7 @@ const formsStore = useFormsStore()
 const submitFns = {
   board: () => boardsStore.deleteBoard(props.elementID),
   column: () => boardsStore.deleteColumn(props.elementID),
-  task: () =>
-    tasksStore.deleteTask(
-      props.columnOfClickedTask as BoardColumn['columnID'],
-      props.elementID
-    )
+  task: () => tasksStore.deleteTask()
 }
 
 const submit = async () => {

@@ -55,13 +55,7 @@ const formSubsetData = computed(() => formsStore.formsData.board[props.action])
 const handleCloseModal = () => {
   emits('change-var-to-false')
 
-  formsStore.clearAllErrors(
-    'board',
-    props.action,
-    boardsStore.boardColumnsNames
-  )
-
-  formsStore.resetFormData('board', props.action, boardsStore.boardColumnsNames)
+  formsStore.updateFormData('board')
 }
 
 const submit = async () => {
@@ -73,10 +67,19 @@ const submit = async () => {
   if (!isFormValid) return
 
   emits('change-var-to-false')
-  const submitFn =
-    props.action === 'add' ? boardsStore.addNewBoard : boardsStore.editBoard
 
-  await submitFn(formName.value.trim(), formSubsetData.value.items)
+  const columnNames = formSubsetData.value.items.map(({ name }) => name.trim())
+
+  if (props.action === 'add') {
+    await boardsStore.addNewBoard(formName.value.trim(), columnNames)
+  }
+
+  if (props.action === 'edit') {
+    await boardsStore.editBoard(
+      formName.value.trim(),
+      formSubsetData.value.items
+    )
+  }
 
   formsStore.updateFormData('board')
 }

@@ -118,9 +118,11 @@ import CloseIcon from './Svgs/CloseIcon.vue'
 import { computed, ref } from 'vue'
 import { useBoardsStore } from '../stores/boards'
 import { useTasksStore } from '../stores/tasks'
+import { useFormsStore } from '../stores/forms'
 
 const boardsStore = useBoardsStore()
 const tasksStore = useTasksStore()
+const formsStore = useFormsStore()
 
 const circleColor = computed(() => {
   if (boardsStore.boardColumns != null) {
@@ -172,6 +174,8 @@ const tasks = ref({
   saveSubtasksOfClickedTask: (columnIndex: number, taskIndex: number) => {
     tasksStore.subtasksOfClickedTask =
       tasksStore.subtasks[columnIndex][taskIndex]
+
+    formsStore.updateFormData('task')
   }
 })
 
@@ -218,15 +222,13 @@ const returnNumberOfElements = (
 }
 
 const moveTask = async (value: BoardColumn['name']) => {
-  const prevColumnID =
-    boardsStore.boardColumns[tasksStore.columnOfClickedTask as number].columnID
   const nextColumnID = (
     boardsStore.boardColumns.find(
       (boardColumn) => boardColumn.name === value
     ) as BoardColumn
   ).columnID
 
-  await tasksStore.moveTaskBetweenColumns(prevColumnID, nextColumnID)
+  await tasksStore.moveTaskBetweenColumns(nextColumnID)
   await boardsStore.getColumns()
 
   modals.value.isSeeTaskModalShown = false

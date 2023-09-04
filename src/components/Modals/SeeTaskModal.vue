@@ -36,11 +36,11 @@
             of {{ tasksStore.subtasksOfClickedTask.length }})
           </p>
           <div
-            @click.once="() => toggleSubtask(index)"
+            @click="() => toggleSubtask(index)"
             v-for="(
-              { title, isCompleted }, index
+              { title, isCompleted, subtaskID }, index
             ) in tasksStore.subtasksOfClickedTask"
-            :key="index"
+            :key="subtaskID"
             class="subtask"
           >
             <label class="flex items-center gap-4 px-1 cursor-pointer">
@@ -123,8 +123,8 @@ const toggleSubtask = async (index: number) => {
 <style lang="postcss" scoped>
 .checkbox {
   @apply appearance-none after:flex after:items-center after:justify-center;
-  @apply after:h-3 after:w-3 after:bg-white after:shadow-option after:rounded-[2px];
-  @apply checked:after:bg-purple-400 checked:after:content-checked;
+  @apply after:pb-[2px] after:h-3 after:w-3 after:bg-white after:shadow-option;
+  @apply after:rounded-[2px] checked:after:bg-purple-400 checked:after:content-checked;
 }
 
 .subtask {

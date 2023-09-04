@@ -1,4 +1,4 @@
-import type { Board, BoardColumn } from '../api/boardsTypes'
+import type { Board, BoardColumn, FormSubsetItem } from '../api/boardsTypes'
 import type {
   CollectionReference,
   DocumentReference,
@@ -136,17 +136,25 @@ export const useBoardsStore = defineStore('boards', () => {
 
   const editBoard = async (
     boardName: Board['name'],
-    boardColumns: string[]
+    updatedColumns: FormSubsetItem[]
   ) => {
     const isBoardNameSame = boardName === (currentBoard.value as Board).name
-    const areColumnNamesSame =
-      boardColumnsNames.value != null &&
-      boardColumnsNames.value.length === boardColumns.length &&
-      boardColumnsNames.value.every(
-        (column, index) => column === boardColumns[index]
-      )
+    const isNumberOfColumnsSame =
+      boardColumns.value?.length === updatedColumns.length
+    const areColumnsNamesSame = (boardColumns.value as BoardColumn[]).every(
+      ({ columnID, name: columnName }) =>
+        updatedColumns.find(
+          ({ name, id }) => columnName === name && columnID === id
+        )
+    )
 
-    if (isBoardNameSame && areColumnNamesSame) return
+    const isFormNotChanged = [
+      isBoardNameSame,
+      isNumberOfColumnsSame,
+      areColumnsNamesSame
+    ].every((item) => item === true)
+
+    if (isFormNotChanged) return
 
     const docToEditRef = doc(
       boardsColRefGlobal.value as CollectionReference<DocumentData>,
@@ -154,10 +162,10 @@ export const useBoardsStore = defineStore('boards', () => {
     )
     const lastCurrentBoardID = (currentBoard.value as Board).boardID
 
-    if (boardName !== (currentBoard.value as Board).name) {
+    if (!isBoardNameSame) {
       await updateFirestoreDoc(docToEditRef, boardName)
 
-      if (areColumnNamesSame) {
+      if (areColumnsNamesSame) {
         await getBoards()
 
         currentBoard.value =
@@ -173,32 +181,40 @@ export const useBoardsStore = defineStore('boards', () => {
     }
 
     const columnsColRef = collection(db, `${docToEditRef.path}/columns`)
-    if (
-      boardColumnsNames.value &&
-      boardColumns.length > boardColumnsNames.value.length
-    ) {
-      boardColumns.forEach(async (boardColumn, index) => {
-        if ((boardColumnsNames.value as BoardColumn['name'][])[index] != null)
-          return
+    const noRespectiveColumns = updatedColumns.filter(({ name, id }) => {
+      if (
+        boardColumns.value != null &&
+        (boardColumns.value as BoardColumn[]).some(
+          ({ columnID }) => columnID === id
+        )
+      )
+        return
 
-        await addDocToFirestore(columnsColRef, boardColumn)
+      return name
+    })
+    if (noRespectiveColumns) {
+      noRespectiveColumns.forEach(async ({ name }) => {
+        await addDocToFirestore(columnsColRef, name)
       })
     }
 
-    const columnDocsRefs = (await getDocs(columnsColRef)).docs
+    if (boardColumns.value != null) {
+      boardColumns.value.forEach(async ({ columnID, name }) => {
+        const columnDocRef = doc(columnsColRef, columnID)
 
-    if (boardColumnsNames.value != null) {
-      boardColumnsNames.value.forEach(async (columnDocName, index) => {
-        if (boardColumns[index] === columnDocName) return
+        const respectiveSubtask = updatedColumns.find(
+          ({ id }) => id === columnID
+        )
+        const isSubtaskNameSame = respectiveSubtask?.name === name
 
-        if (boardColumns[index] == null) {
-          await deleteColumn(columnDocsRefs[index].id)
-          await getColumns()
+        if (respectiveSubtask && isSubtaskNameSame) return
+
+        if (respectiveSubtask == null) {
+          await deleteDoc(columnDocRef)
           return
         }
 
-        const docToEditRef = doc(columnsColRef, columnDocsRefs[index].id)
-        await updateFirestoreDoc(docToEditRef, boardColumns[index])
+        await updateFirestoreDoc(columnDocRef, name)
       })
     }
 

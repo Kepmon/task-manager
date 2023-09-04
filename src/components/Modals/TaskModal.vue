@@ -99,7 +99,7 @@ const updateStatusItem = (newItem: BoardColumn['name']) => {
 const handleCloseModal = () => {
   emits('change-var-to-false')
 
-  formsStore.clearAllErrors('task', props.action, tasksStore.subtasksNames)
+  formsStore.updateFormData('task')
 }
 
 const submit = async () => {
@@ -112,6 +112,8 @@ const submit = async () => {
 
   emits('change-var-to-false')
 
+  const subtaskNames = formSubsetData.value.items.map(({ name }) => name.trim())
+
   if (props.action === 'add') {
     await tasksStore.addNewTask(
       selectedStatusItem.value.columnID as BoardColumn['columnID'],
@@ -119,7 +121,7 @@ const submit = async () => {
         title: formName.value.trim(),
         description: taskDescription.value.trim()
       },
-      formSubsetData.value.items
+      subtaskNames
     )
   }
 
@@ -128,7 +130,6 @@ const submit = async () => {
       formName.value,
       taskDescription.value,
       formSubsetData.value.items,
-      prevStatusItem.value?.columnID,
       selectedStatusItem.value.columnID,
       isStatusUpdated.value
     )
