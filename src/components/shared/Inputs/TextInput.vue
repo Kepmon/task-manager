@@ -4,7 +4,7 @@
     <div :class="{ 'input-error': isError }">
       <input
         @input="(e: Event) => handleInput(e)"
-        @keydown="(e: KeyboardEvent) => handleBlur(e)"
+        @blur="$emit('handle-blur')"
         :id="idAttr"
         :ref="condition ? 'newInput' : undefined"
         :value="modelValue"
@@ -41,12 +41,6 @@ const newInput = ref<null | HTMLInputElement>(null)
 
 const handleInput = (e: Event) => {
   emits('update:modelValue', (e.target as HTMLInputElement).value)
-  emits('handle-blur')
-}
-
-const handleBlur = (e: KeyboardEvent) => {
-  if (e.key !== 'Tab') return
-
   emits('handle-blur')
 }
 
