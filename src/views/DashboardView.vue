@@ -56,12 +56,10 @@
       <empty-info
         v-if="!userStore.isLoading"
         :emptyDashboard="isDashboardEmpty"
-        :emptyBoard="isBoardEmpty"
       />
       <user-options
         v-if="isDashboardEmpty && !userStore.isLoading"
         :isDashboardEmpty="isDashboardEmpty"
-        class="absolute bottom-8 right-8 scale-125"
       />
     </main>
   </div>

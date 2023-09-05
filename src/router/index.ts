@@ -40,7 +40,7 @@ router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore()
   const savedUser = JSON.parse(localStorage.getItem('user') || '{}')
 
-  if (Object.keys(savedUser).length) {
+  if (Object.keys(savedUser).length > 0) {
     const lastLoggedIn = savedUser.lastLoginAt
     const lastLoggedInToNum = parseInt(lastLoggedIn)
     const lastLoggedInDate = new Date(lastLoggedInToNum)
@@ -60,14 +60,14 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
-  if (to.path === '/dashboard' && !Object.keys(savedUser).length) {
+  if (to.path === '/dashboard' && Object.keys(savedUser).length === 0) {
     userStore.logout()
     return next('/')
   }
 
   if (
     (to.path === '/' || to.path === '/sign-up') &&
-    Object.keys(savedUser).length
+    Object.keys(savedUser).length > 0
   ) {
     return next('/dashboard')
   }

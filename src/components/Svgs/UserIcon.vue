@@ -3,8 +3,8 @@
     id="svg6"
     fill="none"
     viewBox="0 0 20.000001 20.000001"
-    height="50"
-    width="50"
+    :height="isDashboardEmpty ? '60' : '50'"
+    :width="isDashboardEmpty ? '60' : '50'"
   >
     <rect
       id="rect2"
@@ -37,3 +37,9 @@
     </g>
   </svg>
 </template>
+
+<script setup lang="ts">
+defineProps<{
+  isDashboardEmpty: boolean
+}>()
+</script>

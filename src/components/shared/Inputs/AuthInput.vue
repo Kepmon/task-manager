@@ -2,6 +2,7 @@
   <div class="grid gap-2">
     <label class="text-xs">{{ label }}</label>
     <Field
+      @input="updatePassword"
       :id="name"
       :type="type"
       :name="name"
@@ -17,6 +18,7 @@
 
 <script setup lang="ts">
 import { toRef } from 'vue'
+import { useUserStore } from '../../../stores/user'
 import { Field, ErrorMessage, useField } from 'vee-validate'
 
 const props = defineProps<{
@@ -25,6 +27,13 @@ const props = defineProps<{
   type: HTMLInputElement['type']
 }>()
 
+const userStore = useUserStore()
 const name = toRef(props, 'name')
 const { errorMessage } = useField(name)
+
+const updatePassword = (e: InputEvent) => {
+  if (props.name !== 'password') return
+
+  userStore.inputedPassword = (e.target as HTMLInputElement).value
+}
 </script>

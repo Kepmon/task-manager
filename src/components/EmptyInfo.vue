@@ -1,13 +1,13 @@
 <template>
   <div
-    v-if="emptyDashboard || emptyBoard"
+    v-if="emptyDashboard"
     class="grid content-center justify-items-center h-full"
   >
     <theme-toggle
       class="absolute top-0 px-8 bg-white dark:bg-gray-700 rounded-b-3xl sm:hidden"
     />
     <p
-      class="mb-[25px] text-lg text-center text-gray-400 first-letter:capitalize"
+      class="mb-[25px] text-lgFluid text-center text-gray-400 first-letter:capitalize"
     >
       {{ message }}
     </p>
@@ -36,7 +36,6 @@ import { ref, computed } from 'vue'
 
 const props = defineProps<{
   emptyDashboard: boolean
-  emptyBoard: boolean
 }>()
 
 const isBoardModalShown = ref(false)

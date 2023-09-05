@@ -6,7 +6,7 @@ export const isAuthError = ref(false)
 export const isPopupShown = ref(false)
 
 export const handleAuthResponse = (
-  response: boolean | string,
+  response: boolean | string | void,
   currentPath: string,
   loading?: Ref<boolean>
 ) => {
@@ -20,7 +20,7 @@ export const handleAuthResponse = (
 
   if (response === true) {
     const pathToGo = {
-      'sign-up': '/',
+      '/sign-up': '/',
       '/': '/dashboard',
       '/dashboard': '/'
     }

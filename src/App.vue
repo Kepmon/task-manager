@@ -89,11 +89,11 @@ button,
 }
 
 .options-container {
-  @apply absolute grid bg-white dark:bg-gray-800 rounded-lg shadow-xs z-10;
+  @apply absolute grid w-max bg-white dark:bg-gray-800 rounded-lg shadow-xs z-10;
 }
 
 .option {
-  @apply py-[7px] s:py-[10px] pl-3 pr-10 text-start text-sm text-gray-400;
+  @apply py-[7px] px-3 text-start text-sm text-gray-400;
   @apply hover:bg-gray-200 dark:hover:bg-gray-500 focus-visible:bg-gray-200 dark:focus-visible:bg-gray-500;
   @apply outline-transparent transition-colors duration-300;
 }

@@ -32,7 +32,10 @@ const dashboardMessages = {
 
 const message = computed(() => {
   if (props.isError && props.errorMessage) {
-    return authErrorText[props.errorMessage as keyof typeof authErrorText]
+    return (
+      authErrorText[props.errorMessage as keyof typeof authErrorText] ||
+      'Ooops, something went wrong. Try again later.'
+    )
   }
 
   if (props.isError) {
