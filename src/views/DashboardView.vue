@@ -54,7 +54,7 @@
     >
       <boards-column v-if="!isDashboardEmpty && !userStore.isLoading" />
       <empty-info
-        v-if="!userStore.isLoading"
+        v-if="isDashboardEmpty && !userStore.isLoading"
         :emptyDashboard="isDashboardEmpty"
       />
       <user-options

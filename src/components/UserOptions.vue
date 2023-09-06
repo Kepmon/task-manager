@@ -7,6 +7,8 @@
       <transition name="popup">
         <confirmation-popup
           v-if="isPopupShown"
+          action="delete"
+          element="user account"
           :isError="isAuthError"
           errorMessage="auth/wrong-password"
         />

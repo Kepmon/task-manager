@@ -117,16 +117,10 @@ const submit = async () => {
   const response = await submitFns[props.elementToDelete]()
 
   if (props.elementToDelete === 'user') {
-    const savedBoard = localStorage.getItem(`currentBoard-${userStore.userID}`)
-
-    if (response === true && savedBoard != null) {
-      localStorage.removeItem(`currentBoard-${userStore.userID}`)
-    }
-
-    handleAuthResponse(response, route.path)
-
-    isPending.value = false
-    emits('close-modal')
+    handleAuthResponse(response, route.path, isPending)
+    setTimeout(() => {
+      emits('close-modal')
+    }, 3000)
     return
   }
 

@@ -1,5 +1,4 @@
 import type { AuthError, User } from 'firebase/auth'
-import type { Board } from '../api/boardsTypes'
 import { defineStore } from 'pinia'
 import {
   onAuthStateChanged,
@@ -114,8 +113,8 @@ export const useUserStore = defineStore('user', () => {
 
       if (boardsDocRefs.length > 0) {
         boardsDocRefs.forEach(async (docRef) => {
-          const boardDoc = docRef.data() as Board
-          await boardsStore.deleteBoard(boardDoc.boardID)
+          const boardDoc = docRef.id
+          await boardsStore.deleteBoard(boardDoc)
         })
       }
       const userDocRef = doc(usersColRef, (user as User).uid)
