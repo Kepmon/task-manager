@@ -3,6 +3,7 @@ import DashboardView from '../views/DashboardView.vue'
 import LoginView from '../views/LoginView.vue'
 import SignUpView from '../views/SignUpView.vue'
 import PrivacyPolicyView from '../views/PrivacyPolicyView.vue'
+import NotFoundView from '../views/NotFoundView.vue'
 import { useUserStore } from '../stores/user'
 
 const publicRoutes = [
@@ -10,6 +11,11 @@ const publicRoutes = [
     path: '/privacy-policy',
     name: 'privacy-policy',
     component: PrivacyPolicyView
+  },
+  {
+    path: '/:otherPath(.*)',
+    name: 'not-found',
+    component: NotFoundView
   }
 ]
 const protectedRoutes = [
@@ -33,7 +39,7 @@ const protectedRoutes = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
 
-  routes: [...publicRoutes, ...protectedRoutes]
+  routes: [...protectedRoutes, ...publicRoutes]
 })
 
 router.beforeEach(async (to, from, next) => {
