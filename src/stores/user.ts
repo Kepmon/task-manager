@@ -100,7 +100,7 @@ export const useUserStore = defineStore('user', () => {
 
       return true
     } catch (err) {
-      return false
+      return (err as AuthError).code
     }
   }
 

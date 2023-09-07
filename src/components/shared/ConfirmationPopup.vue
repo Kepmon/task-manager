@@ -12,10 +12,9 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 const props = defineProps<{
-  isError?: boolean
+  isError: boolean
   errorMessage?: string
-  action?: 'add' | 'edit' | 'delete'
-  element?: 'task' | 'board' | 'user account'
+  action?: 'delete'
 }>()
 
 const authErrorText = {
@@ -24,26 +23,16 @@ const authErrorText = {
   'auth/user-not-found': 'No user exists with such email'
 }
 
-const dashboardMessages = {
-  add: `You successfully added a new ${props.element}`,
-  edit: `You successfully edited the ${props.element}`,
-  delete: `You successfully deleted the ${props.element}`
-}
-
 const message = computed(() => {
-  if (props.isError && props.errorMessage) {
+  if (props.isError) {
     return (
       authErrorText[props.errorMessage as keyof typeof authErrorText] ||
       'Ooops, something went wrong. Try again later.'
     )
   }
 
-  if (props.isError) {
-    return 'Ooops, something went wrong. Try again later.'
-  }
-
-  if (props.action && props.element) {
-    return dashboardMessages[props.action]
+  if (props.action) {
+    return 'You successfully deleted the your account'
   }
 
   const path = useRoute().path

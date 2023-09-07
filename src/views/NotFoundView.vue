@@ -4,14 +4,24 @@
       Ooops, the requested page has not been found!
     </h1>
     <p class="mx-auto w-[min(100%,500px)]">
-      We,re sorry, it seems like the page you're looking for has been moved,
-      deleted or might have not even exist.
+      We're sorry, it seems like the page you're looking for has been moved,
+      deleted or might not have even existed.
     </p>
-    <img
-      class="mx-auto"
-      src="/img/404-img.svg"
-      alt="A nice picture displaying that this is the 404 situation"
-    />
+    <div class="text-gray-400">
+      <img
+        class="mx-auto"
+        src="/img/404-img.svg"
+        alt="A nice picture displaying that this is the 404 situation"
+      />
+      <small
+        ><a
+          class="contribution-link"
+          href="https://storyset.com/web"
+          target="_blank"
+          >Web illustrations by Storyset</a
+        ></small
+      >
+    </div>
 
     <div class="flex justify-center gap-4">
       <button @click="goToHomePage" class="regular-button purple-class">
@@ -41,6 +51,12 @@ const goToPreviousPage = () => {
 .not-found-container {
   @apply grid place-content-center gap-12 mx-auto py-4 min-h-screen w-[min(90%,1200px)];
   @apply text-center text-baseFluid;
+}
+
+.contribution-link {
+  @apply relative after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-full;
+  @apply after:bg-gray-400 after:scale-x-0 hover:after:scale-x-100 focus-visible:after:scale-x-100;
+  @apply after:origin-left after:transition-transform after:duration-300 outline outline-transparent;
 }
 
 .regular-button {

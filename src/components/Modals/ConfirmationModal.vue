@@ -1,4 +1,12 @@
 <template>
+  <transition name="popup">
+    <confirmation-popup
+      v-show="isPopupShown"
+      action="delete"
+      :isError="isAuthError"
+      :errorMessage="errorMessage"
+    />
+  </transition>
   <modals-template @close-modal="$emit('close-modal')">
     <template #form-title>
       <h2 class="text-red-400">Delete this {{ elementToDelete }}?</h2>
@@ -42,17 +50,31 @@
 import type { Board, BoardColumn, Task } from '../../api/boardsTypes'
 import ModalsTemplate from './ModalsTemplate.vue'
 import AuthInput from '../shared/Inputs/AuthInput.vue'
+import ConfirmationPopup from '../shared/ConfirmationPopup.vue'
 import { computed } from 'vue'
 import { useUserStore } from '../../stores/user'
 import { useBoardsStore } from '../../stores/boards'
 import { useTasksStore } from '../../stores/tasks'
 import { useFormsStore } from '../../stores/forms'
 import { ref } from 'vue'
-import { handleAuthResponse } from '../../composables/authHandler'
+import {
+  isAuthError,
+  isPopupShown,
+  handleAuthResponse
+} from '../../composables/authHandler'
 import { useRoute } from 'vue-router'
 import { useForm } from 'vee-validate'
 import * as Yup from 'yup'
 import { toTypedSchema } from '@vee-validate/yup'
+
+type ElementID = Board['boardID'] | BoardColumn['columnID'] | Task['taskID']
+const props = defineProps<{
+  elementToDelete: 'board' | 'column' | 'task' | 'user'
+  elementName?: string
+  elementID?: ElementID
+  columnOfClickedTask?: BoardColumn['columnID']
+}>()
+const emits = defineEmits(['close-modal'])
 
 const { path: currentPath } = useRoute()
 useForm({
@@ -68,15 +90,6 @@ useForm({
     })
   )
 })
-
-type ElementID = Board['boardID'] | BoardColumn['columnID'] | Task['taskID']
-const props = defineProps<{
-  elementToDelete: 'board' | 'column' | 'task' | 'user'
-  elementName?: string
-  elementID?: ElementID
-  columnOfClickedTask?: BoardColumn['columnID']
-}>()
-const emits = defineEmits(['close-modal'])
 
 const message = computed(() => {
   const prefix =
@@ -110,17 +123,25 @@ const submitFns = {
   user: () => userStore.deleteAccount()
 }
 
+const errorMessage = ref('')
 const isPending = ref(false)
 const submit = async () => {
   isPending.value = true
 
   const response = await submitFns[props.elementToDelete]()
 
+  if (props.elementToDelete === 'user' && typeof response === 'string') {
+    errorMessage.value = response
+  }
+
   if (props.elementToDelete === 'user') {
     handleAuthResponse(response, route.path, isPending)
-    setTimeout(() => {
-      emits('close-modal')
-    }, 3000)
+
+    if (!isAuthError) {
+      setTimeout(() => {
+        emits('close-modal')
+      }, 3000)
+    }
     return
   }
 
