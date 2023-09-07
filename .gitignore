@@ -27,3 +27,8 @@ coverage
 *.sln
 *.sw?
 *.env
+
+# Firebase stuff
+.firebase
+.firebaserc
+firebase.json

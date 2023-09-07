@@ -1,4 +1,4 @@
-import type { Board, BoardColumn } from '../api/boardsTypes'
+import type { Board, BoardColumn, FormSubsetItem } from '../api/boardsTypes'
 import type {
   CollectionReference,
   DocumentReference,
@@ -31,12 +31,7 @@ export const useBoardsStore = defineStore('boards', () => {
 
   const boardColumns = ref<BoardColumn[]>([])
   const boardColumnsNames = computed(() =>
-    boardColumns.value ? boardColumns.value.map((column) => column.name) : null
-  )
-  const columnErrors = computed(() =>
-    boardColumnsNames.value
-      ? boardColumnsNames.value.map(() => false)
-      : [false, false]
+    boardColumns.value ? boardColumns.value.map((column) => column.name) : []
   )
 
   const boardsColRefGlobal = ref<null | CollectionReference<DocumentData>>(null)
@@ -57,7 +52,10 @@ export const useBoardsStore = defineStore('boards', () => {
         ...(snap.data() as Omit<Board, 'boardID'>),
         boardID: snap.id
       }))
-      await getColumns()
+    }
+
+    if (boardDocs.docs.length === 0) {
+      boards.value = []
     }
   }
 
@@ -68,7 +66,12 @@ export const useBoardsStore = defineStore('boards', () => {
         `${boardsColRefGlobal.value.path}/${currentBoardID.value}/columns`
       )
 
-      const columnDocs = (await getDocs(columnsColRef)).docs
+      const columnsColRefOrdered = query(
+        columnsColRef,
+        orderBy('createdAt', 'asc')
+      )
+
+      const columnDocs = (await getDocs(columnsColRefOrdered)).docs
       boardColumns.value =
         columnDocs.length !== 0
           ? await Promise.all(
@@ -122,54 +125,101 @@ export const useBoardsStore = defineStore('boards', () => {
     }
 
     await getBoards()
+
     currentBoard.value = boards.value[0]
     localStorage.setItem(
       `currentBoard-${userStore.userID}`,
       JSON.stringify(currentBoard.value)
     )
+    await getColumns()
   }
 
   const editBoard = async (
     boardName: Board['name'],
-    boardColumns: string[]
+    updatedColumns: FormSubsetItem[]
   ) => {
+    const isBoardNameSame = boardName === (currentBoard.value as Board).name
+    const isNumberOfColumnsSame =
+      boardColumns.value?.length === updatedColumns.length
+    const areColumnsNamesSame = (boardColumns.value as BoardColumn[]).every(
+      ({ columnID, name: columnName }) =>
+        updatedColumns.find(
+          ({ name, id }) => columnName === name && columnID === id
+        )
+    )
+
+    const isFormNotChanged = [
+      isBoardNameSame,
+      isNumberOfColumnsSame,
+      areColumnsNamesSame
+    ].every((item) => item === true)
+
+    if (isFormNotChanged) return
+
     const docToEditRef = doc(
       boardsColRefGlobal.value as CollectionReference<DocumentData>,
       currentBoardID.value as string
     )
+    const lastCurrentBoardID = (currentBoard.value as Board).boardID
 
-    if (boardName !== (currentBoard.value as Board).name) {
+    if (!isBoardNameSame) {
       await updateFirestoreDoc(docToEditRef, boardName)
+
+      if (areColumnsNamesSame) {
+        await getBoards()
+
+        currentBoard.value =
+          boards.value.find((board) => board.boardID === lastCurrentBoardID) ||
+          boards.value[0]
+        localStorage.setItem(
+          `currentBoard-${userStore.userID}`,
+          JSON.stringify(currentBoard.value)
+        )
+        await getColumns()
+        return
+      }
     }
 
     const columnsColRef = collection(db, `${docToEditRef.path}/columns`)
-    const columnDocsRefs = (await getDocs(columnsColRef)).docs
-    const columnDocsNames = columnDocsRefs.map(
-      (columnDoc) => columnDoc.data().name as BoardColumn['name']
-    )
-
-    columnDocsNames.forEach(async (columnDocName, index) => {
-      if (boardColumns[index] === columnDocName) return
-
-      if (boardColumns[index] == null) {
-        await deleteColumn(columnDocsRefs[index].id)
+    const noRespectiveColumns = updatedColumns.filter(({ name, id }) => {
+      if (
+        boardColumns.value != null &&
+        (boardColumns.value as BoardColumn[]).some(
+          ({ columnID }) => columnID === id
+        )
+      )
         return
-      }
 
-      const docToEditRef = doc(columnsColRef, columnDocsRefs[index].id)
-      await updateFirestoreDoc(docToEditRef, boardColumns[index])
+      return name
     })
-
-    if (boardColumns.length > columnDocsNames.length) {
-      boardColumns.forEach(async (boardColumn, index) => {
-        if (columnDocsNames[index] != null) return
-
-        await addDocToFirestore(columnsColRef, boardColumn)
+    if (noRespectiveColumns) {
+      noRespectiveColumns.forEach(async ({ name }) => {
+        await addDocToFirestore(columnsColRef, name)
       })
     }
 
-    const lastCurrentBoardID = (currentBoard.value as Board).boardID
+    if (boardColumns.value != null) {
+      boardColumns.value.forEach(async ({ columnID, name }) => {
+        const columnDocRef = doc(columnsColRef, columnID)
+
+        const respectiveSubtask = updatedColumns.find(
+          ({ id }) => id === columnID
+        )
+        const isSubtaskNameSame = respectiveSubtask?.name === name
+
+        if (respectiveSubtask && isSubtaskNameSame) return
+
+        if (respectiveSubtask == null) {
+          await deleteDoc(columnDocRef)
+          return
+        }
+
+        await updateFirestoreDoc(columnDocRef, name)
+      })
+    }
+
     await getBoards()
+
     currentBoard.value =
       boards.value.find((board) => board.boardID === lastCurrentBoardID) ||
       boards.value[0]
@@ -177,6 +227,7 @@ export const useBoardsStore = defineStore('boards', () => {
       `currentBoard-${userStore.userID}`,
       JSON.stringify(currentBoard.value)
     )
+    await getColumns()
   }
 
   const deleteBoard = async (boardID: Board['boardID']) => {
@@ -198,6 +249,7 @@ export const useBoardsStore = defineStore('boards', () => {
       currentBoard.value = null
       localStorage.removeItem(`currentBoard-${userStore.userID}`)
       await getBoards()
+      await getColumns()
       return
     }
 
@@ -206,6 +258,7 @@ export const useBoardsStore = defineStore('boards', () => {
       `currentBoard-${userStore.userID}`,
       JSON.stringify(currentBoard.value)
     )
+    await getColumns()
   }
 
   const deleteColumn = async (columnID: BoardColumn['columnID']) => {
@@ -238,6 +291,7 @@ export const useBoardsStore = defineStore('boards', () => {
     }
 
     await deleteDoc(columnDocRef)
+    await getColumns()
   }
 
   return {
@@ -246,7 +300,6 @@ export const useBoardsStore = defineStore('boards', () => {
     currentBoardID,
     boardColumns,
     boardColumnsNames,
-    columnErrors,
     getBoards,
     getColumns,
     addNewBoard,

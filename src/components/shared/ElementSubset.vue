@@ -1,42 +1,40 @@
 <template>
-  <div v-if="itemsToBeIteratedOver?.length">
+  <div>
     <p class="mb-2 text-xs">
       {{ element === 'board' ? 'Columns' : 'Subtasks' }}
     </p>
-    <div class="grid gap-3">
+    <div v-if="formData.items.length !== 0" class="grid gap-3">
       <div
-        v-for="(item, index) in itemsToBeIteratedOver"
-        :key="index"
+        v-for="({ name, id }, index) in formData.items"
+        :key="id"
         class="flex items-center"
       >
         <text-input
-          @handle-blur="() => handleAddNewItem(item, index)"
-          @update:model-value="(newValue: string) => updateInputValue(newValue, index)"
-          :modelValue="item"
+          @handle-blur="() => formsStore.handleBlur(formData, index)"
+          @update:model-value="(newValue: string) => formData.items[index].name = newValue"
+          :modelValue="name"
           :placeholder="
-            action === 'add' && element === 'task'
-              ? formData.task.placeholderItems[index]
-              : ''
+            formData.placeholderItems
+              ? formData.placeholderItems[index]
+              : undefined
           "
-          :isError="errorsArr[index]"
-          :condition="
-            index === itemsToBeIteratedOver.length - 1 && isNewInputAdded
-          "
+          :isError="formData.errors[index]"
+          :condition="formsStore.isNewInputAdded"
           class="grow"
-          :class="{
-            'input-error': errorsArr[index] === true
-          }"
         ></text-input>
         <close-icon
-          @handle-close="() => handleRemoveItem(index)"
-          :listItem="item"
-          :isError="errorsArr[index]"
+          @handle-close="() => formsStore.removeInput(formData, index)"
+          :listItem="true"
+          :isError="formData.errors[index]"
         />
       </div>
     </div>
+    <p v-else class="text-xs text-gray-400">
+      There are no {{ element === 'board' ? 'columns' : 'subtasks' }} to display
+    </p>
   </div>
   <button
-    @click="addNewColumn"
+    @click="() => formsStore.addNewInput(formData)"
     aria-labelledby="add-new-element"
     class="regular-button white-button"
     type="button"
@@ -53,62 +51,12 @@
 <script setup lang="ts">
 import TextInput from './Inputs/TextInput.vue'
 import CloseIcon from '../Svgs/CloseIcon.vue'
-import { addNewInput } from '../../composables/addNewInput'
-import { useTasksStore } from '../../stores/tasks'
-import { useBoardsStore } from '../../stores/boards'
-import { ref } from 'vue'
+import { useFormsStore } from '../../stores/forms'
 
 const props = defineProps<{
   action: 'add' | 'edit'
   element: 'board' | 'task'
 }>()
-const emits = defineEmits(['change-array-item'])
-
-const tasksStore = useTasksStore()
-const boardsStore = useBoardsStore()
-
-const formData = ref({
-  board: ref({
-    items:
-      props.action === 'add'
-        ? ['Todo', 'Doing']
-        : (boardsStore.boardColumnsNames as string[]),
-    errors: boardsStore.columnErrors
-  }),
-  task: ref({
-    items:
-      props.action === 'add'
-        ? ['', '']
-        : (tasksStore.subtasksNames as string[]),
-    placeholderItems: ['e.g. Make coffee', 'e.g. Drink coffee & smile'],
-    errors: tasksStore.subtasksErrors
-  })
-})
-const itemsToBeIteratedOver = ref(formData.value[props.element].items)
-const errorsArr = ref(formData.value[props.element].errors)
-
-const isNewInputAdded = ref(false)
-const addNewColumn = () => {
-  addNewInput(itemsToBeIteratedOver, errorsArr, isNewInputAdded)
-}
-
-const updateInputValue = (newValue: string, index: number) => {
-  ;(itemsToBeIteratedOver.value as string[])[index] = newValue
-
-  emits('change-array-item', itemsToBeIteratedOver.value)
-}
-
-const handleAddNewItem = (item: string, index: number) => {
-  item === ''
-    ? (errorsArr.value[index] = true)
-    : (errorsArr.value[index] = false)
-
-  emits('change-array-item', itemsToBeIteratedOver.value)
-}
-
-const handleRemoveItem = (index: number) => {
-  ;(itemsToBeIteratedOver.value as string[]).splice(index, 1)
-
-  emits('change-array-item', itemsToBeIteratedOver.value)
-}
+const formsStore = useFormsStore()
+const formData = formsStore.formsData[props.element][props.action]
 </script>

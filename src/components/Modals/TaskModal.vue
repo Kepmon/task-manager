@@ -1,5 +1,5 @@
 <template>
-  <modals-template @submit-form="submit" @close-modal="$emit('close-modal')">
+  <modals-template @submit-form="submit" @close-modal="handleCloseModal">
     <template #form-title>
       <h2>{{ action }} {{ action === 'add' ? 'New' : '' }} Task</h2>
     </template>
@@ -16,7 +16,6 @@
         label="Title"
         :placeholder="action === 'add' ? 'e.g. Take coffee break' : ''"
         :whitePlaceholder="action === 'add' ? false : true"
-        :class="{ 'input-error after:translate-y-full': formNameError }"
       />
 
       <description-field
@@ -27,11 +26,7 @@
         :whitePlaceholder="action === 'add' ? false : true"
       />
 
-      <element-subset
-        @change-array-item="(emittedValue) => updateSubtaskValues(emittedValue)"
-        :action="action"
-        element="task"
-      />
+      <element-subset :action="action" element="task" />
 
       <div>
         <p class="mb-2 text-xs text-gray-400 dark:text-white">Status</p>
@@ -43,8 +38,9 @@
         ></v-select>
       </div>
 
-      <button class="regular-button purple-class">
-        <span aria-hidden="true">{{
+      <button :disabled="isPending" class="regular-button purple-class">
+        <span v-if="isPending">Loading...</span>
+        <span v-if="!isPending" aria-hidden="true">{{
           action === 'add' ? 'Create Task' : 'Save Changes'
         }}</span>
       </button>
@@ -60,7 +56,8 @@ import DescriptionField from '../shared/Inputs/DescriptionField.vue'
 import ElementSubset from '../shared/ElementSubset.vue'
 import { useBoardsStore } from '../../stores/boards'
 import { useTasksStore } from '../../stores/tasks'
-import { ref } from 'vue'
+import { useFormsStore } from '../../stores/forms'
+import { ref, computed } from 'vue'
 
 const props = defineProps<{
   action: 'add' | 'edit'
@@ -68,14 +65,16 @@ const props = defineProps<{
   task?: Task
   subtasks?: Subtask[]
 }>()
-const emits = defineEmits(['close-modal'])
+const emits = defineEmits(['change-var-to-false'])
 
 const tasksStore = useTasksStore()
 const boardsStore = useBoardsStore()
+const formsStore = useFormsStore()
 
 const formName = ref(props.task != null ? props.task.title : '')
 const formNameError = ref(false)
 const taskDescription = ref(props.task != null ? props.task.description : '')
+const formSubsetData = computed(() => formsStore.formsData.task[props.action])
 
 const selectedStatusItem = ref(
   props.columnIndex != null
@@ -98,22 +97,24 @@ const updateStatusItem = (newItem: BoardColumn['name']) => {
   ) as BoardColumn
 }
 
-const updatedSubtasks =
-  props.action === 'add'
-    ? ref(['', ''])
-    : ref(
-        (tasksStore.subtasksOfClickedTask as Subtask[]).map(
-          (subtask) => subtask.title
-        )
-      )
-const updateSubtaskValues = (emittedValue: string[]) => {
-  updatedSubtasks.value = emittedValue
+const handleCloseModal = () => {
+  emits('change-var-to-false')
+
+  formsStore.updateFormData('task')
 }
 
+const isPending = ref(false)
 const submit = async () => {
-  if (formName.value === '') return
+  const isFormValid = formsStore.validateForm(
+    formName,
+    formNameError,
+    formSubsetData
+  )
+  if (!isFormValid) return
 
-  emits('close-modal')
+  isPending.value = true
+
+  const subtaskNames = formSubsetData.value.items.map(({ name }) => name.trim())
 
   if (props.action === 'add') {
     await tasksStore.addNewTask(
@@ -122,7 +123,7 @@ const submit = async () => {
         title: formName.value.trim(),
         description: taskDescription.value.trim()
       },
-      updatedSubtasks.value as string[]
+      subtaskNames
     )
   }
 
@@ -130,13 +131,16 @@ const submit = async () => {
     await tasksStore.editTask(
       formName.value,
       taskDescription.value,
-      updatedSubtasks.value,
-      prevStatusItem.value?.columnID,
+      formSubsetData.value.items,
       selectedStatusItem.value.columnID,
       isStatusUpdated.value
     )
   }
 
+  emits('change-var-to-false')
   await boardsStore.getColumns()
+
+  formsStore.updateFormData('task')
+  isPending.value = false
 }
 </script>

@@ -3,6 +3,7 @@ import DashboardView from '../views/DashboardView.vue'
 import LoginView from '../views/LoginView.vue'
 import SignUpView from '../views/SignUpView.vue'
 import PrivacyPolicyView from '../views/PrivacyPolicyView.vue'
+import NotFoundView from '../views/NotFoundView.vue'
 import { useUserStore } from '../stores/user'
 
 const publicRoutes = [
@@ -10,6 +11,11 @@ const publicRoutes = [
     path: '/privacy-policy',
     name: 'privacy-policy',
     component: PrivacyPolicyView
+  },
+  {
+    path: '/:otherPath(.*)',
+    name: 'not-found',
+    component: NotFoundView
   }
 ]
 const protectedRoutes = [
@@ -33,14 +39,14 @@ const protectedRoutes = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
 
-  routes: [...publicRoutes, ...protectedRoutes]
+  routes: [...protectedRoutes, ...publicRoutes]
 })
 
 router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore()
   const savedUser = JSON.parse(localStorage.getItem('user') || '{}')
 
-  if (Object.keys(savedUser).length) {
+  if (Object.keys(savedUser).length > 0) {
     const lastLoggedIn = savedUser.lastLoginAt
     const lastLoggedInToNum = parseInt(lastLoggedIn)
     const lastLoggedInDate = new Date(lastLoggedInToNum)
@@ -60,14 +66,14 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
-  if (to.path === '/dashboard' && !Object.keys(savedUser).length) {
+  if (to.path === '/dashboard' && Object.keys(savedUser).length === 0) {
     userStore.logout()
     return next('/')
   }
 
   if (
     (to.path === '/' || to.path === '/sign-up') &&
-    Object.keys(savedUser).length
+    Object.keys(savedUser).length > 0
   ) {
     return next('/dashboard')
   }

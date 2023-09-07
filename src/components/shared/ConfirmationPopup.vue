@@ -12,10 +12,9 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 const props = defineProps<{
-  isError?: boolean
+  isError: boolean
   errorMessage?: string
-  action?: 'add' | 'edit' | 'delete'
-  element?: 'task' | 'board'
+  action?: 'delete'
 }>()
 
 const authErrorText = {
@@ -24,23 +23,16 @@ const authErrorText = {
   'auth/user-not-found': 'No user exists with such email'
 }
 
-const dashboardMessages = {
-  add: `You successfully added a new ${props.element}`,
-  edit: `You successfully edited the ${props.element}`,
-  delete: `You successfully deleted the ${props.element}`
-}
-
 const message = computed(() => {
-  if (props.isError && props.errorMessage) {
-    return authErrorText[props.errorMessage as keyof typeof authErrorText]
-  }
-
   if (props.isError) {
-    return 'Ooops, something went wrong. Try again later.'
+    return (
+      authErrorText[props.errorMessage as keyof typeof authErrorText] ||
+      'Ooops, something went wrong. Try again later.'
+    )
   }
 
-  if (props.action && props.element) {
-    return dashboardMessages[props.action]
+  if (props.action) {
+    return 'You successfully deleted the your account'
   }
 
   const path = useRoute().path
@@ -57,7 +49,7 @@ const message = computed(() => {
 <style lang="postcss" scoped>
 .popup-text {
   @apply fixed inset-0 bottom-auto py-10 mx-auto w-[min(90%,400px)];
-  @apply translate-y-8 text-center text-gray-900 rounded-xl z-10;
+  @apply translate-y-8 text-center text-gray-900 rounded-xl z-[100];
 }
 
 .popup-enter-from,

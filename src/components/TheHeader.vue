@@ -67,16 +67,11 @@
         />
       </div>
     </div>
-    <user-options
-      class="fixed grid items-center ml-3 sm:static scale-125 sm:scale-100"
-      :class="{
-        'sm:fixed sm:scale-125': boardsStore.currentBoard == null
-      }"
-    />
+    <user-options :isDashboardEmpty="boardsStore.currentBoard == null" />
     <transition name="modal">
       <task-modal
         v-if="isAddTaskModalShown"
-        @close-modal="isAddTaskModalShown = false"
+        @change-var-to-false="isAddTaskModalShown = false"
         action="add"
       />
     </transition>
@@ -92,7 +87,7 @@
     <transition name="modal">
       <board-modal
         v-if="isEditBoardModalShown"
-        @close-modal="isEditBoardModalShown = false"
+        @change-var-to-false="isEditBoardModalShown = false"
         action="edit"
       />
     </transition>
@@ -143,7 +138,6 @@ const handleMoreOptionsFn = (
 }
 
 .add-new-task-btn {
-  @apply px-4 py-1 gap-[2px] md:py-[10px] w-max;
-  @apply text-baseFluid focus-visible:outline-white;
+  @apply px-4 py-1 gap-[2px] md:py-[10px] w-max text-baseFluid;
 }
 </style>

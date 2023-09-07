@@ -48,6 +48,14 @@ button,
   @apply outline outline-transparent focus-visible:outline-purple-600 outline-[3px];
 }
 
+:disabled {
+  @apply disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+::selection {
+  @apply bg-purple-400;
+}
+
 .regular-button {
   @apply flex items-center grow justify-center gap-2 py-[10px] px-4;
   @apply rounded-3xl text-sm font-bold;
@@ -61,17 +69,13 @@ button,
 .input-error {
   @apply relative after:content-['Can\'t_be_empty'] after:text-sm;
   @apply after:text-red-400 after:font-normal after:absolute;
-  @apply after:top-5 after:right-2;
-}
-
-::selection {
-  @apply bg-purple-400;
+  @apply after:top-3 after:right-2;
 }
 
 .purple-class {
   @apply bg-purple-400 hover:bg-purple-600 focus-visible:bg-purple-600;
   @apply text-white outline outline-transparent transition-colors duration-300;
-  @apply disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-purple-400;
+  @apply focus-visible:outline-white;
 }
 
 .white-button {
@@ -85,11 +89,11 @@ button,
 }
 
 .options-container {
-  @apply absolute grid bg-white dark:bg-gray-800 rounded-lg shadow-xs z-10;
+  @apply absolute grid w-max bg-white dark:bg-gray-800 rounded-lg shadow-xs z-10;
 }
 
 .option {
-  @apply py-[7px] s:py-[10px] pl-3 pr-10 text-start text-sm text-gray-400;
+  @apply py-[7px] px-3 text-start text-sm text-gray-400;
   @apply hover:bg-gray-200 dark:hover:bg-gray-500 focus-visible:bg-gray-200 dark:focus-visible:bg-gray-500;
   @apply outline-transparent transition-colors duration-300;
 }

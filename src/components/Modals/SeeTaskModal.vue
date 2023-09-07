@@ -22,7 +22,7 @@
           element="task"
         />
 
-        <p class="text-gray-400 text-xs xs::text-sm">
+        <p v-if="task.description" class="text-gray-400 text-xs xs::text-sm">
           {{ task.description }}
         </p>
 
@@ -36,11 +36,11 @@
             of {{ tasksStore.subtasksOfClickedTask.length }})
           </p>
           <div
-            @click.once="() => toggleSubtask(index)"
+            @click="() => toggleSubtask(index)"
             v-for="(
-              { title, isCompleted }, index
+              { title, isCompleted, subtaskID }, index
             ) in tasksStore.subtasksOfClickedTask"
-            :key="index"
+            :key="subtaskID"
             class="subtask"
           >
             <label class="flex items-center gap-4 px-1 cursor-pointer">
@@ -63,13 +63,14 @@
             Current Status
           </p>
           <v-select
-            @update:model-value="
-              (newColumnName: BoardColumn['name']) => $emit('handle-move-task', newColumnName)
-            "
+            @update:model-value="(newColumnName: BoardColumn['name']) => handleChangeColumn(newColumnName)"
             :options="taskStatuses"
             :searchable="false"
             :placeholder="taskStatuses[columnIndex]"
           ></v-select>
+          <p v-if="isPending" class="mt-4 text-purple-400 text-center">
+            Loading...
+          </p>
         </div>
       </div>
     </template>
@@ -78,20 +79,20 @@
 
 <script setup lang="ts">
 import type { BoardColumn, Task, Subtask } from '../../api/boardsTypes'
+import type { Ref } from 'vue'
 import ModalsTemplate from './ModalsTemplate.vue'
 import MoreOptions from '../shared/MoreOptions.vue'
 import MoreOptionsIcon from '../Svgs/MoreOptionsIcon.vue'
 import moreOptionsPopup from '../../composables/moreOptionsPopup'
 import { useTasksStore } from '../../stores/tasks'
 import { useBoardsStore } from '../../stores/boards'
-import type { Ref } from 'vue'
-import { ref } from 'vue'
+import { ref, onUnmounted } from 'vue'
 
 defineProps<{
   columnIndex: number
   task: Task
 }>()
-defineEmits([
+const emits = defineEmits([
   'close-modal',
   'show-edit-form',
   'show-delete-form',
@@ -118,13 +119,23 @@ const toggleSubtask = async (index: number) => {
   await tasksStore.toggleSubtask(clickedSubtask)
   await boardsStore.getColumns()
 }
+
+const isPending = ref(false)
+const handleChangeColumn = (newColumnName: BoardColumn['name']) => {
+  isPending.value = true
+  emits('handle-move-task', newColumnName)
+}
+
+onUnmounted(() => {
+  isPending.value = false
+})
 </script>
 
 <style lang="postcss" scoped>
 .checkbox {
   @apply appearance-none after:flex after:items-center after:justify-center;
-  @apply after:h-3 after:w-3 after:bg-white after:shadow-option after:rounded-[2px];
-  @apply checked:after:bg-purple-400 checked:after:content-checked;
+  @apply after:pb-[2px] after:h-3 after:w-3 after:bg-white after:shadow-option;
+  @apply after:rounded-[2px] checked:after:bg-purple-400 checked:after:content-checked;
 }
 
 .subtask {

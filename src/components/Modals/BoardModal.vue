@@ -1,5 +1,5 @@
 <template>
-  <modals-template @submit-form="submit" @close-modal="$emit('close-modal')">
+  <modals-template @submit-form="submit" @close-modal="handleCloseModal">
     <template #form-title>
       <h2>{{ action }} {{ action === 'add' ? 'New' : '' }} Board</h2>
     </template>
@@ -16,17 +16,13 @@
         idAttr="board-title"
         :placeholder="action === 'add' ? 'e.g. Web Design' : ''"
         :whitePlaceholder="action === 'add' ? false : true"
-        :class="{ 'input-error after:translate-y-full': formNameError }"
       />
 
-      <element-subset
-        @change-array-item="(emittedValue) => updateColumnValues(emittedValue)"
-        :action="action"
-        element="board"
-      />
+      <element-subset :action="action" element="board" />
 
-      <button class="regular-button purple-class">
-        <span aria-hidden="true">{{
+      <button :disabled="isPending" class="regular-button purple-class">
+        <span v-if="isPending">Loading...</span>
+        <span v-if="!isPending" aria-hidden="true">{{
           action === 'add' ? 'Create New Board' : 'Save Changes'
         }}</span>
       </button>
@@ -40,36 +36,56 @@ import ModalsTemplate from './ModalsTemplate.vue'
 import TextInput from '../shared/Inputs/TextInput.vue'
 import ElementSubset from '../shared/ElementSubset.vue'
 import { useBoardsStore } from '../../stores/boards'
-import { ref } from 'vue'
+import { useFormsStore } from '../../stores/forms'
+import { ref, computed } from 'vue'
 
 const props = defineProps<{
   action: 'add' | 'edit'
 }>()
-const emits = defineEmits(['update:modelValue', 'close-modal'])
+const emits = defineEmits(['update:modelValue', 'change-var-to-false'])
 
 const boardsStore = useBoardsStore()
+const formsStore = useFormsStore()
 
 const formName = ref(
   props.action === 'add' ? '' : (boardsStore.currentBoard as Board).name
 )
 const formNameError = ref(false)
+const formSubsetData = computed(() => formsStore.formsData.board[props.action])
 
-const updatedColumns = ref(['Todo', 'Doing'])
-const updateColumnValues = (emittedValue: string[]) => {
-  updatedColumns.value = emittedValue
+const handleCloseModal = () => {
+  emits('change-var-to-false')
+
+  formsStore.updateFormData('board')
 }
 
-const submit = () => {
-  if (
-    formName.value === '' ||
-    updatedColumns.value?.some((item) => item === '')
+const isPending = ref(false)
+const submit = async () => {
+  const isFormValid = formsStore.validateForm(
+    formName,
+    formNameError,
+    formSubsetData
   )
-    return
+  if (!isFormValid) return
 
-  emits('close-modal')
-  const submitFn =
-    props.action === 'add' ? boardsStore.addNewBoard : boardsStore.editBoard
+  isPending.value = true
 
-  submitFn(formName.value.trim(), updatedColumns.value as string[])
+  const columnNames = formSubsetData.value.items.map(({ name }) => name.trim())
+
+  if (props.action === 'add') {
+    await boardsStore.addNewBoard(formName.value.trim(), columnNames)
+  }
+
+  if (props.action === 'edit') {
+    await boardsStore.editBoard(
+      formName.value.trim(),
+      formSubsetData.value.items
+    )
+  }
+
+  emits('change-var-to-false')
+
+  formsStore.updateFormData('board')
+  isPending.value = false
 }
 </script>

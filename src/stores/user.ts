@@ -1,18 +1,23 @@
+import type { AuthError, User } from 'firebase/auth'
 import { defineStore } from 'pinia'
-import type { AuthError } from 'firebase/auth'
 import {
   onAuthStateChanged,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signOut
+  signOut,
+  deleteUser,
+  reauthenticateWithCredential,
+  EmailAuthProvider
 } from 'firebase/auth'
-import { doc, setDoc } from 'firebase/firestore'
-import { auth, usersColRef } from '../firebase'
+import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore'
+import { auth, usersColRef, db } from '../firebase'
 import { ref } from 'vue'
 import { useBoardsStore } from './boards'
 
 export const useUserStore = defineStore('user', () => {
+  const currentUser = ref<null | User>(null)
   const userID = ref<null | string>(null)
+  const inputedPassword = ref<null | string>(null)
 
   const boardsStore = useBoardsStore()
   const isLoading = ref(true)
@@ -20,9 +25,11 @@ export const useUserStore = defineStore('user', () => {
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
       localStorage.removeItem('user')
+      currentUser.value = null
       return
     }
 
+    currentUser.value = user
     userID.value = user.uid
     localStorage.setItem('user', JSON.stringify(user))
 
@@ -36,12 +43,18 @@ export const useUserStore = defineStore('user', () => {
       return
     }
 
-    boardsStore.currentBoard = boardsStore.boards[0]
-    localStorage.setItem(
-      `currentBoard-${userID.value}`,
-      JSON.stringify(boardsStore.currentBoard)
-    )
-    await boardsStore.getColumns()
+    if (boardsStore.boards.length !== 0) {
+      boardsStore.currentBoard = boardsStore.boards[0]
+      localStorage.setItem(
+        `currentBoard-${userID.value}`,
+        JSON.stringify(boardsStore.currentBoard)
+      )
+    }
+
+    if (boardsStore.boards.length > 0) {
+      await boardsStore.getColumns()
+    }
+
     isLoading.value = false
   })
 
@@ -55,9 +68,7 @@ export const useUserStore = defineStore('user', () => {
 
       if (!authResponse) throw new Error()
 
-      await setDoc(doc(usersColRef, authResponse.user.uid), {
-        userID: authResponse.user.uid
-      })
+      await setDoc(doc(usersColRef, authResponse.user.uid), {})
 
       await logout()
 
@@ -89,15 +100,48 @@ export const useUserStore = defineStore('user', () => {
 
       return true
     } catch (err) {
-      return false
+      return (err as AuthError).code
+    }
+  }
+
+  const deleteAccount = async () => {
+    const user = auth.currentUser
+
+    try {
+      const boardsColRef = collection(db, `users/${(user as User).uid}/boards`)
+      const boardsDocRefs = (await getDocs(boardsColRef)).docs
+
+      if (boardsDocRefs.length > 0) {
+        boardsDocRefs.forEach(async (docRef) => {
+          const boardDoc = docRef.id
+          await boardsStore.deleteBoard(boardDoc)
+        })
+      }
+      const userDocRef = doc(usersColRef, (user as User).uid)
+      await deleteDoc(userDocRef)
+
+      const credential = EmailAuthProvider.credential(
+        (user as User).email as string,
+        inputedPassword.value as string
+      )
+      await reauthenticateWithCredential(user as User, credential)
+      await deleteUser(user as User)
+
+      userID.value = null
+
+      return true
+    } catch (err) {
+      return (err as AuthError).code
     }
   }
 
   return {
     isLoading,
     userID,
+    inputedPassword,
     register,
     logIn,
-    logout
+    logout,
+    deleteAccount
   }
 })

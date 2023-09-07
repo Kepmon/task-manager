@@ -1,19 +1,22 @@
 <template>
   <div
-    v-if="emptyDashboard || emptyBoard"
-    class="grid content-center justify-items-center min-h-screen"
+    v-if="emptyDashboard"
+    class="grid content-center justify-items-center h-full"
   >
+    <theme-toggle
+      class="absolute top-0 px-8 bg-white dark:bg-gray-700 rounded-b-3xl sm:hidden"
+    />
     <p
-      class="mb-[25px] text-lg text-center text-gray-400 first-letter:capitalize"
+      class="mb-[25px] text-lgFluid text-center text-gray-400 first-letter:capitalize"
     >
       {{ message }}
     </p>
     <button
       @click="isBoardModalShown = true"
       :regularButton="true"
-      class="w-max regular-button purple-class"
+      class="w-max regular-button purple-class gap-[2px]"
     >
-      + Add New
+      &#65291; Add New
       <span class="capitalize">{{ emptyDashboard ? 'board' : 'column' }}</span>
     </button>
     <transition name="modal">
@@ -28,11 +31,11 @@
 
 <script setup lang="ts">
 import BoardModal from './Modals/BoardModal.vue'
+import ThemeToggle from './shared/ThemeToggle.vue'
 import { ref, computed } from 'vue'
 
 const props = defineProps<{
   emptyDashboard: boolean
-  emptyBoard: boolean
 }>()
 
 const isBoardModalShown = ref(false)

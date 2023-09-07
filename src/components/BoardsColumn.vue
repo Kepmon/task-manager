@@ -40,6 +40,7 @@
       </div>
       <div
         @click="modals.isEditBoardModalShown = true"
+        @keydown.enter="modals.isEditBoardModalShown = true"
         aria-labelledby="add-new-column"
         class="new-column group"
         tabindex="0"
@@ -81,14 +82,16 @@
             : (modals.columnToDelete as BoardColumn).columnID
         "
         :columnOfClickedTask="
-          boardsStore.boardColumns[tasksStore.columnOfClickedTask as number].columnID
+          tasksStore.columnOfClickedTask
+            ? boardsStore.boardColumns[tasksStore.columnOfClickedTask].columnID
+            : undefined
         "
       />
     </transition>
     <transition name="modal">
       <task-modal
         v-if="modals.isEditTaskModalShown && tasksConditions"
-        @close-modal="modals.isEditTaskModalShown = false"
+        @change-var-to-false="modals.isEditTaskModalShown = false"
         action="edit"
         v-bind="tasksProps"
       />
@@ -96,7 +99,7 @@
     <transition name="modal">
       <board-modal
         v-if="modals.isEditBoardModalShown"
-        @close-modal="modals.isEditBoardModalShown = false"
+        @change-var-to-false="modals.isEditBoardModalShown = false"
         action="edit"
       />
     </transition>
@@ -104,8 +107,8 @@
 </template>
 
 <script setup lang="ts">
-import type { BoardColumn, Task, Subtask } from '../api/boardsTypes'
 import type { Ref } from 'vue'
+import type { BoardColumn, Task, Subtask } from '../api/boardsTypes'
 import TaskCard from './TaskCard.vue'
 import SeeTaskModal from './Modals/SeeTaskModal.vue'
 import ConfirmationModal from '../components/Modals/ConfirmationModal.vue'
@@ -115,9 +118,11 @@ import CloseIcon from './Svgs/CloseIcon.vue'
 import { computed, ref } from 'vue'
 import { useBoardsStore } from '../stores/boards'
 import { useTasksStore } from '../stores/tasks'
+import { useFormsStore } from '../stores/forms'
 
 const boardsStore = useBoardsStore()
 const tasksStore = useTasksStore()
+const formsStore = useFormsStore()
 
 const circleColor = computed(() => {
   if (boardsStore.boardColumns != null) {
@@ -169,6 +174,8 @@ const tasks = ref({
   saveSubtasksOfClickedTask: (columnIndex: number, taskIndex: number) => {
     tasksStore.subtasksOfClickedTask =
       tasksStore.subtasks[columnIndex][taskIndex]
+
+    formsStore.updateFormData('task')
   }
 })
 
@@ -215,15 +222,13 @@ const returnNumberOfElements = (
 }
 
 const moveTask = async (value: BoardColumn['name']) => {
-  const prevColumnID =
-    boardsStore.boardColumns[tasksStore.columnOfClickedTask as number].columnID
   const nextColumnID = (
     boardsStore.boardColumns.find(
       (boardColumn) => boardColumn.name === value
     ) as BoardColumn
   ).columnID
 
-  await tasksStore.moveTaskBetweenColumns(prevColumnID, nextColumnID)
+  await tasksStore.moveTaskBetweenColumns(nextColumnID)
   await boardsStore.getColumns()
 
   modals.value.isSeeTaskModalShown = false

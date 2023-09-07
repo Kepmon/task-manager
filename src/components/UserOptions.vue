@@ -1,31 +1,47 @@
 <template>
   <div
     class="absolute bottom-6 right-8 sm:static"
-    :class="{ 'sm:fixed': isDashboardEmpty }"
+    :class="{ 'sm:fixed': isDashboardEmpty, 'sm:ml-3': !isDashboardEmpty }"
   >
     <Teleport to="body">
       <transition name="popup">
         <confirmation-popup v-if="isPopupShown" :isError="isAuthError" />
       </transition>
     </Teleport>
+    <Teleport to="body">
+      <transition name="popup">
+        <confirmation-modal
+          v-if="isConfirmationModalShown"
+          @close-modal="isConfirmationModalShown = false"
+          elementToDelete="user"
+          :isError="isAuthError"
+        />
+      </transition>
+    </Teleport>
     <button
       @click="areUserOptionsShown = !areUserOptionsShown"
       ref="target"
       aria-label="Click here to see the user options"
-      class="sm:relative rounded-full outline-offset-3"
+      class="block sm:relative rounded-full outline-offset-3"
     >
-      <user-icon />
+      <user-icon :isDashboardEmpty="isDashboardEmpty" />
     </button>
     <transition name="options">
       <div
         v-if="areUserOptionsShown"
-        class="options-container w-max -top-9 right-0"
+        class="options-container"
         :class="{
-          'sm:-top-9 sm:right-0': isDashboardEmpty,
-          'sm:top-[calc(100%+.5rem)] sm:right-1': !isDashboardEmpty
+          '-top-16 right-0': isDashboardEmpty,
+          'sm:top-[74px] sm:right-6': !isDashboardEmpty
         }"
       >
         <button @click="logout" class="option">Log out</button>
+        <button
+          @click="isConfirmationModalShown = true"
+          class="option option--delete"
+        >
+          Delete account
+        </button>
       </div>
     </transition>
   </div>
@@ -35,6 +51,7 @@
 import type { Ref } from 'vue'
 import UserIcon from './Svgs/UserIcon.vue'
 import ConfirmationPopup from './shared/ConfirmationPopup.vue'
+import ConfirmationModal from './Modals/ConfirmationModal.vue'
 import { useUserStore } from '../stores/user'
 import {
   isAuthError,
@@ -43,25 +60,20 @@ import {
 } from '../composables/authHandler'
 import { onClickOutside } from '@vueuse/core'
 import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 
 defineProps<{
-  isDashboardEmpty?: true
+  isDashboardEmpty: boolean
 }>()
 
 const userStore = useUserStore()
 const route = useRoute()
-const router = useRouter()
+
 const areUserOptionsShown = ref(false)
+const isConfirmationModalShown = ref(false)
 
 const logout = async () => {
   const response = await userStore.logout()
-
-  if (response) {
-    setTimeout(() => {
-      router.push('/')
-    }, 3000)
-  }
 
   handleAuthResponse(response, route.path)
 }

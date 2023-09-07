@@ -55,7 +55,7 @@
   <transition name="modal">
     <board-modal
       v-if="isAddBoardModalShown"
-      @close-modal="isAddBoardModalShown = false"
+      @change-var-to-false="isAddBoardModalShown = false"
       action="add"
     />
   </transition>

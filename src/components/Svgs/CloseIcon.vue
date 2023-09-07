@@ -1,17 +1,17 @@
 <template>
   <button
     @click="$emit('handle-close')"
-    class="p-2 box-content rounded-[4px]"
+    class="p-2 box-content rounded-[4px] translate-x-1"
     :class="{
       'ml-auto group': isColumn,
       'focus-visible:outline-red-400': isError
     }"
     :aria-label="
-      listItem != null || isPolicy
+      listItem || isPolicy
         ? 'click here to close off this field'
         : 'click here to delete the whole column'
     "
-    :type="listItem != null ? 'button' : undefined"
+    :type="listItem ? 'button' : undefined"
   >
     <svg width="15" height="15" :class="{ 'scale-150': isPolicy }">
       <g
@@ -31,7 +31,7 @@
 
 <script setup lang="ts">
 defineProps<{
-  listItem?: string
+  listItem?: true
   isColumn?: true
   isPolicy?: true
   isError?: boolean

@@ -6,10 +6,7 @@
       />
     </transition>
     <main class="auth-main">
-      <logo-icon
-        aria-label="The app logo"
-        class="mb-4 scale-125 sm:scale-150 border-none"
-      />
+      <logo-icon class="mb-4 scale-125 sm:scale-150 border-none" />
       <form @submit.prevent="onSubmit" class="form">
         <header class="xs:text-lg first-letter:uppercase">
           <h2>{{ currentAccountLink.action }}</h2>
@@ -24,9 +21,9 @@
         />
         <button
           class="regular-button purple-class"
-          :disabled="form.meta.value.valid === false"
+          :disabled="form.meta.value.valid === false || buttonLoading"
         >
-          {{ currentAccountLink.action }}
+          {{ buttonLoading ? 'Loading...' : currentAccountLink.action }}
         </button>
         <p class="text-center">
           {{ currentAccountLink.question }}
@@ -127,17 +124,19 @@ const form = useForm({
   )
 })
 
-const errorMessage = ref<string>('')
+const errorMessage = ref('')
+const buttonLoading = ref(false)
 const onSubmit = form.handleSubmit(async (values) => {
   const method = currentPath === '/' ? userStore.logIn : userStore.register
 
+  buttonLoading.value = true
   const response = await method(values.email, values.password)
 
   if (response !== true) {
     errorMessage.value = response
   }
 
-  handleAuthResponse(response, currentPath)
+  handleAuthResponse(response, currentPath, buttonLoading)
 })
 </script>
 

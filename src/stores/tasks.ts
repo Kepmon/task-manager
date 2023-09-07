@@ -1,7 +1,13 @@
-import type { BoardColumn, Task, Subtask } from '../api/boardsTypes'
+import type {
+  BoardColumn,
+  Task,
+  Subtask,
+  FormSubsetItem
+} from '../api/boardsTypes'
 import type {
   CollectionReference,
   QueryDocumentSnapshot,
+  Query,
   DocumentData
 } from 'firebase/firestore'
 import { defineStore } from 'pinia'
@@ -30,14 +36,10 @@ export const useTasksStore = defineStore('tasks', () => {
   const columnOfClickedTask = ref<null | number>(null)
   const clickedTask = ref<null | Task>(null)
   const subtasksOfClickedTask = ref<null | Subtask[]>(null)
-
   const subtasksNames = computed(() =>
     subtasksOfClickedTask.value
       ? subtasksOfClickedTask.value.map((subtask) => subtask.title)
-      : null
-  )
-  const subtasksErrors = computed(() =>
-    subtasksNames.value ? subtasksNames.value.map(() => false) : [false, false]
+      : []
   )
 
   const getTasks = async (
@@ -110,6 +112,21 @@ export const useTasksStore = defineStore('tasks', () => {
     )
   }
 
+  const updateSubtasks = async (
+    subtaskColRef: CollectionReference<DocumentData> | Query<DocumentData>
+  ) => {
+    const subtasksDocRefs = (await getDocs(subtaskColRef)).docs
+
+    if (subtasksDocRefs.length !== 0) {
+      return subtasksDocRefs.map((subtasksDocRef) => ({
+        ...(subtasksDocRef.data() as Omit<Subtask, 'subtaskID'>),
+        subtaskID: subtasksDocRef.id
+      }))
+    }
+
+    return []
+  }
+
   const addNewTask = async (
     columnID: BoardColumn['columnID'],
     task: Omit<Task, 'createdAt' | 'taskID'> | Omit<Task, 'taskID'>,
@@ -141,10 +158,11 @@ export const useTasksStore = defineStore('tasks', () => {
   }
 
   const moveTaskBetweenColumns = async (
-    prevColumnID: BoardColumn['columnID'],
     nextColumnID: BoardColumn['columnID']
   ) => {
     const colRefPathPrefix = `users/${userStore.userID}/boards/${boardsStore.currentBoardID}/columns`
+    const prevColumnID =
+      boardsStore.boardColumns[columnOfClickedTask.value as number].columnID
     const prevTasksColRef = collection(
       db,
       `${colRefPathPrefix}/${prevColumnID}/tasks`
@@ -170,7 +188,7 @@ export const useTasksStore = defineStore('tasks', () => {
       subtaskID: prevSubtaskDocRefs[index].id
     }))
 
-    await deleteTask(prevColumnID, (clickedTask.value as Task).taskID)
+    await deleteTask()
 
     await setDoc(nextTaskDocRef, {
       createdAt: (clickedTask.value as Task).createdAt,
@@ -193,8 +211,7 @@ export const useTasksStore = defineStore('tasks', () => {
   const editTask = async (
     taskName: string,
     taskDescription: string,
-    updatedSubtaskNames: string[],
-    prevColumnID: undefined | BoardColumn['columnID'],
+    updatedSubtasks: FormSubsetItem[],
     nextColumnID: BoardColumn['columnID'],
     isStatusChanged: boolean
   ) => {
@@ -202,76 +219,106 @@ export const useTasksStore = defineStore('tasks', () => {
       db,
       `users/${userStore.userID}/boards/${boardsStore.currentBoardID}/columns`
     )
-    const columnDocRef = (await getDocs(columnsColRef)).docs[
-      columnOfClickedTask.value as number
-    ]
-    const tasksColRef = collection(db, `${columnDocRef.ref.path}/tasks`)
+
+    const clickedColumnID =
+      boardsStore.boardColumns[columnOfClickedTask.value as number].columnID
+
+    const columnDocRef = doc(columnsColRef, clickedColumnID)
+
+    const tasksColRef = collection(db, `${columnDocRef.path}/tasks`)
     const taskDocRef = doc(tasksColRef, (clickedTask.value as Task).taskID)
     const subtasksColRef = collection(db, `${taskDocRef.path}/subtasks`)
 
-    if (taskName !== (clickedTask.value as Task).title) {
+    const isTaskNameSame = taskName === (clickedTask.value as Task).title
+    const isDescriptionSame =
+      taskDescription === (clickedTask.value as Task).description
+    const isNumberOfSubtaskSame =
+      subtasksOfClickedTask.value?.length === updatedSubtasks.length
+    const areSubtasksTitlesSame = (
+      subtasksOfClickedTask.value as Subtask[]
+    ).every(({ subtaskID, title }) =>
+      updatedSubtasks.find(({ name, id }) => title === name && subtaskID === id)
+    )
+
+    const isFormNotChanged = [
+      isTaskNameSame,
+      isDescriptionSame,
+      isNumberOfSubtaskSame,
+      areSubtasksTitlesSame
+    ].every((item) => item === true)
+
+    if (isFormNotChanged) return
+
+    if (!isTaskNameSame) {
       await updateDoc(taskDocRef, {
         title: taskName
       })
     }
 
-    if (taskDescription !== (clickedTask.value as Task).description) {
+    if (!isDescriptionSame) {
       await updateDoc(taskDocRef, {
         description: taskDescription
       })
     }
 
     if (isStatusChanged) {
-      await moveTaskBetweenColumns(
-        prevColumnID as BoardColumn['columnID'],
-        nextColumnID
+      await moveTaskBetweenColumns(nextColumnID)
+    }
+
+    const noRespectiveSubtasks = updatedSubtasks.filter(({ name, id }) => {
+      if (
+        subtasksOfClickedTask.value != null &&
+        (subtasksOfClickedTask.value as Subtask[]).some(
+          ({ subtaskID }) => subtaskID === id
+        )
       )
+        return
+
+      return name
+    })
+    if (noRespectiveSubtasks) {
+      noRespectiveSubtasks.forEach(async ({ name }) => {
+        await addDoc(subtasksColRef, {
+          title: name,
+          isCompleted: false,
+          createdAt: serverTimestamp()
+        })
+      })
     }
 
     if (subtasksOfClickedTask.value != null) {
-      subtasksOfClickedTask.value.forEach(async (subtask, index) => {
-        const subtaskDocRef = doc(subtasksColRef, subtask.subtaskID)
+      subtasksOfClickedTask.value.forEach(
+        async ({ subtaskID, title }, index) => {
+          const subtaskDocRef = doc(subtasksColRef, subtaskID)
 
-        if (updatedSubtaskNames[index] == null) {
-          await deleteDoc(subtaskDocRef)
-          return
-        }
-
-        if (updatedSubtaskNames[index] === subtask.title) return
-
-        await updateDoc(subtaskDocRef, {
-          title: updatedSubtaskNames[index]
-        })
-      })
-
-      if (updatedSubtaskNames.length > subtasksOfClickedTask.value.length) {
-        updatedSubtaskNames.forEach(async (subtaskName, index) => {
-          if (
-            subtasksOfClickedTask.value != null &&
-            subtasksOfClickedTask.value[index] != null &&
-            (subtasksOfClickedTask.value as Subtask[])[index].title != null
+          const respectiveSubtask = updatedSubtasks.find(
+            ({ id }) => id === subtaskID
           )
-            return
+          const isSubtaskNameSame = respectiveSubtask?.name === title
 
-          await addDoc(subtasksColRef, {
-            title: subtaskName,
-            isCompleted: false,
-            createdAt: serverTimestamp()
+          if (respectiveSubtask && isSubtaskNameSame) return
+
+          if (respectiveSubtask == null) {
+            await deleteDoc(subtaskDocRef)
+            return
+          }
+
+          await updateDoc(subtaskDocRef, {
+            title: updatedSubtasks[index].name
           })
-        })
-      }
+        }
+      )
     }
   }
 
-  const deleteTask = async (
-    columnID: BoardColumn['columnID'],
-    taskID: Task['taskID']
-  ) => {
+  const deleteTask = async () => {
     const tasksColRef = collection(
       db,
-      `users/${userStore.userID}/boards/${boardsStore.currentBoardID}/columns/${columnID}/tasks`
+      `users/${userStore.userID}/boards/${boardsStore.currentBoardID}/columns/${
+        boardsStore.boardColumns[columnOfClickedTask.value as number].columnID
+      }/tasks`
     )
-    const tasksDocRef = doc(tasksColRef, taskID)
+    const tasksDocRef = doc(tasksColRef, clickedTask.value?.taskID)
 
     const subtasksColRef = collection(db, `${tasksDocRef.path}/subtasks`)
     const subtasksDocRefs = await getDocs(subtasksColRef)
@@ -292,11 +339,17 @@ export const useTasksStore = defineStore('tasks', () => {
         boardsStore.boardColumns[columnOfClickedTask.value as number].columnID
       }/tasks/${(clickedTask.value as Task).taskID}/subtasks`
     )
+    const subtasksColRefOrdered = query(
+      subtasksColRef,
+      orderBy('createdAt', 'asc')
+    )
     const subtaskDocRef = doc(subtasksColRef, subtask.subtaskID)
 
     await updateDoc(subtaskDocRef, {
       isCompleted: !subtask.isCompleted
     })
+
+    subtasksOfClickedTask.value = await updateSubtasks(subtasksColRefOrdered)
   }
 
   return {
@@ -306,7 +359,6 @@ export const useTasksStore = defineStore('tasks', () => {
     columnOfClickedTask,
     subtasksOfClickedTask,
     subtasksNames,
-    subtasksErrors,
     getTasks,
     getSubtasks,
     addNewTask,

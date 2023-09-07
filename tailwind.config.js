@@ -10,6 +10,9 @@ module.exports = {
   ],
   theme: {
     extend: {
+      minHeight: {
+        screen: ['100vh', '100dvh'],
+      },
       screens: {
         'xs': '350px',
         's': '512px',
@@ -63,7 +66,8 @@ module.exports = {
         lg: ['18px', '23px'],
         lgFluid: 'clamp(0.88rem, calc(0.80rem + 0.42vw), 1.13rem)',
         xl: ['24px', '30px'],
-        xlFluid: 'clamp(1.25rem, calc(1.07rem + 1.04vw), 1.88rem)'
+        xlFluid: 'clamp(1.25rem, calc(1.07rem + 1.04vw), 1.88rem)',
+        xxlFluid: 'clamp(1.63rem, calc(1.22rem + 2.29vw), 3.00rem)'
       },
       boxShadow: {
         xs: '0 0 2px -1px hsl(0 0% 59%)',
