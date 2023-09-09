@@ -1,5 +1,5 @@
-**_The content for this file is still being developed**  
-_Even though, it's already probably too long, it is still being written and When I'm done with it, this info will disappear_
+**The content for this file is still being developed**  
+_Even though, it's probably already way too long, it is still being written and When I'm done with it, this info will disappear_
 
 [This app](https://task-manager-6f064.web.app/) is a [Frontend Mentor challenge](https://www.frontendmentor.io/challenges/kanban-task-management-web-app-wgQLt-HlbB) that I decided to take on, due to several reasons:
 * To practice Vue and Typescript before moving on to learning Nuxt,
@@ -14,13 +14,13 @@ Apart from the functionality "imposed" by the Frontend Mentor creators, I decide
 
 ## 📣 Important info
 * You need to **create an account** in order to be able to use the app.
-* I highly encourage you to create this account but if you really don't want to do this, for whatever reason, you can use this **test account**, with the following data:
+* I highly encourage you to create this account but if you really don't want to do this, for whatever reason, you can use this **test account**, with the following data:  
 | Data          | Value    |
 | ------------- |:----------------:|
 | email         | test0@example.com|
 | password      | test1234| 
 * Since I didn't use either a proprietary backend or any SSR-serving tool, **_please, DO NOT provide any real data (e.g. personal email address or a password used elsewhere)_**, while creating an account, because your user data is still accessible for basically anyone, if they know where to find it. 
-* However, you still need to pass the form validation, meaning the data you provide while signing up has to meet the following criteria:
+* However, you still need to pass the form validation, meaning the data you provide while signing up has to meet the following criteria:  
 | Data          | Correct input    |
 | ------------- |:----------------:|
 | password      | min. 8 characters|
@@ -33,7 +33,8 @@ Apart from the functionality "imposed" by the Frontend Mentor creators, I decide
 ![Typescript](https://img.shields.io/badge/Typescript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
 ![Firebase](https://img.shields.io/badge/Firebase-FFA611?style=for-the-badge&logo=firebase&logoColor=white)
 
-Some of the following sections were divided into collapsible subsections, so you can read only the one(s) you're actually interested in. This is because I anticipate, those would be long ones and I don't want to create this bad user experience by forcing you to read it all or scrolling through it. Also, I believe, the readibility of the whole README will be enhanced this way.
+##
+_Some of the following sections were divided into collapsible subsections, so you can read only the one(s) you're actually interested in. This is because I anticipate, those would be long ones and I don't want to create this bad user experience by forcing you to read it all or scrolling through it. Also, I believe, the readibility of the whole README will be enhanced this way._
 
 ## 🎓 What did I learn
 <details>
@@ -51,7 +52,7 @@ Some of the following sections were divided into collapsible subsections, so you
     - Also, I can't cound how many times I had to repeat the same code in two places, when introducing changes, because I didn't give enough thought to the maintability 🙈
   * **If your gut is telling you some part of your code is a wrong approach, you'd better listen to it**
     - even if it's working now, it's not maintainable on a long run and it'll fall apart as soon as you start messing with it, what by the way reminds me of this meme:
-    ![a funny meme about the difference between a programmer and a scientist](https://img-9gag-fun.9cache.com/photo/aze0zZb_700bwp.webp|width=250px)
+    <img src="https://img-9gag-fun.9cache.com/photo/aze0zZb_700bwp.webp" alt="a funny meme about the difference between a programmer and a scientist" width="350" />
     - more likely, it's not actually **fully** working, you just don't realize it yet
     - in a long run, it would be quicker to write it correctly from the very beginning, than refactoring it later on
   * **Automated tests probably make much more sense than I initially thought**
