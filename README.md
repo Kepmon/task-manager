@@ -1,6 +1,3 @@
-**The content for this file is still being developed**  
-_Even though, it's probably already way too long, it is still being written and When I'm done with it, this info will disappear_
-
 [This app](https://task-manager-6f064.web.app/) is a [Frontend Mentor challenge](https://www.frontendmentor.io/challenges/kanban-task-management-web-app-wgQLt-HlbB) that I decided to take on, due to several reasons:
 * To practice Vue and Typescript before moving on to learning Nuxt,
 * I don't feel like I have a good eye for design and I didn't want to spend much time on designing the app, anyway, so I thought maybe this time I could actually use the ready-to-use design files that the Frontend Mentor's challenges are provided with,
@@ -14,13 +11,15 @@ Apart from the functionality "imposed" by the Frontend Mentor creators, I decide
 
 ## 📣 Important info
 * You need to **create an account** in order to be able to use the app.
-* I highly encourage you to create this account but if you really don't want to do this, for whatever reason, you can use this **test account**, with the following data:  
+* I highly encourage you to create this account, but, if you really don't want to do this, for whatever reason, you can use this **test account**, with the following data:  
+
 | Data          | Value    |
 | ------------- |:----------------:|
 | email         | test0@example.com|
 | password      | test1234| 
 * Since I didn't use either a proprietary backend or any SSR-serving tool, **_please, DO NOT provide any real data (e.g. personal email address or a password used elsewhere)_**, while creating an account, because your user data is still accessible for basically anyone, if they know where to find it. 
 * However, you still need to pass the form validation, meaning the data you provide while signing up has to meet the following criteria:  
+
 | Data          | Correct input    |
 | ------------- |:----------------:|
 | password      | min. 8 characters|
@@ -52,14 +51,15 @@ _Some of the following sections were divided into collapsible subsections, so yo
     - Also, I can't cound how many times I had to repeat the same code in two places, when introducing changes, because I didn't give enough thought to the maintability 🙈
   * **If your gut is telling you some part of your code is a wrong approach, you'd better listen to it**
     - even if it's working now, it's not maintainable on a long run and it'll fall apart as soon as you start messing with it, what by the way reminds me of this meme:
-    <img src="https://img-9gag-fun.9cache.com/photo/aze0zZb_700bwp.webp" alt="a funny meme about the difference between a programmer and a scientist" width="350" />
+    <img src="https://img-9gag-fun.9cache.com/photo/aze0zZb_700bwp.webp" alt="a funny meme about the difference between a programmer and a scientist" width="400" />  
     - more likely, it's not actually **fully** working, you just don't realize it yet
     - in a long run, it would be quicker to write it correctly from the very beginning, than refactoring it later on
   * **Automated tests probably make much more sense than I initially thought**
     - when writing the code for this project I faced so many situations where changing some part of existing code actually crushed half of my app due to a strong connection between different pieces of code
     - I didn't find a good way to track this, except for just manually testing the whole app. Which to me seemed impossible to do, due to way to many scenarios a user could use/navigate trough it. And this is still a fairly simple app. What about much more difficult ones?
     - that's why I believe, automated tests would be of great help in here, because if a change I made in my code impacted some other part of it, appropriate tests would just fail
-    * **The type coercion and bang operator will take you so far...** - on a long run, you'll be probably much beter off if you just compare your variable to whatever you expect for it (not) to be... unless you want to practice your debugging skills 😉
+  * **The type coercion and bang operator will take you so far...** - on a long run, you'll be probably much beter off if you just compare your variable to whatever you expect for it (not) to be... unless you want to practice your debugging skills 😉
+  * If you can't come up with a short function name that would describe **everything** what's happening inside, that's probably not your language skills that are the problem but your function doing too many things - divide the function into smaller pieces, each having only one responsibility
 </details>
 
 <details>
@@ -151,27 +151,126 @@ In the remaining cases (probably some Firebase/server issues), a user just gets 
         - don't delete it from localStorage
         
 Moreover, for your convience, I put the theme toggler on every page (except for the 404 one, since I believe you didn't come over there to switch the theme, and, in fact, you had actually no intention to come there, at all), so you can change it at any stage of using the app.
-
-**_To be continued..._**
 </details>
 
 
 <details>
   <summary>3. Accessibility</summary>
   
-  **_To be yet written..._**
+  One of my main goals for this app was to make it fully accessible for both keyboard- and screen-reader-navigating users. I tried to do my best to achieve this goal, but there is still a room from improvement in here.
+  
+  At the current stage:
+  * the dashboard view lacks the skip-to-content link - it'll be added ASAP
+  * apart from that, **the app is fully accessible for keyboard-navigating users** - you don't really need a mouse to be able to use it
+  * **adjusting the app for the screen-reader-navigating users** was a bit trickier, therefore, there are still parts that are lacking:
+    - a screen reader should automatically read the popup messages
+    - `aria-page="current"` or a similar attribute should be added to currently chosen board
+    - some semantics aspects are still to be improved
 </details>
 
 <details>
-  <summary>4. What is it to be still improved?</summary>
+  <summary>4. Database Structure</summary>
+  I feel like making this subsection as well since I changed my database structure like 5 or 6 times, before (I hope) I made it right, so I want to share what I've learnt along the way by describing how **I think** it should work.
   
-  **_To be yet written..._**
+  Obviously, I approached the database structure so many times because the performance of the app was of great importance in this case, since almost any user's interaction with it requires sending query to the database.
+  
+  Therefore, even though I know basically nothing about backend, I decided to do whatever it takes to make my app as performant as I'm able to achieve at the current state of my knowledge.
+  
+  Maybe I should start with the data structure that I believe would be best pictured by those interfaces:
+  ```js
+  interface Board {
+    boardID: string
+    createdAt: string
+    name: string
+  }
+
+  interface BoardColumn {
+    columnID: string
+    createdAt: string
+    name: string
+  }
+
+  interface Task {
+    taskID: string
+    createdAt: string
+    title: string
+    description: string
+  }
+
+  interface Subtask {
+    subtaskID: string
+    title: string
+    isCompleted: boolean
+    createdAt: string
+  }
+```
+
+So, after making so many mistakes with it, I established it should work like that:  
+
+  * I should have one main `users` collection
+  * At the same time I shouldn't fetch them all to the Frontend to "pick" only the user that is currently logged in
+  * Fortunately, the firebase's watcher onAuthStateChanged function could help me with that because it accepts the user object as a parameter and that contains the user id
+  * Having this id, I could use it for fetching the rest of the data that is stored as **subcollections**, meaning:
+    - the `users` collection contains all user object
+    - a `user` object contains the `boards` subcollection
+    - I can use the user id to construct the path to their `boards`
+    - each `board` contains `columns` subcollection
+    - each `column` contains `tasks` subcollection
+    - each task contains `subtasks` subcollection
+  * This way, I always fetch the data that belong to particular user and don't have to worry about:
+    - fetching too much data to be able to display the data belonging to a particular user
+    - firing any loops (either on the client or on the server) to be able to filter this data, which, I believe, improves my app's performance
 </details>
 
 <details>
-  <summary>5. Possible future improvements</summary>
+  <summary>5. What is it to be still improved?</summary>
+  The foremost aspect to be improved ASAP is the code - there is way too much to mention everything, but I'll list some examples, anyway:  
   
-  **_To be yet written..._**
+  * cleaning up the code inside the stores, with particular emphasis on `tasksStore` that's just a big mess
+  * I was wondering why this wouldn't work (code below):
+    - even though, I actually **should know** why, since **I do know** the difference between passing as a reference and passing as a value
+    - and this is in fact the third time (when coding this app) when I'm making the very same mistake
+    - but, apparently, I have to make the same mistakes enough times, to eventually stop doing that (which by the way, is one more reason to value the experience)
+    - also, I've noticed I don't even remove those listeners everywhere when I add them 🙈 - all of that will be fixed very soon
+  ```js
+  window.addEventListener('click', (e: Event) => {
+    closeOpenedBoardsNav(e)
+  })
+  onUnmounted(() => {
+    window.removeEventListener('click', (e: Event) => {
+      closeOpenedBoardsNav(e)
+    })
+  })
+```
+  * many functions should be divided into smaller pieces of a single responsibility
+  * certain components could be probably divided into the smaller ones, as well
+  * certain variables should be in an appropriate store, instead of the component file
+  * I should replace certain type assertions with guards
+  * I believe, I still have indexes passed as `key` values inside `v-for` loops - they need to be replaced with IDs
+  * All `emit` functions should be typed
+  
+Apart from the code, it was brought to my attention that there are some issues with proper displaying of the app content on certain browsers (namely Firefox and Konqueror). Also, I don't have any Apple device, so I'm not sure about Safari. I'll try find some who could test it for me, though. 
+ 
+As for Firefox, it should be an easy fix but this Konqueror thing may be more troublesome. Nevertheless, I'll try to do my best to fix all styling issues that I'm (or will be) aware of.
+</details>
+
+<details>
+  <summary>6. Possible future improvements</summary>
+  I thought about certain features that could be added to the app to enhance the user experience. Those would be: 
+
+  * the possibility of **dragging tasks between colums** (in addition to the current option of changing the column inside the modal that shows up when clicking a task)
+  * **some kind of Q&A/tour** on how to navigate through the app, since, at times, I found some of the functionalities to not be very intuitive ones
+  * the option of **choosing the color of the dot** that is displayed on the left side of the column name
+  
+  Apart from that, I'm also considering adding **dynamic imports** - not sure about this one though because it seems to me that: 
+
+  * dynamic imports actually work better for long landing-page websites or multiple-page websites
+  * whereas, in my app, the most "problematic" files are all used inside the dashboard view and if the user enters it, I need to load those files anyway
+  * there is almost no other page where authenticated user could go, so I have no reason to assume, they wouldn't
+  * even if I did assume that, I wonder if it wouldn't be too late to asynchronousily load all those components when the user is actually about to enter the page, especially for slower connections
+  * I probably need to get to know more on that to be able to decide
+
+  Nevertheless, I'm not sure whether I have time to apply the abovementioned in the upcoming days. That's why I labeled those as "possible" improvements. However, even if I'm not doing this anytime soon, I might still come back to this up in some unspecified future and add a new feature then.
 </details>
 
 ## 🙏 Acknowledgments
@@ -190,3 +289,4 @@ A big thank you for @aleksanderwalczuk for:
 | User icon (Dashboard)    | [SVG Repo - user circle](https://www.svgrepo.com/svg/507442/user-circle)|
 | 404 image | [Storyset](https://storyset.com/illustration/oops-404-error-with-a-broken-robot/rafiki)
 | Font | [Google Fonts](https://fonts.google.com/specimen/Plus+Jakarta+Sans?query=plus+jakarta+sans) |
+| Privacy Policy content | [ChatGPT](https://chat.openai.com/) |
