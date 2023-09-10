@@ -50,15 +50,16 @@ _Some of the following sections were divided into collapsible subsections, so yo
     - I can't even count how many times I had a component that was created with a particular intention and I hadn't actually intended to apply it anywhere else on my website, until one day I found out I actually needed it for one more thing and I was pretty surprised that I had to make almost no changes to it to make it work perfectly well in this new situation
     - Also, I can't cound how many times I had to repeat the same code in two places, when introducing changes, because I didn't give enough thought to the maintability 🙈
   * **If your gut is telling you some part of your code is a wrong approach, you'd better listen to it**
-    - even if it's working now, it's not maintainable on a long run and it'll fall apart as soon as you start messing with it, what by the way reminds me of this meme:
+    - even if it's working now, it's not maintainable in the long run and it'll fall apart as soon as you start messing with it, what by the way reminds me of this meme:
     <img src="https://img-9gag-fun.9cache.com/photo/aze0zZb_700bwp.webp" alt="a funny meme about the difference between a programmer and a scientist" width="400" />  
+
     - more likely, it's not actually **fully** working, you just don't realize it yet
-    - in a long run, it would be quicker to write it correctly from the very beginning, than refactoring it later on
+    - in the long run, it would be quicker to write it correctly from the very beginning, than refactoring it later on
   * **Automated tests probably make much more sense than I initially thought**
     - when writing the code for this project I faced so many situations where changing some part of existing code actually crushed half of my app due to a strong connection between different pieces of code
     - I didn't find a good way to track this, except for just manually testing the whole app. Which to me seemed impossible to do, due to way to many scenarios a user could use/navigate trough it. And this is still a fairly simple app. What about much more difficult ones?
     - that's why I believe, automated tests would be of great help in here, because if a change I made in my code impacted some other part of it, appropriate tests would just fail
-  * **The type coercion and bang operator will take you so far...** - on a long run, you'll be probably much beter off if you just compare your variable to whatever you expect for it (not) to be... unless you want to practice your debugging skills 😉
+  * **The type coercion and bang operator will take you so far...** - in the long run, you'll be probably much beter off if you just compare your variable to whatever you expect for it (not) to be... unless you want to practice your debugging skills 😉
   * If you can't come up with a short function name that would describe **everything** what's happening inside, that's probably not your language skills that are the problem but your function doing too many things - divide the function into smaller pieces, each having only one responsibility
 </details>
 
@@ -82,7 +83,7 @@ _Some of the following sections were divided into collapsible subsections, so yo
     - I strongly doubt this app would even existed if not for TypeScript 🙈
     - When coding this project I actually started contemplating about how is it even possible, someone would come up with a programming language that doesn't include types
   * "No overload matches this call (...)" simply means that there's some descrepancy between the object that TypeScript expected for you to pass and the one you actually passed - either one of them is wrongly typed or you passed a completely different object. Just go, look for this difference and fix it. [This VS Code extension](https://github.com/yoavbls/pretty-ts-errors) will certainly help you with that.
-  * If TypeScript yells at you "a variable is possibly null", **it may be actually null** - type assertion isn't usually a way to go. Sometimes it is though. But you'd better think it through before making it, maybe your function actually lacks a guard, not a type assertion?
+  * If TypeScript yells at you "a variable is possibly null", **it may be actually null** - type assertion isn't usually a way to go. Sometimes it is, though. But you'd better think it through before making it, maybe your function actually lacks a guard, not a type assertion?
 </details>
 
 ## 💫 A more detailed info about the project
