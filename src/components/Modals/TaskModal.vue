@@ -1,7 +1,7 @@
 <template>
   <modals-template @submit-form="submit" @close-modal="handleCloseModal">
     <template #form-title>
-      <h2>{{ action }} {{ action === 'add' ? 'New' : '' }} Task</h2>
+      <h2 class="first-letter:uppercase">{{ action }} {{ action === 'add' ? 'New' : '' }} Task</h2>
     </template>
 
     <template #main-content>
