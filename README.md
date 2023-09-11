@@ -255,6 +255,15 @@ So, after making so many mistakes with it, I established it should work like tha
 Apart from the code, it was brought to my attention that there are some issues with proper displaying of the app content on certain browsers (namely Firefox and Konqueror). Also, I don't have any Apple device, so I'm not sure about Safari. I'll try find some who could test it for me, though. 
  
 As for Firefox, it should be an easy fix but this Konqueror thing may be more troublesome. Nevertheless, I'll try to do my best to fix all styling issues that I'm (or will be) aware of.
+
+**Update:**
+All UI issues in Firefox has been fixed.
+
+Regarding this Konqueror browser, the issue was that the dark theme wasn't properly displayed. After a short while of debugging I realized this was because the `useDark` utility uses the `:is` pseudoclass to apply styles for the dark mode. And Konqueror obviously doesn't support this pseudoclass.
+
+Funny story - I checked one of my previous websites, **written in Astro** in this browser, since Astro uses the `:where` pseudoclass for basically everything - as expected, it turned out that the styles weren't applied at all in this browser 😅
+
+I have no intention to fix this, since I strongly believe the percent usage of this browser is... barely-existent. So if, for any reason, you happen to use this browser or any other one that seems to have troubles with properly displayed dark theme, just **use the light theme**.
 </details>
 
 <details>
