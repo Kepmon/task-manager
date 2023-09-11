@@ -3,7 +3,7 @@
     <UseFocusTrap :options="{ immediate: true, allowOutsideClick: true }">
       <form @submit.prevent="$emit('submit-form')" class="form">
         <div class="flex items-center justify-between gap-2 xs:gap-4">
-          <header class="xs:text-lg first-letter:uppercase">
+          <header class="xs:text-lg">
             <slot name="form-title"></slot>
           </header>
           <slot name="ellipsis"></slot>
