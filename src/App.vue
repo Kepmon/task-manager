@@ -64,6 +64,7 @@ button,
 .input {
   @apply py-3 px-4 w-full bg-transparent rounded-[4px] text-sm font-normal;
   @apply outline outline-transparent border;
+  @apply focus-visible:outline focus-visible:outline-transparent;
 }
 
 .input-error {
