@@ -61,6 +61,7 @@ _Some of the following sections were divided into collapsible subsections, so yo
     - that's why I believe, automated tests would be of great help in here, because if a change I made in my code impacted some other part of it, appropriate tests would just fail
   * **The type coercion and bang operator will take you so far...** - in the long run, you'll be probably much beter off if you just compare your variable to whatever you expect for it (not) to be... unless you want to practice your debugging skills 😉
   * If you can't come up with a short function name that would describe **everything** what's happening inside, that's probably not your language skills that are the problem but your function doing too many things - divide the function into smaller pieces, each having only one responsibility
+  * my contributor was probably right saying I should have a branch per feature 😅
 </details>
 
 <details>
@@ -248,7 +249,8 @@ So, after making so many mistakes with it, I established it should work like tha
   * certain variables should be in an appropriate store, instead of the component file
   * I should replace certain type assertions with guards
   * I believe, I still have indexes passed as `key` values inside `v-for` loops - they need to be replaced with IDs
-  * All `emit` functions should be typed
+  * all `emit` functions should be typed
+  * the `try` and `catch` blocks are missing in many places
   
 Apart from the code, it was brought to my attention that there are some issues with proper displaying of the app content on certain browsers (namely Firefox and Konqueror). Also, I don't have any Apple device, so I'm not sure about Safari. I'll try find some who could test it for me, though. 
  
