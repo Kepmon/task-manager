@@ -59,7 +59,7 @@ import {
   handleAuthResponse
 } from '../composables/authHandler'
 import { onClickOutside } from '@vueuse/core'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 
 defineProps<{
@@ -79,28 +79,22 @@ const logout = async () => {
 }
 
 const target = ref(null)
-const closeUserOptions = (
-  target: Ref<null | HTMLElement>,
-  e: Event | KeyboardEvent
-) => {
-  if (
-    (e.target as HTMLElement).closest('button') === target.value &&
-    (e as KeyboardEvent).key !== 'Escape'
-  )
-    return
+const closeUserOptions = (e: Event | KeyboardEvent) => {
+  const isTargetNonNull = target.value == null
+  const isAnyKeyPressed = (e as KeyboardEvent).key != null
+  const isEscapePressed = (e as KeyboardEvent).key === 'Escape'
 
-  if (target == null) return
+  if (isTargetNonNull || (isAnyKeyPressed && !isEscapePressed)) return
 
   areUserOptionsShown.value = false
 }
-onClickOutside(target, (e: Event) => closeUserOptions(target, e))
+onClickOutside(target, closeUserOptions)
 
 onMounted(() => {
-  window.addEventListener('keydown', (e: Event | KeyboardEvent) => {
-    if ((e as KeyboardEvent).key === 'Escape') {
-      closeUserOptions(target, e)
-    }
-  })
+  window.addEventListener('keydown', closeUserOptions)
+})
+onUnmounted(() => {
+  window.removeEventListener('keydown', closeUserOptions)
 })
 </script>
 

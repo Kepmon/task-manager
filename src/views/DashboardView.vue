@@ -120,13 +120,9 @@ const closeOpenedBoardsNav = (e: Event) => {
   }
 }
 
-window.addEventListener('click', (e: Event) => {
-  closeOpenedBoardsNav(e)
-})
+window.addEventListener('click', closeOpenedBoardsNav)
 onUnmounted(() => {
-  window.removeEventListener('click', (e: Event) => {
-    closeOpenedBoardsNav(e)
-  })
+  window.removeEventListener('click', closeOpenedBoardsNav)
 })
 
 const { width: windowWidth } = useWindowSize()

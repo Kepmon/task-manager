@@ -21,18 +21,16 @@ import { onMounted, onUnmounted } from 'vue'
 const emits = defineEmits(['close-modal', 'submit-form'])
 
 const closeModalOnEsc = (e: KeyboardEvent) => {
-  if (e.key === 'Escape') {
-    emits('close-modal')
-  }
+  if (e.key !== 'Escape') return
+
+  emits('close-modal')
 }
 
 onMounted(() => {
-  window.addEventListener('keydown', (e: KeyboardEvent) => closeModalOnEsc(e))
+  window.addEventListener('keydown', closeModalOnEsc)
 })
 onUnmounted(() => {
-  window.removeEventListener('keydown', (e: KeyboardEvent) =>
-    closeModalOnEsc(e)
-  )
+  window.removeEventListener('keydown', closeModalOnEsc)
 })
 </script>
 

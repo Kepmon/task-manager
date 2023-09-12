@@ -52,12 +52,10 @@ const closePopupOnEsc = (e: KeyboardEvent) => {
 }
 
 onMounted(() => {
-  window.addEventListener('keydown', (e: KeyboardEvent) => closePopupOnEsc(e))
+  window.addEventListener('keydown', closePopupOnEsc)
 })
 onUnmounted(() => {
-  window.removeEventListener('keydown', (e: KeyboardEvent) =>
-    closePopupOnEsc(e)
-  )
+  window.removeEventListener('keydown', closePopupOnEsc)
 })
 </script>
 
