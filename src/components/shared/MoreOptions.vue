@@ -1,30 +1,30 @@
 <template>
-  <transition name="options">
-    <div
-      v-if="condition"
-      @click="$emit('toggle-options')"
-      ref="target"
-      class="options-container w-max"
-      :class="{
-        'right-2 top-[calc(100%+1rem)]': element === 'board',
-        'right-3 -top-6': element === 'task'
-      }"
+  <div
+    @click="$emit('toggle-options')"
+    ref="target"
+    class="options-container w-max"
+    :class="{
+      'right-2 top-[calc(100%+1rem)]': element === 'board',
+      'right-3 -top-6': element === 'task',
+      '-top-16 right-0': isDashboardEmpty && element === 'auth',
+      '-top-16 right-0 sm:top-[74px] sm:right-6':
+        !isDashboardEmpty && element === 'auth'
+    }"
+  >
+    <button
+      @click="$emit('handle-first-option-click')"
+      ref="firstButton"
+      class="option option--edit"
     >
-      <button
-        @click.prevent="$emit('show-edit-form')"
-        ref="firstButton"
-        class="option option--edit"
-      >
-        Edit {{ element }}
-      </button>
-      <button
-        @click.prevent="$emit('show-delete-form')"
-        class="option option--delete"
-      >
-        Delete {{ element }}
-      </button>
-    </div>
-  </transition>
+      {{ element === 'auth' ? 'Log out' : `Edit ${element}` }}
+    </button>
+    <button
+      @click="$emit('handle-second-option-click')"
+      class="option option--delete"
+    >
+      {{ element === 'auth' ? 'Delete account' : `Delete ${element}` }}
+    </button>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -32,13 +32,13 @@ import { onClickOutside } from '@vueuse/core'
 import { ref, onMounted, onUnmounted } from 'vue'
 
 defineProps<{
-  condition: boolean
-  element: 'task' | 'board'
+  element: 'task' | 'board' | 'auth'
+  isDashboardEmpty?: boolean
 }>()
 const emits = defineEmits([
   'toggle-options',
-  'show-edit-form',
-  'show-delete-form',
+  'handle-first-option-click',
+  'handle-second-option-click',
   'close-more-options'
 ])
 

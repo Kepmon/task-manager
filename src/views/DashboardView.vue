@@ -75,7 +75,7 @@ import UserOptions from '../components/UserOptions.vue'
 import Spinner from '../components/Spinner.vue'
 import { useUserStore } from '../stores/user'
 import { useBoardsStore } from '../stores/boards'
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useWindowSize } from '@vueuse/core'
 
 const userStore = useUserStore()
@@ -120,7 +120,9 @@ const closeOpenedBoardsNav = (e: Event) => {
   }
 }
 
-window.addEventListener('click', closeOpenedBoardsNav)
+onMounted(() => {
+  window.addEventListener('click', closeOpenedBoardsNav)
+})
 onUnmounted(() => {
   window.removeEventListener('click', closeOpenedBoardsNav)
 })

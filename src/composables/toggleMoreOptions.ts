@@ -8,10 +8,10 @@ const closeOptions = (
   conditionToChange: Ref<boolean>
 ) => {
   const clickedItem = (e.target as HTMLElement).closest('button')
-  const isEllipsis = clickedItem?.getAttribute('data-ellipsis') != null
+  const isProtected = clickedItem?.getAttribute('data-protected') != null
   const wasEscPressed = (e as KeyboardEvent).key === 'Escape'
 
-  if (isEllipsis && !wasEscPressed) return
+  if (isProtected && !wasEscPressed) return
 
   conditionToChange.value = false
 }

@@ -57,14 +57,16 @@
           @toggle-options="areBoardOptionsShown = !areBoardOptionsShown"
           element="board"
         />
-        <more-options
-          @toggle-options="(e: Event) => handleMoreOptionsFn(e, toggleOptions)"
-          @show-edit-form="isEditBoardModalShown = true"
-          @show-delete-form="isDeleteBoardModalShown = true"
-          @close-more-options="(e: Event) => handleMoreOptionsFn(e, closeOptions)"
-          :condition="areBoardOptionsShown"
-          element="board"
-        />
+        <transition name="options">
+          <more-options
+            v-if="areBoardOptionsShown"
+            @toggle-options="(e: Event) => handleMoreOptionsFn(e, toggleOptions)"
+            @handle-first-option-click="isEditBoardModalShown = true"
+            @handle-second-option-click="isDeleteBoardModalShown = true"
+            @close-more-options="(e: Event) => handleMoreOptionsFn(e, closeOptions)"
+            element="board"
+          />
+        </transition>
       </div>
     </div>
     <user-options :isDashboardEmpty="boardsStore.currentBoard == null" />
@@ -102,7 +104,7 @@ import TaskModal from './Modals/TaskModal.vue'
 import ConfirmationModal from './Modals/ConfirmationModal.vue'
 import BoardModal from './Modals/BoardModal.vue'
 import UserOptions from './UserOptions.vue'
-import moreOptionsPopup from '../composables/moreOptionsPopup'
+import toggleMoreOptions from '../composables/toggleMoreOptions'
 import { useBoardsStore } from '../stores/boards'
 import type { Ref } from 'vue'
 import { ref } from 'vue'
@@ -121,7 +123,7 @@ const isEditBoardModalShown = ref(false)
 
 const boardsStore = useBoardsStore()
 
-const { toggleOptions, closeOptions } = moreOptionsPopup
+const { toggleOptions, closeOptions } = toggleMoreOptions
 const handleMoreOptionsFn = (
   e: Event,
   cb: (e: Event, conditionToChange: Ref<boolean>) => void

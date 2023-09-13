@@ -21,28 +21,22 @@
     <button
       @click="areUserOptionsShown = !areUserOptionsShown"
       ref="target"
+      data-protected
       aria-label="Click here to see the user options"
       class="block sm:relative rounded-full outline-offset-3"
     >
       <user-icon :isDashboardEmpty="isDashboardEmpty" />
     </button>
     <transition name="options">
-      <div
+      <more-options
         v-if="areUserOptionsShown"
-        class="options-container"
-        :class="{
-          '-top-16 right-0': isDashboardEmpty,
-          'sm:top-[74px] sm:right-6': !isDashboardEmpty
-        }"
-      >
-        <button @click="logout" class="option">Log out</button>
-        <button
-          @click="isConfirmationModalShown = true"
-          class="option option--delete"
-        >
-          Delete account
-        </button>
-      </div>
+        @toggle-options="(e: Event) => handleMoreOptionsFn(e, toggleOptions)"
+        @handle-first-option-click="logout"
+        @handle-second-option-click="isConfirmationModalShown = true"
+        @close-more-options="(e: Event) => handleMoreOptionsFn(e, closeOptions)"
+        element="auth"
+        :isDashboardEmpty="isDashboardEmpty"
+      />
     </transition>
   </div>
 </template>
@@ -50,16 +44,17 @@
 <script setup lang="ts">
 import type { Ref } from 'vue'
 import UserIcon from './Svgs/UserIcon.vue'
+import MoreOptions from './shared/MoreOptions.vue'
 import ConfirmationPopup from './shared/ConfirmationPopup.vue'
 import ConfirmationModal from './Modals/ConfirmationModal.vue'
+import toggleMoreOptions from '../composables/toggleMoreOptions'
 import { useUserStore } from '../stores/user'
 import {
   isAuthError,
   isPopupShown,
   handleAuthResponse
 } from '../composables/authHandler'
-import { onClickOutside } from '@vueuse/core'
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 defineProps<{
@@ -78,24 +73,13 @@ const logout = async () => {
   handleAuthResponse(response, route.path)
 }
 
-const target = ref(null)
-const closeUserOptions = (e: Event | KeyboardEvent) => {
-  const isTargetNonNull = target.value == null
-  const isAnyKeyPressed = (e as KeyboardEvent).key != null
-  const isEscapePressed = (e as KeyboardEvent).key === 'Escape'
-
-  if (isTargetNonNull || (isAnyKeyPressed && !isEscapePressed)) return
-
-  areUserOptionsShown.value = false
+const { toggleOptions, closeOptions } = toggleMoreOptions
+const handleMoreOptionsFn = (
+  e: Event,
+  cb: (e: Event, conditionToChange: Ref<boolean>) => void
+) => {
+  cb(e, areUserOptionsShown)
 }
-onClickOutside(target, closeUserOptions)
-
-onMounted(() => {
-  window.addEventListener('keydown', closeUserOptions)
-})
-onUnmounted(() => {
-  window.removeEventListener('keydown', closeUserOptions)
-})
 </script>
 
 <style lang="postcss" scoped>

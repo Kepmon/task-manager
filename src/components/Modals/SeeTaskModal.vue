@@ -13,14 +13,16 @@
 
     <template #main-content>
       <div class="grid gap-6 relative">
-        <more-options
-          @toggle-options="(e: Event) => handleMoreOptionsFn(e, toggleOptions)"
-          @show-edit-form="$emit('show-edit-form')"
-          @show-delete-form="$emit('show-delete-form')"
-          @close-more-options="(e: Event) => handleMoreOptionsFn(e, closeOptions)"
-          :condition="areTaskOptionsShown"
-          element="task"
-        />
+        <transition name="options">
+          <more-options
+            v-if="areTaskOptionsShown"
+            @toggle-options="(e: Event) => handleMoreOptionsFn(e, toggleOptions)"
+            @handle-first-option-click="$emit('show-edit-form')"
+            @handle-second-option-click="$emit('show-delete-form')"
+            @close-more-options="(e: Event) => handleMoreOptionsFn(e, closeOptions)"
+            element="task"
+          />
+        </transition>
 
         <p v-if="task.description" class="text-gray-400 text-xs xs::text-sm">
           {{ task.description }}
@@ -83,7 +85,7 @@ import type { Ref } from 'vue'
 import ModalsTemplate from './ModalsTemplate.vue'
 import MoreOptions from '../shared/MoreOptions.vue'
 import MoreOptionsIcon from '../Svgs/MoreOptionsIcon.vue'
-import moreOptionsPopup from '../../composables/moreOptionsPopup'
+import toggleMoreOptions from '../../composables/toggleMoreOptions'
 import { useTasksStore } from '../../stores/tasks'
 import { useBoardsStore } from '../../stores/boards'
 import { ref, onUnmounted } from 'vue'
@@ -105,7 +107,7 @@ const boardsStore = useBoardsStore()
 const taskStatuses = ref(boardsStore.boardColumns.map((column) => column.name))
 const areTaskOptionsShown = ref(false)
 
-const { toggleOptions, closeOptions } = moreOptionsPopup
+const { toggleOptions, closeOptions } = toggleMoreOptions
 const handleMoreOptionsFn = (
   e: Event,
   cb: (e: Event, conditionToChange: Ref<boolean>) => void
