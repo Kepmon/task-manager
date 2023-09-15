@@ -17,11 +17,11 @@ const userStore = useUserStore()
 const link = computed(() => {
   return userStore.userID
     ? {
-        path: '/dashboard',
+        path: { name: 'dashboard' },
         text: 'Dashboard'
       }
     : {
-        path: '/',
+        path: { name: 'login' },
         text: 'Login Page'
       }
 })

@@ -1,49 +1,47 @@
 <template>
-  <transition name="popup">
-    <confirmation-popup
-      v-show="isPopupShown"
-      action="delete"
-      :isError="isAuthError"
-      :errorMessage="errorMessage"
-    />
-  </transition>
-  <modals-template @close-modal="$emit('close-modal')">
-    <template #form-title>
-      <h2 class="text-red-400">Delete this {{ elementToDelete }}?</h2>
-    </template>
-
-    <template #main-content>
-      <p class="text-sm text-gray-400 font-normal">
-        {{ message }}
-      </p>
-
-      <auth-input
-        v-if="elementToDelete === 'user'"
-        label="Password"
-        name="password"
-        type="password"
+  <div class="z-10">
+    <transition name="popup">
+      <confirmation-popup
+        v-show="isPopupShown"
+        action="delete"
+        :isError="isAuthError"
+        :errorMessage="errorMessage"
       />
-
-      <div class="flex flex-col s:flex-row gap-4">
-        <button
-          @click="submit"
-          :disabled="isPending"
-          class="regular-button red-button"
-        >
-          <span v-if="isPending">Loading...</span>
-          <span v-if="!isPending">Delete</span>
-        </button>
-
-        <button
-          @click="$emit('close-modal')"
-          type="button"
-          class="regular-button white-button"
-        >
-          Cancel
-        </button>
-      </div>
-    </template>
-  </modals-template>
+    </transition>
+    <modals-template @close-modal="$emit('close-modal')">
+      <template #form-title>
+        <h2 class="text-red-400">Delete this {{ elementToDelete }}?</h2>
+      </template>
+      <template #main-content>
+        <p class="text-sm text-gray-400 font-normal">
+          {{ message }}
+        </p>
+        <auth-input
+          v-if="elementToDelete === 'user'"
+          label="Password"
+          name="password"
+          type="password"
+        />
+        <div class="flex flex-col s:flex-row gap-4">
+          <button
+            @click="submit"
+            :disabled="isPending"
+            class="regular-button red-button"
+          >
+            <span v-if="isPending">Loading...</span>
+            <span v-if="!isPending">Delete</span>
+          </button>
+          <button
+            @click="$emit('close-modal')"
+            type="button"
+            class="regular-button white-button"
+          >
+            Cancel
+          </button>
+        </div>
+      </template>
+    </modals-template>
+  </div>
 </template>
 
 <script setup lang="ts">

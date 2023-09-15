@@ -30,9 +30,6 @@ export const useBoardsStore = defineStore('boards', () => {
   const currentBoardID = computed(() => currentBoard.value?.boardID || null)
 
   const boardColumns = ref<BoardColumn[]>([])
-  const boardColumnsNames = computed(() =>
-    boardColumns.value ? boardColumns.value.map((column) => column.name) : []
-  )
 
   const boardsColRefGlobal = ref<null | CollectionReference<DocumentData>>(null)
 
@@ -128,7 +125,7 @@ export const useBoardsStore = defineStore('boards', () => {
 
     currentBoard.value = boards.value[0]
     localStorage.setItem(
-      `currentBoard-${userStore.userID}`,
+      `TM-currentBoard-${userStore.userID}`,
       JSON.stringify(currentBoard.value)
     )
     await getColumns()
@@ -172,7 +169,7 @@ export const useBoardsStore = defineStore('boards', () => {
           boards.value.find((board) => board.boardID === lastCurrentBoardID) ||
           boards.value[0]
         localStorage.setItem(
-          `currentBoard-${userStore.userID}`,
+          `TM-currentBoard-${userStore.userID}`,
           JSON.stringify(currentBoard.value)
         )
         await getColumns()
@@ -224,7 +221,7 @@ export const useBoardsStore = defineStore('boards', () => {
       boards.value.find((board) => board.boardID === lastCurrentBoardID) ||
       boards.value[0]
     localStorage.setItem(
-      `currentBoard-${userStore.userID}`,
+      `TM-currentBoard-${userStore.userID}`,
       JSON.stringify(currentBoard.value)
     )
     await getColumns()
@@ -247,7 +244,7 @@ export const useBoardsStore = defineStore('boards', () => {
 
     if (boards.value.length === 0) {
       currentBoard.value = null
-      localStorage.removeItem(`currentBoard-${userStore.userID}`)
+      localStorage.removeItem(`TM-currentBoard-${userStore.userID}`)
       await getBoards()
       await getColumns()
       return
@@ -255,7 +252,7 @@ export const useBoardsStore = defineStore('boards', () => {
 
     currentBoard.value = boards.value[0]
     localStorage.setItem(
-      `currentBoard-${userStore.userID}`,
+      `TM-currentBoard-${userStore.userID}`,
       JSON.stringify(currentBoard.value)
     )
     await getColumns()
@@ -297,9 +294,7 @@ export const useBoardsStore = defineStore('boards', () => {
   return {
     boards,
     currentBoard,
-    currentBoardID,
     boardColumns,
-    boardColumnsNames,
     getBoards,
     getColumns,
     addNewBoard,

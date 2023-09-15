@@ -75,7 +75,7 @@ import UserOptions from '../components/UserOptions.vue'
 import Spinner from '../components/Spinner.vue'
 import { useUserStore } from '../stores/user'
 import { useBoardsStore } from '../stores/boards'
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useWindowSize } from '@vueuse/core'
 
 const userStore = useUserStore()
@@ -85,9 +85,7 @@ const isDashboardEmpty = computed(() =>
   boardsStore.boards.length === 0 ? true : false
 )
 const isBoardEmpty = computed(() =>
-  boardsStore.boardColumnsNames && boardsStore.boardColumnsNames.length === 0
-    ? true
-    : false
+  boardsStore.boardColumns.length === 0 ? true : false
 )
 
 const isSidebarShown = ref(true)
@@ -120,13 +118,11 @@ const closeOpenedBoardsNav = (e: Event) => {
   }
 }
 
-window.addEventListener('click', (e: Event) => {
-  closeOpenedBoardsNav(e)
+onMounted(() => {
+  window.addEventListener('click', closeOpenedBoardsNav)
 })
 onUnmounted(() => {
-  window.removeEventListener('click', (e: Event) => {
-    closeOpenedBoardsNav(e)
-  })
+  window.removeEventListener('click', closeOpenedBoardsNav)
 })
 
 const { width: windowWidth } = useWindowSize()

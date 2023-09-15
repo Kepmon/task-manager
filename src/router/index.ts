@@ -44,7 +44,7 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore()
-  const savedUser = JSON.parse(localStorage.getItem('user') || '{}')
+  const savedUser = JSON.parse(localStorage.getItem('TM-user') || '{}')
 
   if (Object.keys(savedUser).length > 0) {
     const lastLoggedIn = savedUser.lastLoginAt
@@ -61,7 +61,7 @@ router.beforeEach(async (to, from, next) => {
       30
     ) {
       await userStore.logout()
-      router.push('/')
+      router.push({ name: 'login' })
       return
     }
   }

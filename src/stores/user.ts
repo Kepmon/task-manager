@@ -23,19 +23,21 @@ export const useUserStore = defineStore('user', () => {
   const isLoading = ref(true)
 
   onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      localStorage.removeItem('user')
+    if (user == null) {
+      localStorage.removeItem('TM-user')
       currentUser.value = null
       return
     }
 
     currentUser.value = user
     userID.value = user.uid
-    localStorage.setItem('user', JSON.stringify(user))
+    localStorage.setItem('TM-user', JSON.stringify(user))
 
     await boardsStore.getBoards()
 
-    const savedBoardJSON = localStorage.getItem(`currentBoard-${userID.value}`)
+    const savedBoardJSON = localStorage.getItem(
+      `TM-currentBoard-${userID.value}`
+    )
     if (savedBoardJSON != null) {
       boardsStore.currentBoard = JSON.parse(savedBoardJSON as string)
       await boardsStore.getColumns()
@@ -46,7 +48,7 @@ export const useUserStore = defineStore('user', () => {
     if (boardsStore.boards.length !== 0) {
       boardsStore.currentBoard = boardsStore.boards[0]
       localStorage.setItem(
-        `currentBoard-${userID.value}`,
+        `TM-currentBoard-${userID.value}`,
         JSON.stringify(boardsStore.currentBoard)
       )
     }
@@ -66,7 +68,7 @@ export const useUserStore = defineStore('user', () => {
         password
       )
 
-      if (!authResponse) throw new Error()
+      if (authResponse == null) throw new Error()
 
       await setDoc(doc(usersColRef, authResponse.user.uid), {})
 

@@ -30,17 +30,18 @@ export const useTasksStore = defineStore('tasks', () => {
   const userStore = useUserStore()
   const boardsStore = useBoardsStore()
 
+  const columnsColRefPrefix = computed(() =>
+    boardsStore.currentBoard != null
+      ? `users/${userStore.userID}/boards/${boardsStore.currentBoard?.boardID}/columns`
+      : null
+  )
+
   const tasks = ref<Task[][]>([])
   const subtasks = ref<Subtask[][][]>([])
 
   const columnOfClickedTask = ref<null | number>(null)
   const clickedTask = ref<null | Task>(null)
   const subtasksOfClickedTask = ref<null | Subtask[]>(null)
-  const subtasksNames = computed(() =>
-    subtasksOfClickedTask.value
-      ? subtasksOfClickedTask.value.map((subtask) => subtask.title)
-      : []
-  )
 
   const getTasks = async (
     columnsColRef: CollectionReference<DocumentData>,
@@ -134,7 +135,7 @@ export const useTasksStore = defineStore('tasks', () => {
   ) => {
     const tasksColRef = collection(
       db,
-      `users/${userStore.userID}/boards/${boardsStore.currentBoardID}/columns/${columnID}/tasks`
+      `${columnsColRefPrefix.value}/${columnID}/tasks`
     )
 
     const addedDocRef = await addDoc(tasksColRef, {
@@ -160,16 +161,15 @@ export const useTasksStore = defineStore('tasks', () => {
   const moveTaskBetweenColumns = async (
     nextColumnID: BoardColumn['columnID']
   ) => {
-    const colRefPathPrefix = `users/${userStore.userID}/boards/${boardsStore.currentBoardID}/columns`
     const prevColumnID =
       boardsStore.boardColumns[columnOfClickedTask.value as number].columnID
     const prevTasksColRef = collection(
       db,
-      `${colRefPathPrefix}/${prevColumnID}/tasks`
+      `${columnsColRefPrefix.value}/${prevColumnID}/tasks`
     )
     const nextTasksColRef = collection(
       db,
-      `${colRefPathPrefix}/${nextColumnID}/tasks`
+      `${columnsColRefPrefix.value}/${nextColumnID}/tasks`
     )
     const prevTaskDocRef = doc(
       prevTasksColRef,
@@ -215,10 +215,7 @@ export const useTasksStore = defineStore('tasks', () => {
     nextColumnID: BoardColumn['columnID'],
     isStatusChanged: boolean
   ) => {
-    const columnsColRef = collection(
-      db,
-      `users/${userStore.userID}/boards/${boardsStore.currentBoardID}/columns`
-    )
+    const columnsColRef = collection(db, columnsColRefPrefix.value as string)
 
     const clickedColumnID =
       boardsStore.boardColumns[columnOfClickedTask.value as number].columnID
@@ -314,7 +311,7 @@ export const useTasksStore = defineStore('tasks', () => {
   const deleteTask = async () => {
     const tasksColRef = collection(
       db,
-      `users/${userStore.userID}/boards/${boardsStore.currentBoardID}/columns/${
+      `${columnsColRefPrefix.value}/${
         boardsStore.boardColumns[columnOfClickedTask.value as number].columnID
       }/tasks`
     )
@@ -335,7 +332,7 @@ export const useTasksStore = defineStore('tasks', () => {
   const toggleSubtask = async (subtask: Subtask) => {
     const subtasksColRef = collection(
       db,
-      `users/${userStore.userID}/boards/${boardsStore.currentBoardID}/columns/${
+      `${columnsColRefPrefix.value}/${
         boardsStore.boardColumns[columnOfClickedTask.value as number].columnID
       }/tasks/${(clickedTask.value as Task).taskID}/subtasks`
     )
@@ -358,9 +355,7 @@ export const useTasksStore = defineStore('tasks', () => {
     clickedTask,
     columnOfClickedTask,
     subtasksOfClickedTask,
-    subtasksNames,
     getTasks,
-    getSubtasks,
     addNewTask,
     moveTaskBetweenColumns,
     editTask,

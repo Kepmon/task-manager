@@ -5,13 +5,15 @@ const toggleOptions = (e: Event, conditionToChange: Ref<boolean>) => {
 }
 const closeOptions = (
   e: Event | KeyboardEvent,
-  conditionToChange: Ref<boolean>
+  conditionToChange: Ref<boolean>,
+  protectedElement: string
 ) => {
-  const clickedItem = (e.target as HTMLElement).closest('button')
-  const isEllipsis = clickedItem?.getAttribute('data-ellipsis') != null
+  const clickedButton = (e.target as HTMLElement).closest('button')
+  const isProtected =
+    clickedButton?.getAttribute('data-protected') === protectedElement
   const wasEscPressed = (e as KeyboardEvent).key === 'Escape'
 
-  if (isEllipsis && !wasEscPressed) return
+  if (isProtected && !wasEscPressed) return
 
   conditionToChange.value = false
 }

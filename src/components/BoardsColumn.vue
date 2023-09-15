@@ -3,7 +3,7 @@
     <div class="flex gap-6 h-full">
       <div
         v-for="(column, columnIndex) in boardsStore.boardColumns"
-        :key="columnIndex"
+        :key="column.columnID"
       >
         <div
           class="flex items-center gap-2 py-[var(--room-for-outline)] mb-4 min-w-[280px]"
@@ -27,15 +27,17 @@
           @keypress.enter="
             () => tasks.handleTaskCardClick(columnIndex, taskIndex)
           "
-          v-for="(task, taskIndex) in tasksStore.tasks[columnIndex]"
-          :key="taskIndex"
+          v-for="({ title, taskID }, taskIndex) in tasksStore.tasks[
+            columnIndex
+          ]"
+          :key="taskID"
           :howManyCompleted="
             returnNumberOfElements(columnIndex, taskIndex, 'subtasksCompleted')
           "
           :howManySubtasks="
             returnNumberOfElements(columnIndex, taskIndex, 'subtasks')
           "
-          :title="task.title"
+          :title="title"
         />
       </div>
       <div

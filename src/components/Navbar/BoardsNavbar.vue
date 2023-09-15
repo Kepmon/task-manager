@@ -16,7 +16,7 @@
         <p class="all-boards">all boards ({{ boards.length }})</p>
         <div>
           <ul v-if="boards.length !== 0">
-            <li v-for="(board, index) in boards" :key="index">
+            <li v-for="board in boards" :key="board.boardID">
               <board-label
                 @click="() => saveCurrentBoard(board)"
                 :name="board.name"
@@ -139,7 +139,7 @@ const saveCurrentBoard = async (board: Board) => {
 
   boardsStore.currentBoard = board
   localStorage.setItem(
-    `currentBoard-${userStore.userID}`,
+    `TM-currentBoard-${userStore.userID}`,
     JSON.stringify(boardsStore.currentBoard)
   )
 
