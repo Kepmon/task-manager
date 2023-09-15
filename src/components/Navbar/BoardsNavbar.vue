@@ -139,7 +139,7 @@ const saveCurrentBoard = async (board: Board) => {
 
   boardsStore.currentBoard = board
   localStorage.setItem(
-    `currentBoard-${userStore.userID}`,
+    `TM-currentBoard-${userStore.userID}`,
     JSON.stringify(boardsStore.currentBoard)
   )
 
