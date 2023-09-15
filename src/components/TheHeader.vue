@@ -83,7 +83,7 @@
         @close-modal="isDeleteBoardModalShown = false"
         elementToDelete="board"
         :elementName="(boardsStore.currentBoard as Board).name"
-        :elementID="(boardsStore.currentBoardID as Board['boardID'])"
+        :elementID="(boardsStore.currentBoard as Board).boardID"
       />
     </transition>
     <transition name="modal">

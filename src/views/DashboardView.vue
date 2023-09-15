@@ -85,9 +85,7 @@ const isDashboardEmpty = computed(() =>
   boardsStore.boards.length === 0 ? true : false
 )
 const isBoardEmpty = computed(() =>
-  boardsStore.boardColumnsNames && boardsStore.boardColumnsNames.length === 0
-    ? true
-    : false
+  boardsStore.boardColumns.length === 0 ? true : false
 )
 
 const isSidebarShown = ref(true)

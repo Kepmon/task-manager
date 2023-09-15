@@ -47,7 +47,7 @@ export const useFormsStore = defineStore('forms', () => {
       edit: ref({
         items: boardColumns,
         placeholderItems: undefined,
-        errors: boardsStore.boardColumnsNames.map(() => false)
+        errors: boardsStore.boardColumns.map(() => false)
       })
     }),
     task: ref({
@@ -62,7 +62,7 @@ export const useFormsStore = defineStore('forms', () => {
       edit: ref({
         items: subtasks,
         placeholderItems: undefined,
-        errors: tasksStore.subtasksNames.map(() => false)
+        errors: tasksStore.subtasks.map(() => false)
       })
     })
   })
