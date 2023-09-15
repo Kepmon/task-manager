@@ -1,7 +1,9 @@
 <template>
   <modals-template @submit-form="submit" @close-modal="handleCloseModal">
     <template #form-title>
-      <h2 class="first-letter:uppercase">{{ action }} {{ action === 'add' ? 'New' : '' }} Board</h2>
+      <h2 class="first-letter:uppercase">
+        {{ action }} {{ action === 'add' ? 'New' : '' }} Board
+      </h2>
     </template>
 
     <template #main-content>
@@ -12,7 +14,6 @@
         v-model="formName"
         :isError="formNameError"
         label="Board Name"
-        forAttr="board-title"
         idAttr="board-title"
         :placeholder="action === 'add' ? 'e.g. Web Design' : ''"
         :whitePlaceholder="action === 'add' ? false : true"

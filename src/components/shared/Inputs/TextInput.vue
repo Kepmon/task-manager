@@ -1,6 +1,6 @@
 <template>
   <div class="grid gap-2">
-    <label v-if="label" :for="forAttr" class="text-xs">{{ label }}</label>
+    <label v-if="label" :for="idAttr" class="text-xs">{{ label }}</label>
     <div :class="{ 'input-error': isError }">
       <input
         @input="(e: Event) => handleInput(e)"
@@ -27,7 +27,6 @@ import { useFormsStore } from '../../../stores/forms'
 
 const props = defineProps<{
   label?: string
-  forAttr?: string
   idAttr?: string
   isError?: boolean
   placeholder?: string

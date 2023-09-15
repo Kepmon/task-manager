@@ -12,7 +12,6 @@
           formName === '' ? (formNameError = true) : (formNameError = false)
         "
         v-model="formName"
-        forAttr="task-title"
         idAttr="task-title"
         :isError="formNameError"
         label="Title"
@@ -23,7 +22,6 @@
       <description-field
         v-model="taskDescription"
         label="Description"
-        forAttr="task-description"
         idAttr="task-description"
         :whitePlaceholder="action === 'add' ? false : true"
       />

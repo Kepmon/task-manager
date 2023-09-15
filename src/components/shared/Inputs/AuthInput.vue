@@ -1,6 +1,6 @@
 <template>
   <div class="grid gap-2">
-    <label class="text-xs">{{ label }}</label>
+    <label class="text-xs" :for="name">{{ label }}</label>
     <Field
       @input="updatePassword"
       :id="name"
