@@ -6,6 +6,7 @@
       'grid-cols-[auto_1fr]': !isSidebarShown
     }"
   >
+    <skip-to-content v-if="!isDashboardEmpty && !userStore.isLoading" />
     <Spinner v-if="userStore.isLoading" />
 
     <header
@@ -73,6 +74,7 @@ import EmptyInfo from '../components/EmptyInfo.vue'
 import BoardsColumn from '../components/BoardsColumn.vue'
 import UserOptions from '../components/UserOptions.vue'
 import Spinner from '../components/Spinner.vue'
+import SkipToContent from '../components/SkipToContent.vue'
 import { useUserStore } from '../stores/user'
 import { useBoardsStore } from '../stores/boards'
 import { ref, computed, onMounted, onUnmounted } from 'vue'

@@ -1,7 +1,9 @@
 <template>
   <modals-template @submit-form="submit" @close-modal="handleCloseModal">
     <template #form-title>
-      <h2 class="first-letter:uppercase">{{ action }} {{ action === 'add' ? 'New' : '' }} Task</h2>
+      <h2 class="first-letter:uppercase">
+        {{ action }} {{ action === 'add' ? 'New' : '' }} Task
+      </h2>
     </template>
 
     <template #main-content>
@@ -40,7 +42,7 @@
 
       <button :disabled="isPending" class="regular-button purple-class">
         <span v-if="isPending">Loading...</span>
-        <span v-if="!isPending" aria-hidden="true">{{
+        <span v-if="!isPending">{{
           action === 'add' ? 'Create Task' : 'Save Changes'
         }}</span>
       </button>

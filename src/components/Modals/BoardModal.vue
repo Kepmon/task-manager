@@ -22,7 +22,7 @@
 
       <button :disabled="isPending" class="regular-button purple-class">
         <span v-if="isPending">Loading...</span>
-        <span v-if="!isPending" aria-hidden="true">{{
+        <span v-if="!isPending">{{
           action === 'add' ? 'Create New Board' : 'Save Changes'
         }}</span>
       </button>
