@@ -23,6 +23,7 @@
         @toggle-boards-nav="toggleBoardsNav"
         :isBoardEmpty="isBoardEmpty"
         :navOpen="isNavOpen"
+        :width="windowWidth"
       />
     </header>
 
