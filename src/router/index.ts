@@ -61,7 +61,7 @@ router.beforeEach(async (to, from, next) => {
       30
     ) {
       await userStore.logout()
-      router.push('/')
+      router.push({ name: 'login' })
       return
     }
   }

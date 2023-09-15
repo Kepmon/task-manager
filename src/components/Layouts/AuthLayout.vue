@@ -83,13 +83,13 @@ const isPrivacyPolicyShown = ref(false)
 const havingAccountLink = computed(() => ({
   '/': {
     action: 'Log in',
-    goTo: '/sign-up',
+    goTo: { name: 'sign-up' },
     question: "Don't have an account?",
     linkText: 'Create one'
   },
   '/sign-up': {
     action: 'Sign up',
-    goTo: '/',
+    goTo: { name: 'login' },
     question: 'Already have an account?',
     linkText: 'Log in'
   }
