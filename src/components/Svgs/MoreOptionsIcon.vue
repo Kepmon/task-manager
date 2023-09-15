@@ -1,7 +1,7 @@
 <template>
   <button
     @click="$emit('toggle-options')"
-    data-protected
+    data-protected="ellipsis"
     :aria-label="`click here to see the ${element}-related options`"
     class="px-3 py-2 rounded-md focus-visible:outline-gray-400"
   >

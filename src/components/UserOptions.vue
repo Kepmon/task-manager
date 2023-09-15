@@ -21,7 +21,7 @@
     <button
       @click="areUserOptionsShown = !areUserOptionsShown"
       ref="target"
-      data-protected
+      data-protected="user"
       aria-label="Click here to see the user options"
       class="block sm:relative rounded-full outline-offset-3"
     >
@@ -76,9 +76,13 @@ const logout = async () => {
 const { toggleOptions, closeOptions } = toggleMoreOptions
 const handleMoreOptionsFn = (
   e: Event,
-  cb: (e: Event, conditionToChange: Ref<boolean>) => void
+  cb: (
+    e: Event,
+    conditionToChange: Ref<boolean>,
+    protectedElement: string
+  ) => void
 ) => {
-  cb(e, areUserOptionsShown)
+  cb(e, areUserOptionsShown, 'user')
 }
 </script>
 

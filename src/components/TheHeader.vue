@@ -126,9 +126,13 @@ const boardsStore = useBoardsStore()
 const { toggleOptions, closeOptions } = toggleMoreOptions
 const handleMoreOptionsFn = (
   e: Event,
-  cb: (e: Event, conditionToChange: Ref<boolean>) => void
+  cb: (
+    e: Event,
+    conditionToChange: Ref<boolean>,
+    protectedElement: string
+  ) => void
 ) => {
-  cb(e, areBoardOptionsShown)
+  cb(e, areBoardOptionsShown, 'ellipsis')
 }
 </script>
 

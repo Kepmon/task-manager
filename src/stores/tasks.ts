@@ -1,5 +1,4 @@
 import type {
-  Board,
   BoardColumn,
   Task,
   Subtask,

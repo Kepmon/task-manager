@@ -110,9 +110,13 @@ const areTaskOptionsShown = ref(false)
 const { toggleOptions, closeOptions } = toggleMoreOptions
 const handleMoreOptionsFn = (
   e: Event,
-  cb: (e: Event, conditionToChange: Ref<boolean>) => void
+  cb: (
+    e: Event,
+    conditionToChange: Ref<boolean>,
+    protectedElement: string
+  ) => void
 ) => {
-  cb(e, areTaskOptionsShown)
+  cb(e, areTaskOptionsShown, 'ellipsis')
 }
 
 const toggleSubtask = async (index: number) => {

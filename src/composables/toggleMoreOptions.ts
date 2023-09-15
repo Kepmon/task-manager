@@ -5,10 +5,12 @@ const toggleOptions = (e: Event, conditionToChange: Ref<boolean>) => {
 }
 const closeOptions = (
   e: Event | KeyboardEvent,
-  conditionToChange: Ref<boolean>
+  conditionToChange: Ref<boolean>,
+  protectedElement: string
 ) => {
-  const clickedItem = (e.target as HTMLElement).closest('button')
-  const isProtected = clickedItem?.getAttribute('data-protected') != null
+  const clickedButton = (e.target as HTMLElement).closest('button')
+  const isProtected =
+    clickedButton?.getAttribute('data-protected') === protectedElement
   const wasEscPressed = (e as KeyboardEvent).key === 'Escape'
 
   if (isProtected && !wasEscPressed) return
