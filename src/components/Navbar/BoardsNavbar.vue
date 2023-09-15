@@ -20,6 +20,11 @@
               <board-label
                 @click="() => saveCurrentBoard(board)"
                 :name="board.name"
+                :aria-current="
+                  board.boardID === boardsStore.currentBoard?.boardID
+                    ? 'true'
+                    : undefined
+                "
                 :class="{
                   'bg-purple-400 fill-white text-white':
                     board.name === boardName,

@@ -18,7 +18,7 @@
         :class="{
           'fill-red-400': isError,
           'fill-gray-400': !isError || isColumn || isPolicy,
-          'fill-gray-400 group-hover:fill-purple-400 group-focus-visible:fill-purple-400 transition-colors duration-300':
+          'fill-gray-400 group-hover:fill-purple-600 group-focus-visible:fill-purple-600 transition-colors duration-300':
             isColumn
         }"
       >

@@ -22,7 +22,7 @@
           <close-icon
             @handle-close="() => modals.handleDeleteIconClick(column)"
             :isColumn="true"
-            data-focus
+            :data-focus="columnIndex === 0 ? 'true' : undefined"
           />
         </div>
         <task-card
