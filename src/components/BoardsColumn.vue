@@ -13,7 +13,9 @@
             :class="circleColor ? circleColor(column) : ''"
           ></div>
           <p class="text-xs text-gray-400 uppercase">
-            {{ column.name }} ({{
+            <span class="sr-only">
+              {{ formatColumnNumber(columnIndex + 1) }} column - title:</span
+            >{{ column.name }} ({{
               returnNumberOfElements(columnIndex, 0, 'tasks')
             }})
           </p>
@@ -122,10 +124,13 @@ import { computed, ref } from 'vue'
 import { useBoardsStore } from '../stores/boards'
 import { useTasksStore } from '../stores/tasks'
 import { useFormsStore } from '../stores/forms'
+import converter from 'number-to-words'
 
 const boardsStore = useBoardsStore()
 const tasksStore = useTasksStore()
 const formsStore = useFormsStore()
+
+const formatColumnNumber = (number: number) => converter.toWordsOrdinal(number)
 
 const circleColor = computed(() => {
   if (boardsStore.boardColumns != null) {
