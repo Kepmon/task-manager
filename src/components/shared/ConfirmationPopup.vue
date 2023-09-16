@@ -1,14 +1,16 @@
 <template>
   <p
+    ref="confirmationPopup"
     class="popup-text"
     :class="{ 'bg-green-600': !isError, 'bg-red-400': isError }"
+    tabindex="0"
   >
     {{ message }}
   </p>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 
 const props = defineProps<{
@@ -16,6 +18,18 @@ const props = defineProps<{
   errorMessage?: string
   action?: 'delete'
 }>()
+
+const confirmationPopup = ref<null | HTMLElement>(null)
+onMounted(() => {
+  if (confirmationPopup.value == null) return
+
+  confirmationPopup.value.focus()
+})
+onUnmounted(() => {
+  if (confirmationPopup.value == null) return
+
+  confirmationPopup.value.blur()
+})
 
 const authErrorText = {
   'auth/wrong-password': 'The provided password is incorrect',
@@ -50,6 +64,7 @@ const message = computed(() => {
 .popup-text {
   @apply fixed inset-0 bottom-auto py-10 mx-auto w-[min(90%,400px)];
   @apply translate-y-8 text-center text-gray-900 rounded-xl z-[100];
+  @apply outline-transparent;
 }
 
 .popup-enter-from,

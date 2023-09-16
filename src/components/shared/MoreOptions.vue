@@ -1,6 +1,7 @@
 <template>
   <div
     @click="$emit('toggle-options')"
+    id="more-options"
     ref="target"
     class="options-container w-max"
     :class="{
@@ -13,7 +14,6 @@
   >
     <button
       @click="$emit('handle-first-option-click')"
-      ref="firstButton"
       class="option option--edit"
     >
       {{ element === 'auth' ? 'Log out' : `Edit ${element}` }}
@@ -42,7 +42,8 @@ const emits = defineEmits([
   'close-more-options'
 ])
 
-const target = ref(null)
+const target = ref<null | HTMLDivElement>(null)
+
 onClickOutside(target, (e: Event) => emits('close-more-options', e))
 
 const closePopupOnEsc = (e: KeyboardEvent) => {

@@ -3,6 +3,7 @@
     @click="$emit('toggle-options')"
     data-protected="ellipsis"
     :aria-label="`click here to see the ${element}-related options`"
+    aria-controls="more-options"
     class="px-3 py-2 rounded-md focus-visible:outline-gray-400"
   >
     <svg width="5" height="20" data-protected>

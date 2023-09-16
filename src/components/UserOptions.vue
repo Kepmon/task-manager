@@ -23,6 +23,7 @@
       ref="target"
       data-protected="user"
       aria-label="Click here to see the user options"
+      aria-controls="more-options"
       class="block sm:relative rounded-full outline-offset-3"
     >
       <user-icon :isDashboardEmpty="isDashboardEmpty" />

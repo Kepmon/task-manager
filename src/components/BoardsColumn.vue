@@ -18,6 +18,7 @@
             >{{ column.name }} ({{
               returnNumberOfElements(columnIndex, 0, 'tasks')
             }})
+            <span class="sr-only">tasks inside</span>
           </p>
           <close-icon
             @handle-close="() => modals.handleDeleteIconClick(column)"
