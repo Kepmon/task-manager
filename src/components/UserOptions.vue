@@ -23,7 +23,8 @@
       ref="target"
       data-protected="user"
       aria-label="Click here to see the user options"
-      aria-controls="more-options"
+      aria-controls="more-options-auth"
+      :aria-expanded="areUserOptionsShown ? true : false"
       class="block sm:relative rounded-full outline-offset-3"
     >
       <user-icon :isDashboardEmpty="isDashboardEmpty" />

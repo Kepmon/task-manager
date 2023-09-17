@@ -1,7 +1,7 @@
 <template>
   <div
     @click="$emit('toggle-options')"
-    id="more-options"
+    :id="`more-options-${element}`"
     ref="target"
     class="options-container w-max"
     :class="{

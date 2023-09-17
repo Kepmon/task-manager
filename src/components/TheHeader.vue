@@ -56,6 +56,7 @@
         <more-options-icon
           @toggle-options="areBoardOptionsShown = !areBoardOptionsShown"
           element="board"
+          :expandedCondition="areBoardOptionsShown"
         />
         <transition name="options">
           <more-options

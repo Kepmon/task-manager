@@ -8,6 +8,7 @@
       <more-options-icon
         @toggle-options="areTaskOptionsShown = !areTaskOptionsShown"
         element="task"
+        :expandedCondition="areTaskOptionsShown"
       />
     </template>
 
