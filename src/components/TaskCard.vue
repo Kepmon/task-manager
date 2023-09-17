@@ -1,16 +1,25 @@
 <template>
-  <div tabindex="0" class="task-card group">
-    <p class="task-card__title">
+  <button class="task-card group" :aria-labelledby="`task-card-${taskID}`">
+    <p aria-hidden="true" class="task-card__title">
       {{ title }}
     </p>
-    <p v-if="howManySubtasks !== 0" class="text-gray-400 text-xs">
+    <p
+      v-if="howManySubtasks !== 0"
+      class="text-gray-400 text-xs"
+      aria-hidden="true"
+    >
       {{ howManyCompleted }} of {{ howManySubtasks }} subtasks
     </p>
-  </div>
+    <span :id="`task-card-${taskID}`" class="sr-only"
+      >{{ title }} - {{ howManyCompleted }} of
+      {{ howManySubtasks }} subtasks</span
+    >
+  </button>
 </template>
 
 <script setup lang="ts">
 defineProps<{
+  taskID: string
   title: string
   howManyCompleted: number
   howManySubtasks: number
@@ -19,12 +28,11 @@ defineProps<{
 
 <style lang="postcss" scoped>
 .task-card {
-  @apply p-4 mb-[20px] w-[280px] text-left shadow-xs cursor-pointer rounded-lg;
-  @apply bg-white dark:bg-gray-700;
+  @apply p-4 text-left shadow-xs rounded-lg bg-white dark:bg-gray-700;
 }
 
 .task-card__title {
-  @apply mb-1 group-hover:text-purple-400 group-focus-visible:text-purple-400;
+  @apply mb-1 group-hover:text-purple-600 group-focus-visible:text-purple-600;
   @apply transition-colors duration-300;
 }
 </style>

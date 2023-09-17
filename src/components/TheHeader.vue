@@ -13,7 +13,7 @@
       </g>
     </svg>
     <div
-      @[isMobileMode&&`click`]="$emit('toggle-boards-nav')"
+      v-on="isMobileMode ? { click: () => $emit('toggle-boards-nav') } : {}"
       data-toggle="boards-nav"
       class="mr-6"
     >

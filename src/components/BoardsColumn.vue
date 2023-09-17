@@ -26,35 +26,38 @@
             :data-focus="columnIndex === 0 ? 'true' : undefined"
           />
         </div>
-        <task-card
-          @click="() => tasks.handleTaskCardClick(columnIndex, taskIndex)"
-          @keypress.enter="
-            () => tasks.handleTaskCardClick(columnIndex, taskIndex)
-          "
-          v-for="({ title, taskID }, taskIndex) in tasksStore.tasks[
-            columnIndex
-          ]"
-          :key="taskID"
-          :howManyCompleted="
-            returnNumberOfElements(columnIndex, taskIndex, 'subtasksCompleted')
-          "
-          :howManySubtasks="
-            returnNumberOfElements(columnIndex, taskIndex, 'subtasks')
-          "
-          :title="title"
-        />
+        <div class="grid gap-[20px]">
+          <task-card
+            @click="() => tasks.handleTaskCardClick(columnIndex, taskIndex)"
+            v-for="({ title, taskID }, taskIndex) in tasksStore.tasks[
+              columnIndex
+            ]"
+            :key="taskID"
+            :taskID="taskID"
+            :howManyCompleted="
+              returnNumberOfElements(
+                columnIndex,
+                taskIndex,
+                'subtasksCompleted'
+              )
+            "
+            :howManySubtasks="
+              returnNumberOfElements(columnIndex, taskIndex, 'subtasks')
+            "
+            :title="title"
+          />
+        </div>
       </div>
-      <div
+      <button
         @click="modals.isEditBoardModalShown = true"
-        @keydown.enter="modals.isEditBoardModalShown = true"
         aria-labelledby="add-new-column"
         class="new-column group"
-        tabindex="0"
       >
-        <span aria-hidden="true" class="new-column-text">&#65291;</span>
-        <span aria-hidden="true" class="new-column-text">New Column</span>
+        <span aria-hidden="true" class="new-column-text"
+          >&#65291;New Column</span
+        >
         <span id="add-new-column" class="hidden">Add New Column</span>
-      </div>
+      </button>
     </div>
     <Teleport to="body">
       <transition name="modal">
@@ -250,13 +253,13 @@ const moveTask = async (value: BoardColumn['name']) => {
 }
 
 .new-column {
-  @apply flex items-center justify-center mt-[44px] min-w-[280px] shadow-column;
+  @apply grid place-content-center mt-[44px] min-w-[280px] shadow-column;
   @apply bg-gradient-to-b from-blue-100 to-blue-80 cursor-pointer;
   @apply dark:from-gray-700 dark:to-gray-680 rounded-md;
 }
 
 .new-column-text {
-  @apply flex text-gray-400 text-xl group-hover:text-purple-400;
-  @apply group-focus-visible:text-purple-400 transition-colors duration-300;
+  @apply flex text-gray-400 text-xl group-hover:text-purple-600;
+  @apply group-focus-visible:text-purple-600 transition-colors duration-300;
 }
 </style>
