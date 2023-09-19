@@ -10,7 +10,7 @@
         class="flex items-center"
       >
         <text-input
-          @handle-blur="() => formsStore.handleBlur(formData, index)"
+          @handle-blur="() => handleBlur(index)"
           @update:model-value="(newValue: string) => formData.items[index].name = newValue"
           :modelValue="name"
           :placeholder="
@@ -23,7 +23,7 @@
           class="grow"
         ></text-input>
         <close-icon
-          @handle-close="() => formsStore.removeInput(formData, index)"
+          @handle-close="() => handleClose(index)"
           :listItem="true"
           :isError="formData.errors[index]"
         />
@@ -34,7 +34,7 @@
     </p>
   </div>
   <button
-    @click="() => formsStore.addNewInput(formData)"
+    @click="handleAddInput"
     aria-labelledby="add-new-element"
     class="regular-button white-button"
     type="button"
@@ -57,6 +57,26 @@ const props = defineProps<{
   action: 'add' | 'edit'
   element: 'board' | 'task'
 }>()
+const emits = defineEmits(['handle-blur'])
+
 const formsStore = useFormsStore()
 const formData = formsStore.formsData[props.element][props.action]
+
+const handleBlur = (index: number) => {
+  formsStore.handleBlur(formData, index)
+
+  emits('handle-blur')
+}
+
+const handleClose = (index: number) => {
+  formsStore.removeInput(formData, index)
+
+  emits('handle-blur')
+}
+
+const handleAddInput = () => {
+  formsStore.addNewInput(formData)
+
+  emits('handle-blur')
+}
 </script>

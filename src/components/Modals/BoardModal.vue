@@ -8,9 +8,7 @@
 
     <template #main-content>
       <text-input
-        @handle-blur="
-          formName === '' ? (formNameError = true) : (formNameError = false)
-        "
+        @handle-blur="() => handleBlur(true)"
         v-model="formName"
         :isError="formNameError"
         label="Board Name"
@@ -19,7 +17,11 @@
         :whitePlaceholder="action === 'add' ? false : true"
       />
 
-      <element-subset :action="action" element="board" />
+      <element-subset
+        @handle-blur="handleBlur"
+        :action="action"
+        element="board"
+      />
 
       <button :disabled="isPending" class="regular-button purple-class">
         <span v-if="isPending">Loading...</span>
@@ -61,13 +63,18 @@ const handleCloseModal = () => {
 }
 
 const isPending = ref(false)
+const handleBlur = (isFormNameInput?: true) => {
+  if (isFormNameInput) {
+    formName.value === ''
+      ? (formNameError.value = true)
+      : (formNameError.value = false)
+  }
+  formsStore.checkFormValidity(formName, formSubsetData)
+}
 const submit = async () => {
-  const isFormValid = formsStore.validateForm(
-    formName,
-    formNameError,
-    formSubsetData
-  )
-  if (!isFormValid) return
+  formsStore.handleFormValidation(formName, formNameError, formSubsetData)
+
+  if (!formsStore.isFormValid) return
 
   isPending.value = true
 

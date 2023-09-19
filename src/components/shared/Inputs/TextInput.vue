@@ -1,5 +1,5 @@
 <template>
-  <div class="grid gap-2">
+  <div class="grid gap-2" role="dialog" aria-modal="true">
     <label v-if="label" :for="idAttr" class="text-xs">{{ label }}</label>
     <div :class="{ 'input-error': isError }">
       <input
@@ -16,6 +16,9 @@
           'border-blue-40 focus-visible:border-purple-400': !isError,
           'placeholder:text-inherit': whitePlaceholder
         }"
+        aria-required="true"
+        :aria-invalid="isError ? true : false"
+        :aria-label="isError ? 'Error: Please fill in this field' : undefined"
       />
     </div>
   </div>

@@ -1,7 +1,15 @@
 <template>
   <div @click.self="$emit('close-modal')" class="semitransparent-bg">
     <UseFocusTrap :options="{ immediate: true, allowOutsideClick: true }">
-      <form @submit.prevent="$emit('submit-form')" class="form">
+      <form
+        @submit.prevent="handleSubmit"
+        @focusin="handleFocusIn"
+        class="form"
+      >
+        <p ref="errorScreenReaderInfo" class="sr-only">
+          Error: There are empty fields that need to be filled in before
+          submitting
+        </p>
         <div class="flex items-center justify-between gap-2 xs:gap-4">
           <header class="xs:text-lg">
             <slot name="form-title"></slot>
@@ -16,7 +24,11 @@
 
 <script setup lang="ts">
 import { UseFocusTrap } from '@vueuse/integrations/useFocusTrap/component'
-import { onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { useFormsStore } from '../../stores/forms'
+
+const errorScreenReaderInfo = ref<null | HTMLParagraphElement>(null)
+const formsStore = useFormsStore()
 
 const emits = defineEmits(['close-modal', 'submit-form'])
 
@@ -24,6 +36,20 @@ const closeModalOnEsc = (e: KeyboardEvent) => {
   if (e.key !== 'Escape') return
 
   emits('close-modal')
+}
+
+const handleSubmit = () => {
+  if (!formsStore.isFormValid) {
+    errorScreenReaderInfo.value?.focus()
+  }
+
+  emits('submit-form')
+}
+
+const handleFocusIn = () => {
+  if (formsStore.isFormValid) {
+    errorScreenReaderInfo.value?.blur()
+  }
 }
 
 onMounted(() => {

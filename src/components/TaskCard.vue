@@ -11,7 +11,7 @@
       {{ howManyCompleted }} of {{ howManySubtasks }} subtasks
     </p>
     <span :id="`task-card-${taskID}`" class="sr-only"
-      >{{ title }} - {{ howManyCompleted }} of
+      >{{ title }} - {{ howManyCompleted }} completed of
       {{ howManySubtasks }} subtasks</span
     >
   </button>
