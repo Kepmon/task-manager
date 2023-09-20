@@ -12,6 +12,7 @@
         v-model="formName"
         :isError="formNameError"
         label="Board Name"
+        fieldDescription="board name"
         idAttr="board-title"
         :placeholder="action === 'add' ? 'e.g. Web Design' : ''"
         :whitePlaceholder="action === 'add' ? false : true"
@@ -73,6 +74,14 @@ const handleBlur = (isFormNameInput?: true) => {
 }
 const submit = async () => {
   formsStore.handleFormValidation(formName, formNameError, formSubsetData)
+
+  const invalidInputs = [
+    ...document.querySelectorAll('[aria-invalid]')
+  ] as HTMLInputElement[]
+
+  if (invalidInputs.length > 0) {
+    invalidInputs[0].focus()
+  }
 
   if (!formsStore.isFormValid) return
 

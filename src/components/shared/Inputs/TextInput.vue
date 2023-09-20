@@ -17,8 +17,12 @@
           'placeholder:text-inherit': whitePlaceholder
         }"
         aria-required="true"
-        :aria-invalid="isError ? true : false"
-        :aria-label="isError ? 'Error: Please fill in this field' : undefined"
+        :aria-invalid="isError ? true : undefined"
+        :aria-label="
+          isError
+            ? `Error: Please fill in this ${fieldDescription} field`
+            : undefined
+        "
       />
     </div>
   </div>
@@ -30,6 +34,7 @@ import { useFormsStore } from '../../../stores/forms'
 
 const props = defineProps<{
   label?: string
+  fieldDescription: string
   idAttr?: string
   isError?: boolean
   placeholder?: string

@@ -13,6 +13,7 @@
         idAttr="task-title"
         :isError="formNameError"
         label="Title"
+        fieldDescription="task title"
         :placeholder="action === 'add' ? 'e.g. Take coffee break' : ''"
         :whitePlaceholder="action === 'add' ? false : true"
       />
@@ -115,8 +116,15 @@ const handleBlur = (isFormNameInput?: true) => {
   formsStore.checkFormValidity(formName, formSubsetData)
 }
 const submit = async () => {
-  formsStore.checkFormValidity(formName, formSubsetData)
   formsStore.handleFormValidation(formName, formNameError, formSubsetData)
+
+  const invalidInputs = [
+    ...document.querySelectorAll('[aria-invalid]')
+  ] as HTMLInputElement[]
+
+  if (invalidInputs.length > 0) {
+    invalidInputs[0].focus()
+  }
 
   if (!formsStore.isFormValid) return
 

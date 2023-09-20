@@ -20,6 +20,9 @@
           "
           :isError="formData.errors[index]"
           :condition="formsStore.isNewInputAdded"
+          :fieldDescription="`${formatItemNumber(index + 1)} ${
+            element === 'board' ? 'column name' : 'subtask name'
+          }`"
           class="grow"
         ></text-input>
         <close-icon
@@ -52,6 +55,7 @@
 import TextInput from './Inputs/TextInput.vue'
 import CloseIcon from '../Svgs/CloseIcon.vue'
 import { useFormsStore } from '../../stores/forms'
+import converter from 'number-to-words'
 
 const props = defineProps<{
   action: 'add' | 'edit'
@@ -61,6 +65,7 @@ const emits = defineEmits(['handle-blur'])
 
 const formsStore = useFormsStore()
 const formData = formsStore.formsData[props.element][props.action]
+const formatItemNumber = (number: number) => converter.toWordsOrdinal(number)
 
 const handleBlur = (index: number) => {
   formsStore.handleBlur(formData, index)
