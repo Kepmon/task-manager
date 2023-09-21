@@ -1,4 +1,4 @@
-import type { Subtask, FormSubsetItem } from '../api/boardsTypes'
+import type { Subtask, FormData } from '../api/boardsTypes'
 import type { Ref } from 'vue'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
@@ -6,11 +6,6 @@ import { useBoardsStore } from './boards'
 import { useTasksStore } from './tasks'
 
 type Element = 'board' | 'task'
-interface FormData {
-  items: FormSubsetItem[]
-  placeholderItems: string[] | undefined
-  errors: boolean[]
-}
 
 export const useFormsStore = defineStore('forms', () => {
   const boardsStore = useBoardsStore()

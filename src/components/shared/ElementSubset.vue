@@ -10,7 +10,10 @@
         class="flex items-center"
       >
         <text-input
-          @handle-blur="() => handleBlur(index)"
+          @handle-blur="
+            () =>
+              handleFormDataAction({ callback: formsStore.handleBlur, index })
+          "
           @update:model-value="(newValue: string) => formData.items[index].name = newValue"
           :modelValue="name"
           :placeholder="
@@ -26,7 +29,10 @@
           class="grow"
         ></text-input>
         <close-icon
-          @handle-close="() => handleClose(index)"
+          @handle-close="
+            () =>
+              handleFormDataAction({ callback: formsStore.removeInput, index })
+          "
           :listItem="true"
           :isError="formData.errors[index]"
         />
@@ -37,7 +43,7 @@
     </p>
   </div>
   <button
-    @click="handleAddInput"
+    @click="() => handleFormDataAction({ callback: formsStore.addNewInput })"
     aria-labelledby="add-new-element"
     class="regular-button white-button"
     type="button"
@@ -52,6 +58,7 @@
 </template>
 
 <script setup lang="ts">
+import type { FormData } from '../../api/boardsTypes'
 import TextInput from './Inputs/TextInput.vue'
 import CloseIcon from '../Svgs/CloseIcon.vue'
 import { useFormsStore } from '../../stores/forms'
@@ -67,20 +74,24 @@ const formsStore = useFormsStore()
 const formData = formsStore.formsData[props.element][props.action]
 const formatItemNumber = (number: number) => converter.toWordsOrdinal(number)
 
-const handleBlur = (index: number) => {
-  formsStore.handleBlur(formData, index)
-
-  emits('handle-blur')
+interface WithIndexArgs {
+  callback: (FormData: FormData, index: number) => void
+  index: number
+}
+interface NoIndexArgs {
+  callback: (FormData: FormData) => void
 }
 
-const handleClose = (index: number) => {
-  formsStore.removeInput(formData, index)
+const handleFormDataAction = <T extends NoIndexArgs | WithIndexArgs>(
+  args: T
+) => {
+  if ('index' in args) {
+    args.callback(formData, args.index)
+  }
 
-  emits('handle-blur')
-}
-
-const handleAddInput = () => {
-  formsStore.addNewInput(formData)
+  if (!('index' in args)) {
+    args.callback(formData)
+  }
 
   emits('handle-blur')
 }
