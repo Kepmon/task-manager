@@ -31,7 +31,10 @@
         <close-icon
           @handle-close="
             () =>
-              handleFormDataAction({ callback: formsStore.removeInput, index })
+              handleFormDataAction(
+                { callback: formsStore.removeInput, index },
+                true
+              )
           "
           :listItem="true"
           :isError="formData.errors[index]"
@@ -44,6 +47,7 @@
   </div>
   <button
     @click="() => handleFormDataAction({ callback: formsStore.addNewInput })"
+    ref="addNewInput"
     aria-labelledby="add-new-element"
     class="regular-button white-button"
     type="button"
@@ -63,6 +67,7 @@ import TextInput from './Inputs/TextInput.vue'
 import CloseIcon from '../Svgs/CloseIcon.vue'
 import { useFormsStore } from '../../stores/forms'
 import converter from 'number-to-words'
+import { ref } from 'vue'
 
 const props = defineProps<{
   action: 'add' | 'edit'
@@ -82,8 +87,10 @@ interface NoIndexArgs {
   callback: (FormData: FormData) => void
 }
 
+const addNewInput = ref(null)
 const handleFormDataAction = <T extends NoIndexArgs | WithIndexArgs>(
-  args: T
+  args: T,
+  moveFocus?: true
 ) => {
   if ('index' in args) {
     args.callback(formData, args.index)
@@ -91,6 +98,10 @@ const handleFormDataAction = <T extends NoIndexArgs | WithIndexArgs>(
 
   if (!('index' in args)) {
     args.callback(formData)
+  }
+
+  if (moveFocus && addNewInput.value != null) {
+    ;(addNewInput.value as HTMLButtonElement).focus()
   }
 
   emits('handle-blur')
