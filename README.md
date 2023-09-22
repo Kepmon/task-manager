@@ -160,14 +160,26 @@ Moreover, for your convience, I put the theme toggler on every page (except for 
   <summary>3. Accessibility</summary>
   
   One of my main goals for this app was to make it fully accessible for both keyboard- and screen-reader-navigating users. I tried to do my best to achieve this goal, but there is still a room from improvement in here.
-  
+
   At the current stage:
-  * the dashboard view lacks the skip-to-content link - it'll be added ASAP
-  * apart from that, **the app is fully accessible for keyboard-navigating users** - you don't really need a mouse to be able to use it
-  * **adjusting the app for the screen-reader-navigating users** was a bit trickier, therefore, there are still parts that are lacking:
-    - a screen reader should automatically read the popup messages
-    - `aria-page="current"` or a similar attribute should be added to currently chosen board
-    - some semantics aspects are still to be improved
+  * as a user, you can click the **"skip-to-content"** button, to navigate directly to your tasks
+  * **the app is fully accessible for keyboard-navigating users** - you don't really need a mouse to be able to use it
+  * **adjusting the app for the screen-reader-navigating users** was a bit trickier but I spent a couple of days on improving it and managed to achieve the following functionality:
+    - a screen reader reads all popup's messages
+    - a screen reader announces the currently chosen board
+    - a screen reader announces the add/edit modals as `dialog`
+    - `aria-controls` and `aria-expanded` were added to relevant buttons
+    - `aria-required` and `aria-invalid` were added to relevant input fields
+    - when an input field is invalid, a screen reader announces what's wrong (however, since `aria-errormessage` doesn't seem to work on the NVDA reader ([related github issue](https://github.com/nvaccess/nvda/issues/8318)), I had to use `aria-label` to make it work)
+
+  Unfortunately, regarding the screen readers functionality, certain issues came up, as well:
+  * when open the `more-options` popup (by clicking the user/ellipsis icon), you **cannot navigate through its options using the arrow keys**, when using [NVDA](https://www.nvaccess.org/download/) - the screen reader completely ignores this whole popup. When using the Tab key though, you can navigate through the options but NVDA annouces each of them as "blank". This behavior is particularly confusing as:
+    - it seems to be an issue only on chromium-based browsers (tested on Chrome, Brave, and Edge) - there are no problems with this functionality on Firefox
+    - with [this tool](https://chrome.google.com/webstore/detail/silktide-website-accessib/okcpiimdfkpkjcbihbmhppldhiebhhaf), the functionality also works perfectly fine (tested on Brave)  
+    
+  Therefore, I have no clue what's causing this issue and how could I fix it. I have a workaround in mind but, frankly, I really don't like the idea. So, I thought I'd leave it for now untill I get to know anything that could help me in improving that. Which I hope, will happen eventually.
+  * I really don't like the screen reader behavior inside the "Delete this thing?" confirmation modals, even though this seems to be a correct one. The thing is, the first **focusable** element is focused, being the "delete" button in this case. Which, i practice, means that the screen reader doesn't read the previous content ("Are you sure you want to delete (...)") unless a user specifically navigates upwards. I could obviously move the focus to the very first element inside this modal, being its title, but I think it would hurt the experience of keaboard-navigating users. That being so, I also decided to leave it termporarly and thinking about it "in the background", hoping for coming up with a good idea for providing a good experience for all users.
+  * currently, a screen reader doesn't annouce a successfull/unsuccessfull adding/editing/deleting stuff but this one is to be addressed when adding the try/catch blocks to the code
 </details>
 
 <details>
@@ -291,6 +303,8 @@ A big thank you for @aleksanderwalczuk for:
 * showing me some useful ready-to-use solutions,
 * teaching me certain things about Vue and Typescript that I had had no idea about previously and that turned out to be so helpful along my whole way of developing this app,
 * teaching me good practices of writing clean, maintanable, and scalable code.
+
+Also, thank you @solracss for performing manual tests on my app and pointing out several issues that I overlooked.
 
 ## 📁 Sources
 
