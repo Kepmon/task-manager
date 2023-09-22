@@ -13,7 +13,7 @@
       </g>
     </svg>
     <div
-      @click="$emit('toggle-boards-nav')"
+      v-on="isMobileMode ? { click: () => $emit('toggle-boards-nav') } : {}"
       data-toggle="boards-nav"
       class="mr-6"
     >
@@ -56,6 +56,7 @@
         <more-options-icon
           @toggle-options="areBoardOptionsShown = !areBoardOptionsShown"
           element="board"
+          :expandedCondition="areBoardOptionsShown"
         />
         <transition name="options">
           <more-options
@@ -109,12 +110,14 @@ import { useBoardsStore } from '../stores/boards'
 import type { Ref } from 'vue'
 import { ref } from 'vue'
 
-defineProps<{
+const props = defineProps<{
   isBoardEmpty: boolean
   navOpen: boolean
+  width: number
 }>()
 defineEmits(['toggle-boards-nav'])
 
+const isMobileMode = props.width < 640
 const areBoardOptionsShown = ref(false)
 
 const isAddTaskModalShown = ref(false)

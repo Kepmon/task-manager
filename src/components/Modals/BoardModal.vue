@@ -1,28 +1,32 @@
 <template>
   <modals-template @submit-form="submit" @close-modal="handleCloseModal">
     <template #form-title>
-      <h2 class="first-letter:uppercase">{{ action }} {{ action === 'add' ? 'New' : '' }} Board</h2>
+      <h2 class="first-letter:uppercase">
+        {{ action }} {{ action === 'add' ? 'New' : '' }} Board
+      </h2>
     </template>
 
     <template #main-content>
       <text-input
-        @handle-blur="
-          formName === '' ? (formNameError = true) : (formNameError = false)
-        "
+        @handle-blur="() => handleBlur(true)"
         v-model="formName"
         :isError="formNameError"
         label="Board Name"
-        forAttr="board-title"
+        fieldDescription="board name"
         idAttr="board-title"
         :placeholder="action === 'add' ? 'e.g. Web Design' : ''"
         :whitePlaceholder="action === 'add' ? false : true"
       />
 
-      <element-subset :action="action" element="board" />
+      <element-subset
+        @handle-blur="handleBlur"
+        :action="action"
+        element="board"
+      />
 
       <button :disabled="isPending" class="regular-button purple-class">
         <span v-if="isPending">Loading...</span>
-        <span v-if="!isPending" aria-hidden="true">{{
+        <span v-if="!isPending">{{
           action === 'add' ? 'Create New Board' : 'Save Changes'
         }}</span>
       </button>
@@ -60,13 +64,26 @@ const handleCloseModal = () => {
 }
 
 const isPending = ref(false)
+const handleBlur = (isFormNameInput?: true) => {
+  if (isFormNameInput) {
+    formName.value === ''
+      ? (formNameError.value = true)
+      : (formNameError.value = false)
+  }
+  formsStore.checkFormValidity(formName, formSubsetData)
+}
 const submit = async () => {
-  const isFormValid = formsStore.validateForm(
-    formName,
-    formNameError,
-    formSubsetData
-  )
-  if (!isFormValid) return
+  formsStore.handleFormValidation(formName, formNameError, formSubsetData)
+
+  const invalidInputs = [
+    ...document.querySelectorAll('[aria-invalid]')
+  ] as HTMLInputElement[]
+
+  if (invalidInputs.length > 0) {
+    invalidInputs[0].focus()
+  }
+
+  if (!formsStore.isFormValid) return
 
   isPending.value = true
 

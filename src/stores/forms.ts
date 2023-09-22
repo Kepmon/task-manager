@@ -1,4 +1,4 @@
-import type { Subtask, FormSubsetItem } from '../api/boardsTypes'
+import type { Subtask, FormData } from '../api/boardsTypes'
 import type { Ref } from 'vue'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
@@ -6,11 +6,6 @@ import { useBoardsStore } from './boards'
 import { useTasksStore } from './tasks'
 
 type Element = 'board' | 'task'
-interface FormData {
-  items: FormSubsetItem[]
-  placeholderItems: string[] | undefined
-  errors: boolean[]
-}
 
 export const useFormsStore = defineStore('forms', () => {
   const boardsStore = useBoardsStore()
@@ -68,6 +63,7 @@ export const useFormsStore = defineStore('forms', () => {
   })
 
   const isNewInputAdded = ref(false)
+  const isFormValid = ref(false)
 
   const addNewInput = (formData: FormData) => {
     const index = formData.items.length + 1
@@ -80,6 +76,11 @@ export const useFormsStore = defineStore('forms', () => {
     isNewInputAdded.value = true
   }
 
+  const removeInput = (formData: FormData, index: number) => {
+    formData.items.splice(index, 1)
+    formData.errors.splice(index, 1)
+  }
+
   const handleBlur = (formData: FormData, index: number) => {
     if (formData.items[index].name !== '') {
       formData.errors[index] = false
@@ -89,21 +90,21 @@ export const useFormsStore = defineStore('forms', () => {
     formData.errors[index] = true
   }
 
-  const removeInput = (formData: FormData, index: number) => {
-    formData.items.splice(index, 1)
-    formData.errors.splice(index, 1)
+  const checkFormValidity = (
+    formName: Ref<string>,
+    formSubsetData: Ref<FormData>
+  ) => {
+    isFormValid.value =
+      formName.value !== '' &&
+      formSubsetData.value.items.every((item) => item.name !== '')
   }
 
-  const validateForm = (
+  const handleFormValidation = (
     formName: Ref<string>,
     formNameError: Ref<boolean>,
     formSubsetData: Ref<FormData>
   ) => {
-    const isFormValid =
-      formName.value !== '' &&
-      formSubsetData.value.items.every((item) => item.name !== '')
-
-    if (!isFormValid) {
+    if (!isFormValid.value) {
       if (formName.value === '') {
         formNameError.value = true
       }
@@ -114,8 +115,6 @@ export const useFormsStore = defineStore('forms', () => {
         formSubsetData.value.errors[index] = true
       })
     }
-
-    return isFormValid
   }
 
   const updateFormData = (element: Element) => {
@@ -160,10 +159,12 @@ export const useFormsStore = defineStore('forms', () => {
   return {
     formsData,
     isNewInputAdded,
+    isFormValid,
     addNewInput,
     handleBlur,
     removeInput,
-    validateForm,
+    checkFormValidity,
+    handleFormValidation,
     updateFormData
   }
 })

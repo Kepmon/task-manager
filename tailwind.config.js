@@ -69,6 +69,9 @@ module.exports = {
         xlFluid: 'clamp(1.25rem, calc(1.07rem + 1.04vw), 1.88rem)',
         xxlFluid: 'clamp(1.63rem, calc(1.22rem + 2.29vw), 3.00rem)'
       },
+      outlineWidth: {
+        default: 'var(--room-for-outline)',
+      },
       boxShadow: {
         xs: '0 0 2px -1px hsl(0 0% 59%)',
         column: '1px 1px 10px -8px hsl(198 7% 71%)',

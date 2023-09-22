@@ -1,6 +1,6 @@
 <template>
-  <div class="grid gap-2">
-    <label v-if="label" :for="forAttr" class="text-xs">{{ label }}</label>
+  <div class="grid gap-2" role="dialog" aria-modal="true">
+    <label v-if="label" :for="idAttr" class="text-xs">{{ label }}</label>
     <div :class="{ 'input-error': isError }">
       <input
         @input="(e: Event) => handleInput(e)"
@@ -16,6 +16,13 @@
           'border-blue-40 focus-visible:border-purple-400': !isError,
           'placeholder:text-inherit': whitePlaceholder
         }"
+        aria-required="true"
+        :aria-invalid="isError ? true : undefined"
+        :aria-label="
+          isError
+            ? `Error: Please fill in this ${fieldDescription} field`
+            : undefined
+        "
       />
     </div>
   </div>
@@ -27,7 +34,7 @@ import { useFormsStore } from '../../../stores/forms'
 
 const props = defineProps<{
   label?: string
-  forAttr?: string
+  fieldDescription: string
   idAttr?: string
   isError?: boolean
   placeholder?: string

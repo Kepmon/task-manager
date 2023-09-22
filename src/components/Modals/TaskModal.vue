@@ -1,19 +1,19 @@
 <template>
   <modals-template @submit-form="submit" @close-modal="handleCloseModal">
     <template #form-title>
-      <h2 class="first-letter:uppercase">{{ action }} {{ action === 'add' ? 'New' : '' }} Task</h2>
+      <h2 class="first-letter:uppercase">
+        {{ action }} {{ action === 'add' ? 'New' : '' }} Task
+      </h2>
     </template>
 
     <template #main-content>
       <text-input
-        @handle-blur="
-          formName === '' ? (formNameError = true) : (formNameError = false)
-        "
+        @handle-blur="() => handleBlur(true)"
         v-model="formName"
-        forAttr="task-title"
         idAttr="task-title"
         :isError="formNameError"
         label="Title"
+        fieldDescription="task title"
         :placeholder="action === 'add' ? 'e.g. Take coffee break' : ''"
         :whitePlaceholder="action === 'add' ? false : true"
       />
@@ -21,12 +21,15 @@
       <description-field
         v-model="taskDescription"
         label="Description"
-        forAttr="task-description"
         idAttr="task-description"
         :whitePlaceholder="action === 'add' ? false : true"
       />
 
-      <element-subset :action="action" element="task" />
+      <element-subset
+        @handle-blur="handleBlur"
+        :action="action"
+        element="task"
+      />
 
       <div>
         <p class="mb-2 text-xs text-gray-400 dark:text-white">Status</p>
@@ -40,7 +43,7 @@
 
       <button :disabled="isPending" class="regular-button purple-class">
         <span v-if="isPending">Loading...</span>
-        <span v-if="!isPending" aria-hidden="true">{{
+        <span v-if="!isPending">{{
           action === 'add' ? 'Create Task' : 'Save Changes'
         }}</span>
       </button>
@@ -104,13 +107,26 @@ const handleCloseModal = () => {
 }
 
 const isPending = ref(false)
+const handleBlur = (isFormNameInput?: true) => {
+  if (isFormNameInput) {
+    formName.value === ''
+      ? (formNameError.value = true)
+      : (formNameError.value = false)
+  }
+  formsStore.checkFormValidity(formName, formSubsetData)
+}
 const submit = async () => {
-  const isFormValid = formsStore.validateForm(
-    formName,
-    formNameError,
-    formSubsetData
-  )
-  if (!isFormValid) return
+  formsStore.handleFormValidation(formName, formNameError, formSubsetData)
+
+  const invalidInputs = [
+    ...document.querySelectorAll('[aria-invalid]')
+  ] as HTMLInputElement[]
+
+  if (invalidInputs.length > 0) {
+    invalidInputs[0].focus()
+  }
+
+  if (!formsStore.isFormValid) return
 
   isPending.value = true
 

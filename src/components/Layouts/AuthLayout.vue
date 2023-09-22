@@ -50,7 +50,7 @@
     </transition>
     <transition name="popup">
       <confirmation-popup
-        v-show="isPopupShown"
+        v-if="isPopupShown"
         :isError="isAuthError"
         :errorMessage="errorMessage"
       />
