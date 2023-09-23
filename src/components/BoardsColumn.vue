@@ -1,6 +1,11 @@
 <template>
   <div class="columns-container">
-    <div class="flex gap-6">
+    <div
+      class="flex gap-6"
+      :class="{
+        'place-content-center h-full': boardsStore.boardColumns.length === 0
+      }"
+    >
       <div
         v-for="(column, columnIndex) in boardsStore.boardColumns"
         :key="column.columnID"
@@ -50,6 +55,7 @@
         </div>
       </div>
       <button
+        v-if="boardsStore.boardColumns.length > 0"
         @click="modals.isEditBoardModalShown = true"
         aria-labelledby="add-new-column"
         class="new-column group"
@@ -59,6 +65,7 @@
         >
         <span id="add-new-column" class="hidden">Add New Column</span>
       </button>
+      <empty-info :emptyBoard="boardsStore.boardColumns.length === 0" />
     </div>
     <Teleport to="body">
       <transition name="modal">
@@ -119,6 +126,7 @@
 <script setup lang="ts">
 import type { Ref } from 'vue'
 import type { BoardColumn, Task, Subtask } from '../api/boardsTypes'
+import EmptyInfo from '../components/EmptyInfo.vue'
 import TaskCard from './TaskCard.vue'
 import SeeTaskModal from './Modals/SeeTaskModal.vue'
 import ConfirmationModal from '../components/Modals/ConfirmationModal.vue'
@@ -205,7 +213,7 @@ const tasksProps = computed(() => ({
 const tasksConditions = computed(() =>
   [
     tasksStore.clickedTask != null,
-    tasksStore.subtasksOfClickedTask != null,
+    tasksStore.subtasksOfClickedTask.length !== 0,
     tasksStore.columnOfClickedTask != null
   ].every((taskCondition) => taskCondition)
 )
@@ -250,7 +258,7 @@ const moveTask = async (value: BoardColumn['name']) => {
 
 <style lang="postcss" scoped>
 .columns-container {
-  @apply px-[var(--room-for-outline)];
+  @apply px-[var(--room-for-outline)] h-full;
 }
 
 .new-column {

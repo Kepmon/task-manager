@@ -41,7 +41,7 @@ export const useTasksStore = defineStore('tasks', () => {
 
   const columnOfClickedTask = ref<null | number>(null)
   const clickedTask = ref<null | Task>(null)
-  const subtasksOfClickedTask = ref<null | Subtask[]>(null)
+  const subtasksOfClickedTask = ref<Subtask[]>([])
 
   const getTasks = async (
     columnsColRef: CollectionReference<DocumentData>,
@@ -230,11 +230,12 @@ export const useTasksStore = defineStore('tasks', () => {
     const isDescriptionSame =
       taskDescription === (clickedTask.value as Task).description
     const isNumberOfSubtaskSame =
-      subtasksOfClickedTask.value?.length === updatedSubtasks.length
-    const areSubtasksTitlesSame = (
-      subtasksOfClickedTask.value as Subtask[]
-    ).every(({ subtaskID, title }) =>
-      updatedSubtasks.find(({ name, id }) => title === name && subtaskID === id)
+      subtasksOfClickedTask.value.length === updatedSubtasks.length
+    const areSubtasksTitlesSame = subtasksOfClickedTask.value.every(
+      ({ subtaskID, title }) =>
+        updatedSubtasks.find(
+          ({ name, id }) => title === name && subtaskID === id
+        )
     )
 
     const isFormNotChanged = [
@@ -264,10 +265,8 @@ export const useTasksStore = defineStore('tasks', () => {
 
     const noRespectiveSubtasks = updatedSubtasks.filter(({ name, id }) => {
       if (
-        subtasksOfClickedTask.value != null &&
-        (subtasksOfClickedTask.value as Subtask[]).some(
-          ({ subtaskID }) => subtaskID === id
-        )
+        subtasksOfClickedTask.value.length > 0 &&
+        subtasksOfClickedTask.value.some(({ subtaskID }) => subtaskID === id)
       )
         return
 
@@ -283,7 +282,7 @@ export const useTasksStore = defineStore('tasks', () => {
       })
     }
 
-    if (subtasksOfClickedTask.value != null) {
+    if (subtasksOfClickedTask.value.length > 0) {
       subtasksOfClickedTask.value.forEach(
         async ({ subtaskID, title }, index) => {
           const subtaskDocRef = doc(subtasksColRef, subtaskID)

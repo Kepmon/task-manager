@@ -29,14 +29,23 @@
           {{ task.description }}
         </p>
 
-        <div v-if="tasksStore.subtasksOfClickedTask != null">
+        <div v-if="tasksStore.subtasksOfClickedTask.length > 0">
           <p class="mb-4 text-xs text-gray-400 dark:text-white">
-            Subtasks ({{
-              tasksStore.subtasksOfClickedTask.filter(
-                (subtask) => subtask.isCompleted
-              ).length
-            }}
-            of {{ tasksStore.subtasksOfClickedTask.length }})
+            Subtasks
+            <span v-if="tasksStore.subtasksOfClickedTask.length > 0">
+              ({{
+                tasksStore.subtasksOfClickedTask.filter(
+                  (subtask) => subtask.isCompleted
+                ).length
+              }}
+              of {{ tasksStore.subtasksOfClickedTask.length }})
+            </span>
+          </p>
+          <p
+            v-if="tasksStore.subtasksOfClickedTask.length === 0"
+            class="text-xs text-gray-400"
+          >
+            There are no subtasks to display
           </p>
           <div
             @click="() => toggleSubtask(index)"
@@ -81,7 +90,7 @@
 </template>
 
 <script setup lang="ts">
-import type { BoardColumn, Task, Subtask } from '../../api/boardsTypes'
+import type { BoardColumn, Task } from '../../api/boardsTypes'
 import type { Ref } from 'vue'
 import ModalsTemplate from './ModalsTemplate.vue'
 import MoreOptions from '../shared/MoreOptions.vue'
@@ -121,7 +130,7 @@ const handleMoreOptionsFn = (
 }
 
 const toggleSubtask = async (index: number) => {
-  const clickedSubtask = (tasksStore.subtasksOfClickedTask as Subtask[])[index]
+  const clickedSubtask = tasksStore.subtasksOfClickedTask[index]
 
   await tasksStore.toggleSubtask(clickedSubtask)
   await boardsStore.getColumns()

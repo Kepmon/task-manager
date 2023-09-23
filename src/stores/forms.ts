@@ -1,4 +1,4 @@
-import type { Subtask, FormData } from '../api/boardsTypes'
+import type { FormData } from '../api/boardsTypes'
 import type { Ref } from 'vue'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
@@ -21,8 +21,8 @@ export const useFormsStore = defineStore('forms', () => {
   )
 
   const subtasks = ref(
-    tasksStore.subtasksOfClickedTask
-      ? (tasksStore.subtasksOfClickedTask as Subtask[]).map((subtask) => ({
+    tasksStore.subtasksOfClickedTask.length > 0
+      ? tasksStore.subtasksOfClickedTask.map((subtask) => ({
           name: subtask.title,
           id: subtask.subtaskID
         }))
@@ -139,12 +139,13 @@ export const useFormsStore = defineStore('forms', () => {
       return
     }
 
-    formsData.value.task.edit.items = tasksStore.subtasksOfClickedTask
-      ? (tasksStore.subtasksOfClickedTask as Subtask[]).map((subtask) => ({
-          name: subtask.title,
-          id: subtask.subtaskID
-        }))
-      : []
+    formsData.value.task.edit.items =
+      tasksStore.subtasksOfClickedTask.length > 0
+        ? tasksStore.subtasksOfClickedTask.map((subtask) => ({
+            name: subtask.title,
+            id: subtask.subtaskID
+          }))
+        : []
     formsData.value.task.edit.errors = formsData.value.task.edit.items.map(
       () => false
     )

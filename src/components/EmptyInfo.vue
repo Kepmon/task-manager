@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="emptyDashboard"
+    v-if="emptyDashboard || emptyBoard"
     class="grid content-center justify-items-center h-full"
   >
     <theme-toggle
@@ -35,7 +35,8 @@ import ThemeToggle from './shared/ThemeToggle.vue'
 import { ref, computed } from 'vue'
 
 const props = defineProps<{
-  emptyDashboard: boolean
+  emptyDashboard?: boolean
+  emptyBoard?: boolean
 }>()
 
 const isBoardModalShown = ref(false)
@@ -44,6 +45,8 @@ const message = computed(
   () =>
     `${
       props.emptyDashboard ? 'your dashboard' : 'this board'
-    } is empty. Create a new ${props.emptyDashboard ? 'board' : 'column'}.`
+    } is empty. Create a new ${
+      props.emptyDashboard ? 'board.' : 'column to get started.'
+    }`
 )
 </script>
