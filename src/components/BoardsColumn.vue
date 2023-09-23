@@ -4,6 +4,7 @@
       <div
         v-for="(column, columnIndex) in boardsStore.boardColumns"
         :key="column.columnID"
+        class="w-[280px] shrink-0 overflow-auto scrollbar-invisible"
       >
         <div
           class="flex items-center gap-2 py-[var(--room-for-outline)] mb-4 min-w-[280px]"
@@ -253,13 +254,13 @@ const moveTask = async (value: BoardColumn['name']) => {
 }
 
 .new-column {
-  @apply grid place-content-center mt-[44px] min-w-[280px] shadow-column;
+  @apply grid place-content-center w-[280px] shrink-0 mt-[52px] shadow-column;
   @apply bg-gradient-to-b from-blue-100 to-blue-80 cursor-pointer;
   @apply dark:from-gray-700 dark:to-gray-680 rounded-md;
 }
 
 .new-column-text {
-  @apply flex text-gray-400 text-xl group-hover:text-purple-600;
+  @apply w-max text-gray-400 text-xl group-hover:text-purple-600;
   @apply group-focus-visible:text-purple-600 transition-colors duration-300;
 }
 </style>
