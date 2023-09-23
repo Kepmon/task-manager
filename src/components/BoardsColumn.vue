@@ -1,10 +1,10 @@
 <template>
   <div class="columns-container">
-    <div class="flex gap-6 h-full">
+    <div class="flex gap-6">
       <div
         v-for="(column, columnIndex) in boardsStore.boardColumns"
         :key="column.columnID"
-        class="w-[280px] shrink-0 overflow-auto scrollbar-invisible"
+        class="w-[280px] shrink-0"
       >
         <div
           class="flex items-center gap-2 py-[var(--room-for-outline)] mb-4 min-w-[280px]"
@@ -250,11 +250,12 @@ const moveTask = async (value: BoardColumn['name']) => {
 
 <style lang="postcss" scoped>
 .columns-container {
-  @apply px-[var(--room-for-outline)] h-full;
+  @apply px-[var(--room-for-outline)];
 }
 
 .new-column {
-  @apply grid place-content-center w-[280px] shrink-0 mt-[52px] shadow-column;
+  @apply grid place-content-center shrink-0 mt-[52px] shadow-column;
+  @apply h-[calc(100vh-180px)] w-[280px];
   @apply bg-gradient-to-b from-blue-100 to-blue-80 cursor-pointer;
   @apply dark:from-gray-700 dark:to-gray-680 rounded-md;
 }

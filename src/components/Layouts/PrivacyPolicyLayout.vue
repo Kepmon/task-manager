@@ -38,8 +38,8 @@ const currentPath = useRoute().path
 
 .close-button {
   @apply grid place-content-center absolute top-0 left-1/2 max-[512px]:-translate-x-1/2;
-  @apply s:top-2 s:left-[calc(100%-4rem)] p-3 h-6 w-6 cursor-pointer;
+  @apply s:top-2 s:left-[calc(100%-4rem)] p-3 h-6 w-6;
   @apply after:absolute after:inset-0 after:border-2 after:rounded-full;
-  @apply after:border-black dark:after:border-white;
+  @apply after:border-black dark:after:border-white after:pointer-events-none;
 }
 </style>
