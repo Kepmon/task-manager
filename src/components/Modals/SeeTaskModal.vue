@@ -147,7 +147,7 @@ onUnmounted(() => {
 
 .subtask {
   @apply [&:not(:last-of-type)]:mb-2 p-2 rounded bg-blue-200 dark:bg-gray-800;
-  @apply hover:bg-purple-320 hover:dark:bg-purple-320;
+  @apply hover:bg-purple-310 hover:dark:bg-purple-310;
   @apply transition-colors duration-300;
 }
 </style>
