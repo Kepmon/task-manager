@@ -17,7 +17,7 @@
 }
 .lds-roller div {
   @apply origin-40 after:block after:absolute after:w-[7px] after:aspect-square;
-  @apply after:rounded-full after:bg-white;
+  @apply after:rounded-full after:bg-gray-400;
 }
 .lds-roller div:nth-child(1) {
   @apply animate-lds-roller-1 after:top-[63px] after:left-[63px];

@@ -1,12 +1,18 @@
 <template>
   <div class="columns-container">
-    <div class="flex gap-6 h-full">
+    <div
+      class="flex gap-6"
+      :class="{
+        'place-content-center h-full': boardsStore.boardColumns.length === 0
+      }"
+    >
       <div
         v-for="(column, columnIndex) in boardsStore.boardColumns"
         :key="column.columnID"
+        class="w-[280px] shrink-0"
       >
         <div
-          class="flex items-center gap-2 py-[var(--room-for-outline)] mb-4 min-w-[280px]"
+          class="relative flex items-center gap-2 py-[var(--room-for-outline)] mb-4 min-w-[280px]"
         >
           <div
             class="h-[15px] w-[15px] rounded-full"
@@ -49,15 +55,14 @@
         </div>
       </div>
       <button
+        v-if="boardsStore.boardColumns.length > 0"
         @click="modals.isEditBoardModalShown = true"
-        aria-labelledby="add-new-column"
+        aria-label="click here to add a new column"
         class="new-column group"
       >
-        <span aria-hidden="true" class="new-column-text"
-          >&#65291;New Column</span
-        >
-        <span id="add-new-column" class="hidden">Add New Column</span>
+        &#65291;New Column
       </button>
+      <empty-info :emptyBoard="boardsStore.boardColumns.length === 0" />
     </div>
     <Teleport to="body">
       <transition name="modal">
@@ -118,6 +123,7 @@
 <script setup lang="ts">
 import type { Ref } from 'vue'
 import type { BoardColumn, Task, Subtask } from '../api/boardsTypes'
+import EmptyInfo from '../components/EmptyInfo.vue'
 import TaskCard from './TaskCard.vue'
 import SeeTaskModal from './Modals/SeeTaskModal.vue'
 import ConfirmationModal from '../components/Modals/ConfirmationModal.vue'
@@ -204,7 +210,7 @@ const tasksProps = computed(() => ({
 const tasksConditions = computed(() =>
   [
     tasksStore.clickedTask != null,
-    tasksStore.subtasksOfClickedTask != null,
+    tasksStore.subtasksOfClickedTask.length !== 0,
     tasksStore.columnOfClickedTask != null
   ].every((taskCondition) => taskCondition)
 )
@@ -253,13 +259,11 @@ const moveTask = async (value: BoardColumn['name']) => {
 }
 
 .new-column {
-  @apply grid place-content-center mt-[44px] min-w-[280px] shadow-column;
+  @apply grid place-content-center shrink-0 mt-[52px] shadow-column;
+  @apply h-[calc(100vh-180px)] w-[280px];
   @apply bg-gradient-to-b from-blue-100 to-blue-80 cursor-pointer;
   @apply dark:from-gray-700 dark:to-gray-680 rounded-md;
-}
-
-.new-column-text {
-  @apply flex text-gray-400 text-xl group-hover:text-purple-600;
-  @apply group-focus-visible:text-purple-600 transition-colors duration-300;
+  @apply text-gray-400 text-xl hover:text-purple-600;
+  @apply focus-visible:text-purple-600 transition-colors duration-300;
 }
 </style>

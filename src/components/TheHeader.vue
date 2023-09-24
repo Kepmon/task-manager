@@ -37,13 +37,10 @@
     <div class="flex items-center gap-2 sm:gap-3 ml-auto text-white">
       <button
         @click="isAddTaskModalShown = true"
+        :disabled="isBoardEmpty ? true : undefined"
         aria-labelledby="add-new-task"
         :aria-hidden="isBoardEmpty ? `true` : undefined"
         class="regular-button purple-class add-new-task-btn"
-        :class="{
-          'opacity-25 cursor-not-allowed': isBoardEmpty,
-          'cursor-pointer': !isBoardEmpty
-        }"
       >
         <span aria-hidden="true" class="text-lg md:text-baseFluid"
           >&#65291;</span

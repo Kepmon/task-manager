@@ -24,7 +24,7 @@ export interface Subtask {
   createdAt: string
 }
 
-interface FormSubsetItem {
+export interface FormSubsetItem {
   name: string
   id: string
 }
