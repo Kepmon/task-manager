@@ -46,11 +46,7 @@ export const useUserStore = defineStore('user', () => {
     }
 
     if (boardsStore.boards.length !== 0) {
-      boardsStore.currentBoard = boardsStore.boards[0]
-      localStorage.setItem(
-        `TM-currentBoard-${userID.value}`,
-        JSON.stringify(boardsStore.currentBoard)
-      )
+      await boardsStore.saveCurrentBoard(boardsStore.boards[0])
     }
 
     if (boardsStore.boards.length > 0) {

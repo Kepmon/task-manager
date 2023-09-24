@@ -1,5 +1,8 @@
 <template>
-  <modals-template @submit-form="submit" @close-modal="handleCloseModal">
+  <modals-template
+    @submit-form="submit"
+    @close-modal="$emit('change-var-to-false')"
+  >
     <template #form-title>
       <h2 class="first-letter:uppercase">
         {{ action }} {{ action === 'add' ? 'New' : '' }} Board
@@ -57,12 +60,6 @@ const formName = ref(
 const formNameError = ref(false)
 const formSubsetData = computed(() => formsStore.formsData.board[props.action])
 
-const handleCloseModal = () => {
-  emits('change-var-to-false')
-
-  formsStore.updateFormData('board')
-}
-
 const isPending = ref(false)
 const handleBlur = (isFormNameInput?: true) => {
   if (isFormNameInput) {
@@ -102,7 +99,6 @@ const submit = async () => {
 
   emits('change-var-to-false')
 
-  formsStore.updateFormData('board')
   isPending.value = false
 }
 </script>

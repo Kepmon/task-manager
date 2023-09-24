@@ -52,7 +52,6 @@ import { computed } from 'vue'
 import { useUserStore } from '../../stores/user'
 import { useBoardsStore } from '../../stores/boards'
 import { useTasksStore } from '../../stores/tasks'
-import { useFormsStore } from '../../stores/forms'
 import { ref } from 'vue'
 import { isAuthError, handleAuthResponse } from '../../composables/authHandler'
 import { useRoute } from 'vue-router'
@@ -108,7 +107,6 @@ const route = useRoute()
 const userStore = useUserStore()
 const boardsStore = useBoardsStore()
 const tasksStore = useTasksStore()
-const formsStore = useFormsStore()
 const submitFns = {
   board: () => boardsStore.deleteBoard(props.elementID as ElementID),
   column: () => boardsStore.deleteColumn(props.elementID as ElementID),
@@ -138,8 +136,6 @@ const submit = async () => {
     return
   }
 
-  const fnArgument = props.elementToDelete === 'task' ? 'task' : 'board'
-  formsStore.updateFormData(fnArgument)
   isPending.value = false
   emits('close-modal')
 }

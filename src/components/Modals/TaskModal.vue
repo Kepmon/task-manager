@@ -1,5 +1,8 @@
 <template>
-  <modals-template @submit-form="submit" @close-modal="handleCloseModal">
+  <modals-template
+    @submit-form="submit"
+    @close-modal="$emit('change-var-to-false')"
+  >
     <template #form-title>
       <h2 class="first-letter:uppercase">
         {{ action }} {{ action === 'add' ? 'New' : '' }} Task
@@ -100,12 +103,6 @@ const updateStatusItem = (newItem: BoardColumn['name']) => {
   ) as BoardColumn
 }
 
-const handleCloseModal = () => {
-  emits('change-var-to-false')
-
-  formsStore.updateFormData('task')
-}
-
 const isPending = ref(false)
 const handleBlur = (isFormNameInput?: true) => {
   if (isFormNameInput) {
@@ -156,7 +153,6 @@ const submit = async () => {
   emits('change-var-to-false')
   await boardsStore.getColumns()
 
-  formsStore.updateFormData('task')
   isPending.value = false
 }
 </script>

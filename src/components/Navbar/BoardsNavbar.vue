@@ -142,13 +142,7 @@ const afterLeave = () => {
 const saveCurrentBoard = async (board: Board) => {
   emits('close-boards-navbar')
 
-  boardsStore.currentBoard = board
-  localStorage.setItem(
-    `TM-currentBoard-${userStore.userID}`,
-    JSON.stringify(boardsStore.currentBoard)
-  )
-
-  await boardsStore.getColumns()
+  await boardsStore.saveCurrentBoard(board)
 }
 </script>
 
