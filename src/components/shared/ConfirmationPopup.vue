@@ -64,7 +64,7 @@ const message = computed(() => {
 .popup-text {
   @apply fixed inset-0 bottom-auto py-10 mx-auto w-[min(90%,400px)];
   @apply translate-y-8 text-center text-gray-900 rounded-xl z-[100];
-  @apply outline-transparent;
+  @apply focus-visible:outline-transparent;
 }
 
 .popup-enter-from,

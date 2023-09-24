@@ -12,7 +12,7 @@
         class="w-[280px] shrink-0"
       >
         <div
-          class="flex items-center gap-2 py-[var(--room-for-outline)] mb-4 min-w-[280px]"
+          class="relative flex items-center gap-2 py-[var(--room-for-outline)] mb-4 min-w-[280px]"
         >
           <div
             class="h-[15px] w-[15px] rounded-full"
@@ -57,13 +57,10 @@
       <button
         v-if="boardsStore.boardColumns.length > 0"
         @click="modals.isEditBoardModalShown = true"
-        aria-labelledby="add-new-column"
+        aria-label="click here to add a new column"
         class="new-column group"
       >
-        <span aria-hidden="true" class="new-column-text"
-          >&#65291;New Column</span
-        >
-        <span id="add-new-column" class="hidden">Add New Column</span>
+        &#65291;New Column
       </button>
       <empty-info :emptyBoard="boardsStore.boardColumns.length === 0" />
     </div>
@@ -266,10 +263,7 @@ const moveTask = async (value: BoardColumn['name']) => {
   @apply h-[calc(100vh-180px)] w-[280px];
   @apply bg-gradient-to-b from-blue-100 to-blue-80 cursor-pointer;
   @apply dark:from-gray-700 dark:to-gray-680 rounded-md;
-}
-
-.new-column-text {
-  @apply w-max text-gray-400 text-xl group-hover:text-purple-600;
-  @apply group-focus-visible:text-purple-600 transition-colors duration-300;
+  @apply text-gray-400 text-xl hover:text-purple-600;
+  @apply focus-visible:text-purple-600 transition-colors duration-300;
 }
 </style>
