@@ -50,7 +50,7 @@
     </transition>
     <transition name="popup">
       <confirmation-popup
-        v-if="isPopupShown"
+        v-if="isAuthError"
         :isError="isAuthError"
         :errorMessage="errorMessage"
       />
@@ -67,11 +67,7 @@ import LogoIcon from '../Svgs/LogoIcon.vue'
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useUserStore } from '../../stores/user'
-import {
-  isAuthError,
-  isPopupShown,
-  handleAuthResponse
-} from '../../composables/authHandler'
+import { isAuthError, handleAuthResponse } from '../../composables/authHandler'
 import { useForm } from 'vee-validate'
 import * as Yup from 'yup'
 import { toTypedSchema } from '@vee-validate/yup'

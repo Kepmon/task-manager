@@ -5,7 +5,7 @@
   >
     <Teleport to="body">
       <transition name="popup">
-        <confirmation-popup v-if="isPopupShown" :isError="isAuthError" />
+        <confirmation-popup v-if="isAuthError" :isError="isAuthError" />
       </transition>
     </Teleport>
     <Teleport to="body">
@@ -51,11 +51,7 @@ import ConfirmationPopup from './shared/ConfirmationPopup.vue'
 import ConfirmationModal from './Modals/ConfirmationModal.vue'
 import toggleMoreOptions from '../composables/toggleMoreOptions'
 import { useUserStore } from '../stores/user'
-import {
-  isAuthError,
-  isPopupShown,
-  handleAuthResponse
-} from '../composables/authHandler'
+import { isAuthError, handleAuthResponse } from '../composables/authHandler'
 import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 

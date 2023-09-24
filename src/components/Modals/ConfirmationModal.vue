@@ -2,8 +2,7 @@
   <div class="z-10">
     <transition name="popup">
       <confirmation-popup
-        v-show="isPopupShown"
-        action="delete"
+        v-if="isAuthError"
         :isError="isAuthError"
         :errorMessage="errorMessage"
       />
@@ -55,11 +54,7 @@ import { useBoardsStore } from '../../stores/boards'
 import { useTasksStore } from '../../stores/tasks'
 import { useFormsStore } from '../../stores/forms'
 import { ref } from 'vue'
-import {
-  isAuthError,
-  isPopupShown,
-  handleAuthResponse
-} from '../../composables/authHandler'
+import { isAuthError, handleAuthResponse } from '../../composables/authHandler'
 import { useRoute } from 'vue-router'
 import { useForm } from 'vee-validate'
 import * as Yup from 'yup'

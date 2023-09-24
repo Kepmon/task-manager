@@ -3,20 +3,20 @@ import { ref } from 'vue'
 import router from '../router'
 
 export const isAuthError = ref(false)
-export const isPopupShown = ref(false)
 
 export const handleAuthResponse = (
   response: boolean | string | void,
   currentPath: string,
   loading?: Ref<boolean>
 ) => {
-  response === true ? (isAuthError.value = false) : (isAuthError.value = true)
+  const duration = 3000
+  isAuthError.value = response === true ? false : true
 
-  const durationOfShowingPopup = response === true ? 1500 : 2500
-  isPopupShown.value = true
-  setTimeout(() => {
-    isPopupShown.value = false
-  }, durationOfShowingPopup)
+  if (response !== true) {
+    setTimeout(() => {
+      isAuthError.value = false
+    }, duration)
+  }
 
   if (response === true) {
     const pathToGo = {
@@ -24,14 +24,12 @@ export const handleAuthResponse = (
       '/': '/dashboard',
       '/dashboard': '/'
     }
-    setTimeout(() => {
-      router.push(pathToGo[currentPath as keyof typeof pathToGo])
-    }, durationOfShowingPopup + 500)
+    router.push(pathToGo[currentPath as keyof typeof pathToGo])
   }
 
   if (loading != null) {
     setTimeout(() => {
       loading.value = false
-    }, durationOfShowingPopup + 500)
+    }, duration)
   }
 }
