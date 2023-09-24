@@ -31,18 +31,15 @@ onUnmounted(() => {
   confirmationPopup.value.blur()
 })
 
-const authErrorText = {
-  'auth/wrong-password': 'The provided password is incorrect',
-  'auth/email-already-in-use': 'A user with this email already exists',
-  'auth/user-not-found': 'No user exists with such email'
-}
-
 const message = computed(() => {
   if (props.isError) {
-    return (
-      authErrorText[props.errorMessage as keyof typeof authErrorText] ||
-      'Ooops, something went wrong. Try again later.'
-    )
+    const isCustomMessage =
+      props.errorMessage === 'auth/wrong-password' ||
+      props.errorMessage === 'auth/email-already-in-use' ||
+      props.errorMessage === 'auth/user-not-found'
+    return isCustomMessage
+      ? 'The user name or password are incorrect'
+      : 'Ooops, something went wrong. Try again later.'
   }
 
   if (props.action) {
