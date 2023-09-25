@@ -12,6 +12,7 @@ import {
   orderBy,
   collection,
   doc,
+  getDoc,
   getDocs,
   addDoc,
   updateDoc,
@@ -125,9 +126,15 @@ export const useBoardsStore = defineStore('boards', () => {
     docRef: DocumentReference<DocumentData>,
     name: string
   ) => {
-    return await updateDoc(docRef, {
+    const nameBefore = name
+    await updateDoc(docRef, {
       name
     })
+    const nameAfter = ((await getDoc(docRef)).data() as Board).name
+
+    if (nameBefore !== nameAfter) return 'wrong response'
+
+    return true
   }
 
   const addNewBoard = async (
@@ -182,7 +189,7 @@ export const useBoardsStore = defineStore('boards', () => {
       areColumnsNamesSame
     ].every((item) => item === true)
 
-    if (isFormNotChanged) return
+    if (isFormNotChanged) return true
 
     const docToEditRef = doc(
       boardsColRefGlobal.value as CollectionReference<DocumentData>,
@@ -192,7 +199,9 @@ export const useBoardsStore = defineStore('boards', () => {
 
     if (!isBoardNameSame) {
       try {
-        await updateFirestoreDoc(docToEditRef, boardName)
+        const response = await updateFirestoreDoc(docToEditRef, boardName)
+
+        if (response !== true) throw new Error()
 
         if (areColumnsNamesSame) {
           await getBoards()
@@ -205,7 +214,7 @@ export const useBoardsStore = defineStore('boards', () => {
           return true
         }
       } catch (err) {
-        return (err as FirestoreError).code
+        return (err as FirestoreError).code || 'wrong response'
       }
     }
 
@@ -278,29 +287,45 @@ export const useBoardsStore = defineStore('boards', () => {
     const columnsColRefs = collection(db, `${boardDocRef.path}/columns`)
     const columnsDocRefs = (await getDocs(columnsColRefs)).docs
 
-    columnsDocRefs.forEach(async (columnDocRef) => {
-      try {
-        await deleteColumn(columnDocRef.id)
-        await deleteDoc(boardDocRef)
-        await getBoards()
+    const columnResponses = await Promise.all(
+      columnsDocRefs.map(async (columnDocRef) => {
+        try {
+          await deleteColumn(columnDocRef.id, true)
 
-        if (boards.value.length === 0) {
-          currentBoard.value = null
-          localStorage.removeItem(`TM-currentBoard-${userStore.userID}`)
-          await getBoards()
-          await getColumns()
-          return
+          return true
+        } catch (err) {
+          return (err as FirestoreError).code
         }
+      })
+    )
 
-        await saveCurrentBoard(boards.value[0])
-        return true
-      } catch (err) {
-        return (err as FirestoreError).code
+    if (columnResponses.some((response) => response !== true))
+      return 'wrong response'
+
+    try {
+      await deleteDoc(boardDocRef)
+      await getBoards()
+
+      if (boards.value.length === 0) {
+        currentBoard.value = null
+        localStorage.removeItem(`TM-currentBoard-${userStore.userID}`)
       }
-    })
+
+      if (boards.value.length > 0) {
+        await saveCurrentBoard(boards.value[0])
+        await getColumns()
+      }
+
+      return true
+    } catch (err) {
+      return (err as FirestoreError).code
+    }
   }
 
-  const deleteColumn = async (columnID: BoardColumn['columnID']) => {
+  const deleteColumn = async (
+    columnID: BoardColumn['columnID'],
+    omitFetch?: true
+  ) => {
     const columnsColRef = collection(
       db,
       `${
@@ -333,7 +358,10 @@ export const useBoardsStore = defineStore('boards', () => {
       }
 
       await deleteDoc(columnDocRef)
-      await getColumns()
+
+      if (omitFetch != null) {
+        await getColumns()
+      }
 
       return true
     } catch (err) {

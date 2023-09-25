@@ -1,12 +1,5 @@
 <template>
   <div class="z-10">
-    <transition name="popup">
-      <confirmation-popup
-        v-if="isAuthError"
-        :isError="isAuthError"
-        :errorMessage="errorMessage"
-      />
-    </transition>
     <modals-template @close-modal="$emit('close-modal')">
       <template #form-title>
         <h2 class="text-red-400">Delete this {{ elementToDelete }}?</h2>
@@ -47,13 +40,12 @@
 import type { Board, BoardColumn, Task } from '../../api/boardsTypes'
 import ModalsTemplate from './ModalsTemplate.vue'
 import AuthInput from '../shared/Inputs/AuthInput.vue'
-import ConfirmationPopup from '../shared/ConfirmationPopup.vue'
 import { computed } from 'vue'
 import { useUserStore } from '../../stores/user'
 import { useBoardsStore } from '../../stores/boards'
 import { useTasksStore } from '../../stores/tasks'
 import { ref } from 'vue'
-import { isAuthError, handleAuthResponse } from '../../composables/authHandler'
+import { handleResponse } from '../../composables/responseHandler'
 import { useRoute } from 'vue-router'
 import { useForm } from 'vee-validate'
 import * as Yup from 'yup'
@@ -120,20 +112,10 @@ const submit = async () => {
   isPending.value = true
 
   const response = await submitFns[props.elementToDelete]()
+  handleResponse(response, route.path, isPending)
 
   if (props.elementToDelete === 'user' && typeof response === 'string') {
     errorMessage.value = response
-  }
-
-  if (props.elementToDelete === 'user') {
-    handleAuthResponse(response, route.path, isPending)
-
-    if (!isAuthError) {
-      setTimeout(() => {
-        emits('close-modal')
-      }, 3000)
-    }
-    return
   }
 
   isPending.value = false

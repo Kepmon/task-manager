@@ -49,11 +49,7 @@
       />
     </transition>
     <transition name="popup">
-      <confirmation-popup
-        v-if="isAuthError"
-        :isError="isAuthError"
-        :errorMessage="errorMessage"
-      />
+      <confirmation-popup :errorMessage="errorMessage" />
     </transition>
   </div>
 </template>
@@ -67,7 +63,7 @@ import LogoIcon from '../Svgs/LogoIcon.vue'
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useUserStore } from '../../stores/user'
-import { isAuthError, handleAuthResponse } from '../../composables/authHandler'
+import { handleResponse } from '../../composables/responseHandler'
 import { useForm } from 'vee-validate'
 import * as Yup from 'yup'
 import { toTypedSchema } from '@vee-validate/yup'
@@ -132,7 +128,7 @@ const onSubmit = form.handleSubmit(async (values) => {
     errorMessage.value = response
   }
 
-  handleAuthResponse(response, currentPath, buttonLoading)
+  handleResponse(response, currentPath, buttonLoading)
 })
 </script>
 

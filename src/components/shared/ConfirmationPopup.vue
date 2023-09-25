@@ -1,14 +1,19 @@
 <template>
-  <p ref="confirmationPopup" class="popup-text" tabindex="0">
+  <p
+    v-if="isResponseError"
+    ref="confirmationPopup"
+    class="popup-text"
+    tabindex="0"
+  >
     {{ message }}
   </p>
 </template>
 
 <script setup lang="ts">
+import { isResponseError } from '../../composables/responseHandler'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps<{
-  isError: boolean
   errorMessage?: string
 }>()
 

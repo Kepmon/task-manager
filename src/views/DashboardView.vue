@@ -8,6 +8,9 @@
   >
     <skip-to-content v-if="!isDashboardEmpty && !userStore.isLoading" />
     <Spinner v-if="userStore.isLoading" />
+    <transition name="popup">
+      <confirmation-popup />
+    </transition>
 
     <header
       class="bg-white dark:bg-gray-700"
@@ -76,6 +79,7 @@ import BoardsColumn from '../components/BoardsColumn.vue'
 import UserOptions from '../components/UserOptions.vue'
 import Spinner from '../components/Spinner.vue'
 import SkipToContent from '../components/SkipToContent.vue'
+import ConfirmationPopup from '../components/shared/ConfirmationPopup.vue'
 import { useUserStore } from '../stores/user'
 import { useBoardsStore } from '../stores/boards'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
