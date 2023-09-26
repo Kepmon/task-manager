@@ -130,6 +130,7 @@ import ConfirmationModal from '../components/Modals/ConfirmationModal.vue'
 import TaskModal from '../components/Modals/TaskModal.vue'
 import BoardModal from '../components/Modals/BoardModal.vue'
 import CloseIcon from './Svgs/CloseIcon.vue'
+import { handleResponse } from '../composables/responseHandler'
 import { computed, ref } from 'vue'
 import { useBoardsStore } from '../stores/boards'
 import { useTasksStore } from '../stores/tasks'
@@ -241,8 +242,8 @@ const moveTask = async (value: BoardColumn['name']) => {
     ) as BoardColumn
   ).columnID
 
-  await tasksStore.moveTaskBetweenColumns(nextColumnID)
-  await boardsStore.getColumns()
+  const response = await tasksStore.moveTaskBetweenColumns(nextColumnID)
+  handleResponse(response)
 
   modals.value.isSeeTaskModalShown = false
 }

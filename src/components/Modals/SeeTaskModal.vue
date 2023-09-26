@@ -96,6 +96,7 @@ import ModalsTemplate from './ModalsTemplate.vue'
 import MoreOptions from '../shared/MoreOptions.vue'
 import MoreOptionsIcon from '../Svgs/MoreOptionsIcon.vue'
 import toggleMoreOptions from '../../composables/toggleMoreOptions'
+import { handleResponse } from '../../composables/responseHandler'
 import { useTasksStore } from '../../stores/tasks'
 import { useBoardsStore } from '../../stores/boards'
 import { ref, onUnmounted } from 'vue'
@@ -132,8 +133,9 @@ const handleMoreOptionsFn = (
 const toggleSubtask = async (index: number) => {
   const clickedSubtask = tasksStore.subtasksOfClickedTask[index]
 
-  await tasksStore.toggleSubtask(clickedSubtask)
-  await boardsStore.getColumns()
+  const response = await tasksStore.toggleSubtask(clickedSubtask)
+
+  handleResponse(response)
 }
 
 const isPending = ref(false)

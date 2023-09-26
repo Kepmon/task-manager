@@ -1,4 +1,5 @@
-import type { AuthError, User } from 'firebase/auth'
+import { AuthError, User } from 'firebase/auth'
+import { FirestoreError } from 'firebase/firestore'
 import { defineStore } from 'pinia'
 import {
   onAuthStateChanged,
@@ -33,30 +34,52 @@ export const useUserStore = defineStore('user', () => {
     userID.value = user.uid
     localStorage.setItem('TM-user', JSON.stringify(user))
 
-    await boardsStore.getBoards()
+    try {
+      const response = await boardsStore.getBoards()
+
+      if (response !== true) throw new Error(response)
+    } catch (err) {
+      return (err as FirestoreError).code
+    }
 
     const savedBoardJSON = localStorage.getItem(
       `TM-currentBoard-${userID.value}`
     )
     if (savedBoardJSON != null) {
       boardsStore.currentBoard = JSON.parse(savedBoardJSON as string)
-      await boardsStore.getColumns()
+      try {
+        const response = await boardsStore.getColumns()
+
+        if (response !== true) throw new Error(response)
+      } catch (err) {
+        return (err as FirestoreError).code
+      }
       isLoading.value = false
       return
     }
 
-    if (boardsStore.boards.length !== 0) {
-      await boardsStore.saveCurrentBoard(boardsStore.boards[0])
-    }
-
     if (boardsStore.boards.length > 0) {
-      await boardsStore.getColumns()
-    }
+      try {
+        const boardResponse = await boardsStore.saveCurrentBoard(
+          boardsStore.boards[0]
+        )
+        const columnsResponse = await boardsStore.getColumns()
 
-    isLoading.value = false
+        if (boardResponse !== true) throw new Error(boardResponse)
+        if (columnsResponse !== true) throw new Error(columnsResponse)
+
+        isLoading.value = false
+      } catch (err) {
+        isLoading.value = false
+
+        return (err as FirestoreError).code
+      }
+    }
   })
 
   const register = async (email: string, password: string) => {
+    type RegisterError = FirestoreError | AuthError
+
     try {
       const authResponse = await createUserWithEmailAndPassword(
         auth,
@@ -66,13 +89,16 @@ export const useUserStore = defineStore('user', () => {
 
       if (authResponse == null) throw new Error()
 
-      await setDoc(doc(usersColRef, authResponse.user.uid), {})
-
-      await logout()
+      try {
+        await setDoc(doc(usersColRef, authResponse.user.uid), {})
+        await logout()
+      } catch (err) {
+        return (err as RegisterError).code
+      }
 
       return true
     } catch (err) {
-      return (err as AuthError).code
+      return (err as RegisterError).code
     }
   }
 
@@ -112,24 +138,41 @@ export const useUserStore = defineStore('user', () => {
       if (boardsDocRefs.length > 0) {
         boardsDocRefs.forEach(async (docRef) => {
           const boardDoc = docRef.id
-          await boardsStore.deleteBoard(boardDoc)
+
+          try {
+            const response = await boardsStore.deleteBoard(boardDoc)
+
+            if (response !== null) throw new Error(response)
+          } catch (error) {
+            return (err as FirestoreError).code
+          }
         })
       }
       const userDocRef = doc(usersColRef, (user as User).uid)
-      await deleteDoc(userDocRef)
+
+      try {
+        await deleteDoc(userDocRef)
+      } catch (error) {
+        return (err as FirestoreError).code
+      }
 
       const credential = EmailAuthProvider.credential(
         (user as User).email as string,
         inputedPassword.value as string
       )
-      await reauthenticateWithCredential(user as User, credential)
-      await deleteUser(user as User)
+
+      try {
+        await reauthenticateWithCredential(user as User, credential)
+        await deleteUser(user as User)
+      } catch (error) {
+        return (err as AuthError).code
+      }
 
       userID.value = null
 
       return true
     } catch (err) {
-      return (err as AuthError).code
+      return (err as AuthError | FirestoreError).code
     }
   }
 

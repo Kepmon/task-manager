@@ -60,6 +60,7 @@ import ModalsTemplate from './ModalsTemplate.vue'
 import TextInput from '../shared/Inputs/TextInput.vue'
 import DescriptionField from '../shared/Inputs/DescriptionField.vue'
 import ElementSubset from '../shared/ElementSubset.vue'
+import { handleResponse } from '../../composables/responseHandler'
 import { useBoardsStore } from '../../stores/boards'
 import { useTasksStore } from '../../stores/tasks'
 import { useFormsStore } from '../../stores/forms'
@@ -130,7 +131,7 @@ const submit = async () => {
   const subtaskNames = formSubsetData.value.items.map(({ name }) => name.trim())
 
   if (props.action === 'add') {
-    await tasksStore.addNewTask(
+    const response = await tasksStore.addNewTask(
       selectedStatusItem.value.columnID as BoardColumn['columnID'],
       {
         title: formName.value.trim(),
@@ -138,20 +139,23 @@ const submit = async () => {
       },
       subtaskNames
     )
+
+    handleResponse(response)
   }
 
   if (props.action === 'edit') {
-    await tasksStore.editTask(
+    const response = await tasksStore.editTask(
       formName.value,
       taskDescription.value,
       formSubsetData.value.items,
       selectedStatusItem.value.columnID,
       isStatusUpdated.value
     )
+
+    handleResponse(response)
   }
 
   emits('change-var-to-false')
-  await boardsStore.getColumns()
 
   isPending.value = false
 }

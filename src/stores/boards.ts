@@ -95,12 +95,18 @@ export const useBoardsStore = defineStore('boards', () => {
               )
             : []
 
-        await tasksStore.getTasks(columnsColRef, boardColumns.value)
+        const response = await tasksStore.getTasks(
+          columnsColRef,
+          boardColumns.value
+        )
+
+        if (response !== true) throw new Error('wrong response')
         return true
       } catch (err) {
         return (err as FirestoreError).code
       }
     }
+    return 'wrong response'
   }
 
   const saveCurrentBoard = async (newBoard: Board) => {
@@ -109,7 +115,11 @@ export const useBoardsStore = defineStore('boards', () => {
       `TM-currentBoard-${userStore.userID}`,
       JSON.stringify(currentBoard.value)
     )
-    await getColumns()
+    const response = await getColumns()
+
+    if (response !== true) return response
+
+    return true
   }
 
   const addDocToFirestore = async (
@@ -157,10 +167,16 @@ export const useBoardsStore = defineStore('boards', () => {
         })
       }
 
-      const response = await getBoards()
+      const boardsResponse = await getBoards()
 
-      if (response === true) {
-        await saveCurrentBoard(boards.value[0])
+      if (boardsResponse === true) {
+        try {
+          const saveBoardResponse = await saveCurrentBoard(boards.value[0])
+
+          if (saveBoardResponse !== true) throw new Error(saveBoardResponse)
+        } catch (err) {
+          return (err as FirestoreError).code
+        }
       }
 
       return true
@@ -204,13 +220,26 @@ export const useBoardsStore = defineStore('boards', () => {
         if (response !== true) throw new Error()
 
         if (areColumnsNamesSame) {
-          await getBoards()
+          try {
+            const response = await getBoards()
+
+            if (response !== true) throw new Error(response)
+          } catch (err) {
+            return (err as FirestoreError).code
+          }
 
           const newBoard =
             boards.value.find(
               (board) => board.boardID === lastCurrentBoardID
             ) || boards.value[0]
-          await saveCurrentBoard(newBoard)
+
+          try {
+            const saveBoardResponse = await saveCurrentBoard(newBoard)
+
+            if (saveBoardResponse !== true) throw new Error(saveBoardResponse)
+          } catch (err) {
+            return (err as FirestoreError).code
+          }
           return true
         }
       } catch (err) {
@@ -273,8 +302,16 @@ export const useBoardsStore = defineStore('boards', () => {
     const newBoard =
       boards.value.find((board) => board.boardID === lastCurrentBoardID) ||
       boards.value[0]
-    await saveCurrentBoard(newBoard)
-    await getBoards()
+
+    try {
+      const saveBoardResponse = await saveCurrentBoard(newBoard)
+      const boardsResponse = await getBoards()
+
+      if (saveBoardResponse !== true) throw new Error(saveBoardResponse)
+      if (boardsResponse !== true) throw new Error(boardsResponse)
+    } catch (err) {
+      return (err as FirestoreError).code
+    }
 
     return true
   }
@@ -290,7 +327,9 @@ export const useBoardsStore = defineStore('boards', () => {
     const columnResponses = await Promise.all(
       columnsDocRefs.map(async (columnDocRef) => {
         try {
-          await deleteColumn(columnDocRef.id, true)
+          const response = await deleteColumn(columnDocRef.id, true)
+
+          if (response !== null) throw new Error(response)
 
           return true
         } catch (err) {
@@ -303,8 +342,11 @@ export const useBoardsStore = defineStore('boards', () => {
       return 'wrong response'
 
     try {
-      await deleteDoc(boardDocRef)
-      await getBoards()
+      const deleteResponse = await deleteDoc(boardDocRef)
+      const boardsResponse = await getBoards()
+
+      if (deleteResponse !== true) throw new Error(deleteResponse)
+      if (boardsResponse !== true) throw new Error(boardsResponse)
 
       if (boards.value.length === 0) {
         currentBoard.value = null
@@ -312,8 +354,15 @@ export const useBoardsStore = defineStore('boards', () => {
       }
 
       if (boards.value.length > 0) {
-        await saveCurrentBoard(boards.value[0])
-        await getColumns()
+        try {
+          const saveBoardResponse = await saveCurrentBoard(boards.value[0])
+          const columnsResponse = await getColumns()
+
+          if (saveBoardResponse !== true) throw new Error(saveBoardResponse)
+          if (columnsResponse !== true) throw new Error(columnsResponse)
+        } catch (error) {
+          return (err as FirestoreError).code
+        }
       }
 
       return true
@@ -360,7 +409,13 @@ export const useBoardsStore = defineStore('boards', () => {
       await deleteDoc(columnDocRef)
 
       if (omitFetch != null) {
-        await getColumns()
+        try {
+          const response = await getColumns()
+
+          if (response !== true) throw new Error(response)
+        } catch (error) {
+          return (err as FirestoreError).code
+        }
       }
 
       return true
