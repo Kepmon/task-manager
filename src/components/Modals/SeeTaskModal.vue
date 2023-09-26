@@ -29,7 +29,7 @@
           {{ task.description }}
         </p>
 
-        <div v-if="tasksStore.subtasksOfClickedTask.length > 0">
+        <div>
           <p class="mb-4 text-xs text-gray-400 dark:text-white">
             Subtasks
             <span v-if="tasksStore.subtasksOfClickedTask.length > 0">
@@ -48,25 +48,30 @@
             There are no subtasks to display
           </p>
           <div
-            @click="() => toggleSubtask(index)"
-            v-for="(
-              { title, isCompleted, subtaskID }, index
-            ) in tasksStore.subtasksOfClickedTask"
-            :key="subtaskID"
-            class="subtask"
+            v-if="tasksStore.subtasksOfClickedTask.length > 0"
+            class="grid gap-2"
           >
-            <label class="flex items-center gap-4 px-1 cursor-pointer">
+            <div
+              @click="() => toggleSubtask(index)"
+              v-for="(
+                { title, isCompleted, subtaskID }, index
+              ) in tasksStore.subtasksOfClickedTask"
+              :key="subtaskID"
+              class="subtask"
+            >
               <input
+                :id="`subtask-checkbox-${index}`"
                 type="checkbox"
                 :checked="isCompleted"
                 class="checkbox peer"
               />
-              <span
+              <label
+                @click.prevent
+                :for="`subtask-checkbox-${index}`"
                 class="text-xs peer-checked:line-through peer-checked:opacity-50"
+                >{{ title }}</label
               >
-                {{ title }}
-              </span>
-            </label>
+            </div>
           </div>
         </div>
 
@@ -157,8 +162,8 @@ onUnmounted(() => {
 }
 
 .subtask {
-  @apply [&:not(:last-of-type)]:mb-2 p-2 rounded bg-blue-200 dark:bg-gray-800;
-  @apply hover:bg-purple-310 hover:dark:bg-purple-310;
+  @apply flex items-center gap-2 p-2 rounded bg-blue-200 dark:bg-gray-800;
+  @apply hover:bg-purple-310 hover:dark:bg-purple-310 cursor-pointer;
   @apply transition-colors duration-300;
 }
 </style>
