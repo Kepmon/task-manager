@@ -456,13 +456,23 @@ export const useTasksStore = defineStore('tasks', () => {
     const subtaskDocRef = doc(subtasksColRef, subtask.subtaskID)
 
     const statusBefore = subtask.isCompleted
-    await updateDoc(subtaskDocRef, {
-      isCompleted: !subtask.isCompleted
-    })
 
-    const subtasksResponse = await updateSubtasks(subtasksColRefOrdered)
-    if (typeof subtasksResponse !== 'string') {
-      subtasksOfClickedTask.value = response
+    try {
+      await updateDoc(subtaskDocRef, {
+        isCompleted: !subtask.isCompleted
+      })
+    } catch (err) {
+      return (err as FirestoreError).code
+    }
+
+    try {
+      const subtasksResponse = await updateSubtasks(subtasksColRefOrdered)
+      if (typeof subtasksResponse === 'string')
+        throw new Error(subtasksResponse)
+
+      subtasksOfClickedTask.value = subtasksResponse
+    } catch (err) {
+      return (err as FirestoreError).code
     }
 
     const statusAfter = ((await getDoc(subtaskDocRef)).data() as Subtask)
@@ -471,7 +481,7 @@ export const useTasksStore = defineStore('tasks', () => {
     if (statusBefore === statusAfter) return 'wrong response'
 
     try {
-      const columnsResponse = boardsStore.getColumns()
+      const columnsResponse = await boardsStore.getColumns()
       if (columnsResponse !== true) throw new Error(columnsResponse)
     } catch (err) {
       return (err as FirestoreError).code
