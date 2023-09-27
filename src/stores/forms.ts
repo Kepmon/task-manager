@@ -10,21 +10,17 @@ export const useFormsStore = defineStore('forms', () => {
   const tasksStore = useTasksStore()
 
   const boardColumns = computed(() =>
-    boardsStore.boardColumns
-      ? boardsStore.boardColumns.map((boardColumn) => ({
-          name: boardColumn.name,
-          id: boardColumn.columnID
-        }))
-      : []
+    boardsStore.boardColumns.map((boardColumn) => ({
+      name: boardColumn.name,
+      id: boardColumn.columnID
+    }))
   )
 
   const subtasks = computed(() =>
-    tasksStore.subtasksOfClickedTask.length > 0
-      ? tasksStore.subtasksOfClickedTask.map((subtask) => ({
-          name: subtask.title,
-          id: subtask.subtaskID
-        }))
-      : []
+    tasksStore.subtasksOfClickedTask.map((subtask) => ({
+      name: subtask.title,
+      id: subtask.subtaskID
+    }))
   )
 
   const formsData = ref({
@@ -38,7 +34,7 @@ export const useFormsStore = defineStore('forms', () => {
         errors: [false, false]
       }),
       edit: ref({
-        items: boardColumns,
+        items: boardColumns.value,
         placeholderItems: undefined,
         errors: boardsStore.boardColumns.map(() => false)
       })
@@ -53,7 +49,7 @@ export const useFormsStore = defineStore('forms', () => {
         errors: [false, false]
       }),
       edit: ref({
-        items: subtasks,
+        items: subtasks.value,
         placeholderItems: undefined,
         errors: tasksStore.subtasks.map(() => false)
       })

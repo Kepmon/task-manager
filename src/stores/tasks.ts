@@ -45,6 +45,16 @@ export const useTasksStore = defineStore('tasks', () => {
   const clickedTask = ref<null | Task>(null)
   const subtasksOfClickedTask = ref<Subtask[]>([])
 
+  const getColumnsAgain = async () => {
+    try {
+      const response = await boardsStore.getColumns()
+
+      if (response !== true) throw new Error(response)
+    } catch (err) {
+      return (err as FirestoreError).code
+    }
+  }
+
   const getTasks = async (
     columnsColRef: CollectionReference<DocumentData>,
     columns: BoardColumn[]
@@ -175,7 +185,10 @@ export const useTasksStore = defineStore('tasks', () => {
 
       const subtasksColRef = collection(db, `${addedDocRef.path}/subtasks`)
 
-      if (subtasks.length === 0) return true
+      if (subtasks.length === 0) {
+        await getColumnsAgain()
+        return true
+      }
 
       subtasks.forEach(async (subtask) => {
         try {
@@ -191,13 +204,7 @@ export const useTasksStore = defineStore('tasks', () => {
         }
       })
 
-      try {
-        const response = await boardsStore.getColumns()
-
-        if (response !== true) throw new Error(response)
-      } catch (err) {
-        return (err as FirestoreError).code
-      }
+      await getColumnsAgain()
 
       return true
     } catch (err) {
@@ -265,8 +272,7 @@ export const useTasksStore = defineStore('tasks', () => {
         })
       }
 
-      const response = await boardsStore.getColumns()
-      if (response !== true) throw new Error(response)
+      await getColumnsAgain()
 
       return true
     } catch (err) {
@@ -393,13 +399,7 @@ export const useTasksStore = defineStore('tasks', () => {
       )
     }
 
-    try {
-      const response = await boardsStore.getColumns()
-
-      if (response !== true) throw new Error(response)
-    } catch (err) {
-      return (err as FirestoreError).code
-    }
+    await getColumnsAgain()
 
     return true
   }
@@ -430,9 +430,7 @@ export const useTasksStore = defineStore('tasks', () => {
 
       try {
         await deleteDoc(tasksDocRef)
-        const response = await boardsStore.getColumns()
-
-        if (response !== true) throw new Error('wrong response')
+        await getColumnsAgain()
         return true
       } catch (err) {
         return (err as FirestoreError).code
@@ -481,8 +479,7 @@ export const useTasksStore = defineStore('tasks', () => {
     if (statusBefore === statusAfter) return 'wrong response'
 
     try {
-      const columnsResponse = await boardsStore.getColumns()
-      if (columnsResponse !== true) throw new Error(columnsResponse)
+      await getColumnsAgain()
     } catch (err) {
       return (err as FirestoreError).code
     }
