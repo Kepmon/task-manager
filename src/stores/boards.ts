@@ -329,7 +329,7 @@ export const useBoardsStore = defineStore('boards', () => {
         try {
           const response = await deleteColumn(columnDocRef.id, true)
 
-          if (response !== null) throw new Error(response)
+          if (response !== true) throw new Error(response)
 
           return true
         } catch (err) {
@@ -342,10 +342,9 @@ export const useBoardsStore = defineStore('boards', () => {
       return 'wrong response'
 
     try {
-      const deleteResponse = await deleteDoc(boardDocRef)
+      await deleteDoc(boardDocRef)
       const boardsResponse = await getBoards()
 
-      if (deleteResponse !== true) throw new Error(deleteResponse)
       if (boardsResponse !== true) throw new Error(boardsResponse)
 
       if (boards.value.length === 0) {
@@ -360,7 +359,7 @@ export const useBoardsStore = defineStore('boards', () => {
 
           if (saveBoardResponse !== true) throw new Error(saveBoardResponse)
           if (columnsResponse !== true) throw new Error(columnsResponse)
-        } catch (error) {
+        } catch (err) {
           return (err as FirestoreError).code
         }
       }
@@ -413,7 +412,7 @@ export const useBoardsStore = defineStore('boards', () => {
           const response = await getColumns()
 
           if (response !== true) throw new Error(response)
-        } catch (error) {
+        } catch (err) {
           return (err as FirestoreError).code
         }
       }

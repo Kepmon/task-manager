@@ -1,5 +1,5 @@
-import { AuthError, User } from 'firebase/auth'
-import { FirestoreError } from 'firebase/firestore'
+import type { AuthError, User } from 'firebase/auth'
+import type { FirestoreError } from 'firebase/firestore'
 import { defineStore } from 'pinia'
 import {
   onAuthStateChanged,
@@ -142,8 +142,8 @@ export const useUserStore = defineStore('user', () => {
           try {
             const response = await boardsStore.deleteBoard(boardDoc)
 
-            if (response !== null) throw new Error(response)
-          } catch (error) {
+            if (response !== true) throw new Error(response)
+          } catch (err) {
             return (err as FirestoreError).code
           }
         })
@@ -152,7 +152,7 @@ export const useUserStore = defineStore('user', () => {
 
       try {
         await deleteDoc(userDocRef)
-      } catch (error) {
+      } catch (err) {
         return (err as FirestoreError).code
       }
 
@@ -164,7 +164,7 @@ export const useUserStore = defineStore('user', () => {
       try {
         await reauthenticateWithCredential(user as User, credential)
         await deleteUser(user as User)
-      } catch (error) {
+      } catch (err) {
         return (err as AuthError).code
       }
 
