@@ -9,7 +9,10 @@
     <skip-to-content v-if="!isDashboardEmpty && !userStore.isLoading" />
     <Spinner v-if="userStore.isLoading" />
     <transition name="popup">
-      <confirmation-popup />
+      <confirmation-popup
+        v-if="isPopupShown"
+        :isResponseError="isResponseError"
+      />
     </transition>
 
     <header
@@ -82,6 +85,7 @@ import SkipToContent from '../components/SkipToContent.vue'
 import ConfirmationPopup from '../components/shared/ConfirmationPopup.vue'
 import { useUserStore } from '../stores/user'
 import { useBoardsStore } from '../stores/boards'
+import { isPopupShown, isResponseError } from '../composables/responseHandler'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useWindowSize } from '@vueuse/core'
 

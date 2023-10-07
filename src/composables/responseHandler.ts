@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import router from '../router'
 
 export const isResponseError = ref(false)
+export const isPopupShown = ref(false)
 
 export const handleResponse = (
   response: true | string,
@@ -10,18 +11,8 @@ export const handleResponse = (
   loading?: Ref<boolean>
 ) => {
   const duration = 3000
-  isResponseError.value = response === true ? false : true
-
-  if (response !== true) {
-    setTimeout(() => {
-      if (loading != null) {
-        loading.value = false
-      }
-
-      isResponseError.value = false
-    }, duration)
-    return
-  }
+  isResponseError.value = response !== true ? true : false
+  isPopupShown.value = true
 
   if (response === true && currentPath != null) {
     const pathToGo = {
@@ -29,6 +20,18 @@ export const handleResponse = (
       '/': '/dashboard',
       '/dashboard': '/'
     }
-    router.push(pathToGo[currentPath as keyof typeof pathToGo])
+
+    setTimeout(() => {
+      isPopupShown.value = false
+      router.push(pathToGo[currentPath as keyof typeof pathToGo])
+    }, 0)
   }
+
+  setTimeout(() => {
+    if (loading != null) {
+      loading.value = false
+    }
+
+    isPopupShown.value = false
+  }, duration)
 }

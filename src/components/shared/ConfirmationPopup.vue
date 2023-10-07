@@ -1,8 +1,8 @@
 <template>
   <p
-    v-if="isResponseError"
     ref="confirmationPopup"
     class="popup-text"
+    :class="{ 'opacity-0': !isResponseError }"
     tabindex="0"
   >
     {{ message }}
@@ -10,34 +10,48 @@
 </template>
 
 <script setup lang="ts">
-import { isResponseError } from '../../composables/responseHandler'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { useUserStore } from '../../stores/user'
 
 const props = defineProps<{
+  isResponseError: boolean
   errorMessage?: string
 }>()
 
 const confirmationPopup = ref<null | HTMLElement>(null)
 onMounted(() => {
-  if (confirmationPopup.value == null) return
-
-  confirmationPopup.value.focus()
+  confirmationPopup.value?.focus()
 })
-onUnmounted(() => {
-  if (confirmationPopup.value == null) return
 
-  confirmationPopup.value.blur()
+onUnmounted(() => {
+  confirmationPopup.value?.blur()
 })
 
 const message = computed(() => {
-  const isCustomMessage =
-    props.errorMessage === 'auth/wrong-password' ||
-    props.errorMessage === 'auth/email-already-in-use' ||
-    props.errorMessage === 'auth/user-not-found'
+  if (props.isResponseError) {
+    const isCustomMessage =
+      props.errorMessage === 'auth/wrong-password' ||
+      props.errorMessage === 'auth/email-already-in-use' ||
+      props.errorMessage === 'auth/user-not-found'
 
-  return isCustomMessage
-    ? 'The user name or password are incorrect'
-    : 'Ooops, something went wrong. Try again later.'
+    return isCustomMessage
+      ? 'The user name or password are incorrect'
+      : 'Ooops, something went wrong. Try again later.'
+  }
+
+  const route = useRoute()
+  const userStore = useUserStore()
+  const successMessages = {
+    '/': 'You logged in successfully',
+    '/sign-up': 'You signed up successfully',
+    '/dashboard': 'You successfully performed this action'
+  }
+
+  if (route.path === '/dashboard' && userStore.userID == null)
+    return 'You logged out successfully'
+
+  return successMessages[route.path as keyof typeof successMessages]
 })
 </script>
 

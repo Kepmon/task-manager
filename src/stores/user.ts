@@ -12,12 +12,14 @@ import {
 } from 'firebase/auth'
 import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore'
 import { auth, usersColRef, db } from '../firebase'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useBoardsStore } from './boards'
 
 export const useUserStore = defineStore('user', () => {
   const currentUser = ref<null | User>(null)
-  const userID = ref<null | string>(null)
+  const userID = computed(() =>
+    currentUser.value != null ? currentUser.value.uid : null
+  )
   const inputedPassword = ref<null | string>(null)
 
   const boardsStore = useBoardsStore()
@@ -31,7 +33,6 @@ export const useUserStore = defineStore('user', () => {
     }
 
     currentUser.value = user
-    userID.value = user.uid
     localStorage.setItem('TM-user', JSON.stringify(user))
 
     try {
@@ -167,8 +168,6 @@ export const useUserStore = defineStore('user', () => {
       } catch (err) {
         return (err as AuthError).code
       }
-
-      userID.value = null
 
       return true
     } catch (err) {
