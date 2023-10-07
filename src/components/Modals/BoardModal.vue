@@ -56,7 +56,9 @@ const formName = ref(
   props.action === 'add' ? '' : (boardsStore.currentBoard as Board).name
 )
 const formNameError = ref(false)
-const formSubsetData = computed(() => formsStore.formsData.board[props.action])
+const formSubsetData = computed(
+  () => formsStore.formsData.board.value[props.action]
+)
 
 const isPending = ref(false)
 const handleBlur = (isFormNameInput?: true) => {

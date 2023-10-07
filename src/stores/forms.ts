@@ -23,7 +23,7 @@ export const useFormsStore = defineStore('forms', () => {
     }))
   )
 
-  const formsData = ref({
+  const formsData = computed(() => ({
     board: ref({
       add: ref({
         items: ['Todo', 'Doing'].map((item, index) => ({
@@ -54,7 +54,7 @@ export const useFormsStore = defineStore('forms', () => {
         errors: tasksStore.subtasks.map(() => false)
       })
     })
-  })
+  }))
 
   const isNewInputAdded = ref(false)
   const isFormValid = ref(false)

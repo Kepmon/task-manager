@@ -81,7 +81,9 @@ const formsStore = useFormsStore()
 const formName = ref(props.task != null ? props.task.title : '')
 const formNameError = ref(false)
 const taskDescription = ref(props.task != null ? props.task.description : '')
-const formSubsetData = computed(() => formsStore.formsData.task[props.action])
+const formSubsetData = computed(
+  () => formsStore.formsData.task.value[props.action]
+)
 
 const selectedStatusItem = ref(
   props.columnIndex != null

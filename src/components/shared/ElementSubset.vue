@@ -76,7 +76,7 @@ const props = defineProps<{
 const emits = defineEmits(['handle-blur'])
 
 const formsStore = useFormsStore()
-const formData = formsStore.formsData[props.element][props.action]
+const formData = formsStore.formsData[props.element].value[props.action]
 const formatItemNumber = (number: number) => converter.toWordsOrdinal(number)
 
 interface WithIndexArgs {

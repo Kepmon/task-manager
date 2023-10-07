@@ -95,12 +95,14 @@ export const useBoardsStore = defineStore('boards', () => {
               )
             : []
 
-        const response = await tasksStore.getTasks(
-          columnsColRef,
-          boardColumns.value
-        )
+        if (columnDocs.length !== 0) {
+          const response = await tasksStore.getTasks(
+            columnsColRef,
+            boardColumns.value
+          )
 
-        if (response !== true) throw new Error('wrong response')
+          if (response !== true) throw new Error('wrong response')
+        }
         return true
       } catch (err) {
         return (err as FirestoreError).code
