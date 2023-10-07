@@ -81,9 +81,9 @@ _Some of the following sections were divided into collapsible subsections, so yo
   
   * **TypeScript is a king**
     - I remember not being really willing to learn it at first, but now, I can't imagine writing any website or (especially) an app without it
-    - I strongly doubt this app would even existed if not for TypeScript 🙈
+    - I strongly doubt this app would even exist if not for TypeScript 🙈
     - When coding this project I actually started contemplating about how is it even possible, someone would come up with a programming language that doesn't include types
-  * "No overload matches this call (...)" simply means that there's some descrepancy between the object that TypeScript expected for you to pass and the one you actually passed - either one of them is wrongly typed or you passed a completely different object. Just go, look for this difference and fix it. [This VS Code extension](https://github.com/yoavbls/pretty-ts-errors) will certainly help you with that.
+  * "No overload matches this call (...)" simply means that there's some discrepancy between the object that TypeScript expected for you to pass and the one you actually passed - either one of them is wrongly typed or you passed a completely different object. Just go, look for this difference and fix it. [This VS Code extension](https://github.com/yoavbls/pretty-ts-errors) will certainly help you with that.
   * If TypeScript yells at you "a variable is possibly null", **it may be actually null** - type assertion isn't usually a way to go. Sometimes it is, though. But you'd better think it through before making it, maybe your function actually lacks a guard, not a type assertion?
 </details>
 
@@ -113,12 +113,18 @@ _Some of the following sections were divided into collapsible subsections, so yo
   
   * **Optimized timing of popups showing up**: I decided to shorten the "success" popups and prolong the "error" ones, because: 
     - as a user, you're not necessarly keen to see for example this "You logged in successfully" message for a prolonged time, everytime you log in 
-    - **but**, if there's a problem with your logging in action, you should have time to be able to fully read the error message, since (in most cases), it'll tell you what's actually wrong
+    - **but**, if there's a problem with your logging in action, you should have time to be able to fully read the error message, since (in most cases), it'll tell you what's actually wrong  
+
+  **UPDATE**  
+  @solracss pointed out to me that I should actually completely remove the "success" popups, since there are always some visible changes to the UI, anyway (like redirecting a user to another page or an item being added/removed from the dashboard). After giving it some thought, I considered it to be a valid point, so I kept only the "error" popups, concurrently adding them for the board-related stuff. Only accessibility became more of an issue with this approach since I persisted on a screen-reader to read a popup, as a blind user can't really see the UI changes. But I believe, I handled it.
   * **Custom error messages for the auth actions**: I thought it would be helpful to a user if I adjust the error message for typical cases, being: 
     - a user with such credentials already exists (singing up)
     - a user with such credentials doesn't exist (logging in)
     - a user inputs a wrong password (logging in)  
-In the remaining cases (probably some Firebase/server issues), a user just gets this general "Ooops, something went wrong (...)" message.
+In the remaining cases (probably some Firebase/server issues), a user just gets this general "Ooops, something went wrong (...)" message.  
+
+**UPDATE**  
+Again, @solracss pointed out to me that I shouldn't really do such a customization of error messages because I actually facilitate the hakers' job if they were up to guess the user credential, based on my error message. So, in the current approach, I replaced all previously mentioned custom messages with just "The user name or password are incorrect" and kept the "Ooops, (...)" message for the remaining cases.
   * **You may stay logged in in the app, if you want to**: As a user, you can just close the app's tab in a browser (without logging out) and you'll be back on your dashboard view (with the same current board being displayed), but:
     - due to security reasons, if you stay logged in for more than 30 days, you will be automatically logged out, so the next time you open the app, you'll have to log in again, to confirm it's still you 😉
     - to be able to make it working, I need to store your user data as well as your current board in localStorage
@@ -162,7 +168,7 @@ Moreover, for your convience, I put the theme toggler on every page (except for 
   One of my main goals for this app was to make it fully accessible for both keyboard- and screen-reader-navigating users. I tried to do my best to achieve this goal, but there is still a room from improvement in here.
 
   At the current stage:
-  * as a user, you can click the **"skip-to-content"** button, to navigate directly to your tasks
+  * as a user, you can click the **"skip-to-content"** button, to navigate directly to your columns/tasks
   * **the app is fully accessible for keyboard-navigating users** - you don't really need a mouse to be able to use it
   * **adjusting the app for the screen-reader-navigating users** was a bit trickier but I spent a couple of days on improving it and managed to achieve the following functionality:
     - a screen reader reads all popup's messages
@@ -175,11 +181,11 @@ Moreover, for your convience, I put the theme toggler on every page (except for 
   Unfortunately, regarding the screen readers functionality, certain issues came up, as well:
   * when open the `more-options` popup (by clicking the user/ellipsis icon), you **cannot navigate through its options using the arrow keys**, when using [NVDA](https://www.nvaccess.org/download/) - the screen reader completely ignores this whole popup. When using the Tab key though, you can navigate through the options but NVDA annouces each of them as "blank". This behavior is particularly confusing as:
     - it seems to be an issue only on chromium-based browsers (tested on Chrome, Brave, and Edge) - there are no problems with this functionality on Firefox
+    - the buttons become working properly after first tabbing through each of them - at this point, you can use the arrow keys and they're correctly announced
     - with [this tool](https://chrome.google.com/webstore/detail/silktide-website-accessib/okcpiimdfkpkjcbihbmhppldhiebhhaf), the functionality also works perfectly fine (tested on Brave)  
     
   Therefore, I have no clue what's causing this issue and how could I fix it. I have a workaround in mind but, frankly, I really don't like the idea. So, I thought I'd leave it for now untill I get to know anything that could help me in improving that. Which I hope, will happen eventually.
-  * I really don't like the screen reader behavior inside the "Delete this thing?" confirmation modals, even though this seems to be a correct one. The thing is, the first **focusable** element is focused, being the "delete" button in this case. Which, i practice, means that the screen reader doesn't read the previous content ("Are you sure you want to delete (...)") unless a user specifically navigates upwards. I could obviously move the focus to the very first element inside this modal, being its title, but I think it would hurt the experience of keaboard-navigating users. That being so, I also decided to leave it termporarly and thinking about it "in the background", hoping for coming up with a good idea for providing a good experience for all users.
-  * currently, a screen reader doesn't annouce a successfull/unsuccessfull adding/editing/deleting stuff but this one is to be addressed when adding the try/catch blocks to the code
+  * I really don't like the screen reader behavior inside the "Delete this thing?" confirmation modals, even though this seems to be a correct one. The thing is, the first **focusable** element is focused, being the "delete" button in this case. Which, in practice means that the screen reader doesn't read the previous content ("Are you sure you want to delete (...)") unless a user specifically navigates upwards. I could obviously move the focus to the very first element inside this modal, being its title, but I think it would hurt the experience of keaboard-navigating users. That being so, I also decided to leave it termporarly and thinking about it "in the background", hoping for coming up with a good idea for providing a good experience for all users.
 </details>
 
 <details>
@@ -223,7 +229,7 @@ So, after making so many mistakes with it, I established it should work like tha
 
   * I should have one main `users` collection
   * At the same time I shouldn't fetch them all to the Frontend to "pick" only the user that is currently logged in
-  * Fortunately, the firebase's watcher onAuthStateChanged function could help me with that because it accepts the user object as a parameter and that contains the user id
+  * Fortunately, the firebase's watcher onAuthStateChanged function could help me with that because it accepts the user object as a parameter and this one contains the user id
   * Having this id, I could use it for fetching the rest of the data that is stored as **subcollections**, meaning:
     - the `users` collection contains all user object
     - a `user` object contains the `boards` subcollection
@@ -241,28 +247,11 @@ So, after making so many mistakes with it, I established it should work like tha
   The foremost aspect to be improved ASAP is the code - there is way too much to mention everything, but I'll list some examples, anyway:  
   
   * cleaning up the code inside the stores, with particular emphasis on `tasksStore` that's just a big mess
-  * I was wondering why this wouldn't work (code below):
-    - even though, I actually **should know** why, since **I do know** the difference between passing as a reference and passing as a value
-    - and this is in fact the third time (when coding this app) when I'm making the very same mistake
-    - but, apparently, I have to make the same mistakes enough times, to eventually stop doing that (which by the way, is one more reason to value the experience)
-    - also, I've noticed I don't even remove those listeners everywhere when I add them 🙈 - all of that will be fixed very soon
-  ```js
-  window.addEventListener('click', (e: Event) => {
-    closeOpenedBoardsNav(e)
-  })
-  onUnmounted(() => {
-    window.removeEventListener('click', (e: Event) => {
-      closeOpenedBoardsNav(e)
-    })
-  })
-```
   * many functions should be divided into smaller pieces of a single responsibility
   * certain components could be probably divided into the smaller ones, as well
   * certain variables should be in an appropriate store, instead of the component file
   * I should replace certain type assertions with guards
-  * I believe, I still have indexes passed as `key` values inside `v-for` loops - they need to be replaced with IDs
   * all `emit` functions should be typed
-  * the `try` and `catch` blocks are missing in many places
   
 Apart from the code, it was brought to my attention that there are some issues with proper displaying of the app content on certain browsers (namely Firefox and Konqueror). Also, I don't have any Apple device, so I'm not sure about Safari. I'll try find some who could test it for me, though. 
  
