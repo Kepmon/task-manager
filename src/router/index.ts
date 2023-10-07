@@ -4,6 +4,7 @@ import LoginView from '../views/LoginView.vue'
 import SignUpView from '../views/SignUpView.vue'
 import PrivacyPolicyView from '../views/PrivacyPolicyView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
+import { handleResponse } from '../composables/responseHandler'
 import { useUserStore } from '../stores/user'
 
 const publicRoutes = [
@@ -60,8 +61,13 @@ router.beforeEach(async (to, from, next) => {
         24 >=
       30
     ) {
-      await userStore.logout()
-      router.push({ name: 'login' })
+      const response = await userStore.logout()
+
+      handleResponse(response)
+
+      if (response === true) {
+        router.push({ name: 'login' })
+      }
       return
     }
   }

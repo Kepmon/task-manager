@@ -2,7 +2,7 @@
   <p
     ref="confirmationPopup"
     class="popup-text"
-    :class="{ 'bg-green-600': !isError, 'bg-red-400': isError }"
+    :class="{ 'opacity-0': !isResponseError }"
     tabindex="0"
   >
     {{ message }}
@@ -12,51 +12,46 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useUserStore } from '../../stores/user'
 
 const props = defineProps<{
-  isError: boolean
+  isResponseError: boolean
   errorMessage?: string
-  action?: 'delete'
 }>()
 
 const confirmationPopup = ref<null | HTMLElement>(null)
 onMounted(() => {
-  if (confirmationPopup.value == null) return
-
-  confirmationPopup.value.focus()
+  confirmationPopup.value?.focus()
 })
+
 onUnmounted(() => {
-  if (confirmationPopup.value == null) return
-
-  confirmationPopup.value.blur()
+  confirmationPopup.value?.blur()
 })
-
-const authErrorText = {
-  'auth/wrong-password': 'The provided password is incorrect',
-  'auth/email-already-in-use': 'A user with this email already exists',
-  'auth/user-not-found': 'No user exists with such email'
-}
 
 const message = computed(() => {
-  if (props.isError) {
-    return (
-      authErrorText[props.errorMessage as keyof typeof authErrorText] ||
-      'Ooops, something went wrong. Try again later.'
-    )
+  if (props.isResponseError) {
+    const isCustomMessage =
+      props.errorMessage === 'auth/wrong-password' ||
+      props.errorMessage === 'auth/email-already-in-use' ||
+      props.errorMessage === 'auth/user-not-found'
+
+    return isCustomMessage
+      ? 'The user name or password are incorrect'
+      : 'Ooops, something went wrong. Try again later.'
   }
 
-  if (props.action) {
-    return 'You successfully deleted the your account'
+  const route = useRoute()
+  const userStore = useUserStore()
+  const successMessages = {
+    '/': 'You logged in successfully',
+    '/sign-up': 'You signed up successfully',
+    '/dashboard': 'You successfully performed this action'
   }
 
-  const path = useRoute().path
-  const action = {
-    '/': 'logged in',
-    '/sign-up': 'signed up',
-    '/dashboard': 'logged out'
-  }
+  if (route.path === '/dashboard' && userStore.userID == null)
+    return 'You logged out successfully'
 
-  return `You ${action[path as keyof typeof action]} successfully`
+  return successMessages[route.path as keyof typeof successMessages]
 })
 </script>
 
@@ -64,7 +59,7 @@ const message = computed(() => {
 .popup-text {
   @apply fixed inset-0 bottom-auto py-10 mx-auto w-[min(90%,400px)];
   @apply translate-y-8 text-center text-gray-900 rounded-xl z-[100];
-  @apply focus-visible:outline-transparent;
+  @apply focus-visible:outline-transparent bg-red-400;
 }
 
 .popup-enter-from,

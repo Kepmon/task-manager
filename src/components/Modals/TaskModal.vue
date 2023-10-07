@@ -1,5 +1,8 @@
 <template>
-  <modals-template @submit-form="submit" @close-modal="handleCloseModal">
+  <modals-template
+    @submit-form="submit"
+    @close-modal="$emit('change-var-to-false')"
+  >
     <template #form-title>
       <h2 class="first-letter:uppercase">
         {{ action }} {{ action === 'add' ? 'New' : '' }} Task
@@ -57,6 +60,7 @@ import ModalsTemplate from './ModalsTemplate.vue'
 import TextInput from '../shared/Inputs/TextInput.vue'
 import DescriptionField from '../shared/Inputs/DescriptionField.vue'
 import ElementSubset from '../shared/ElementSubset.vue'
+import { handleResponse } from '../../composables/responseHandler'
 import { useBoardsStore } from '../../stores/boards'
 import { useTasksStore } from '../../stores/tasks'
 import { useFormsStore } from '../../stores/forms'
@@ -77,7 +81,9 @@ const formsStore = useFormsStore()
 const formName = ref(props.task != null ? props.task.title : '')
 const formNameError = ref(false)
 const taskDescription = ref(props.task != null ? props.task.description : '')
-const formSubsetData = computed(() => formsStore.formsData.task[props.action])
+const formSubsetData = computed(
+  () => formsStore.formsData.task.value[props.action]
+)
 
 const selectedStatusItem = ref(
   props.columnIndex != null
@@ -98,12 +104,6 @@ const updateStatusItem = (newItem: BoardColumn['name']) => {
   selectedStatusItem.value = boardsStore.boardColumns.find(
     (item) => item.name === newItem
   ) as BoardColumn
-}
-
-const handleCloseModal = () => {
-  emits('change-var-to-false')
-
-  formsStore.updateFormData('task')
 }
 
 const isPending = ref(false)
@@ -133,7 +133,7 @@ const submit = async () => {
   const subtaskNames = formSubsetData.value.items.map(({ name }) => name.trim())
 
   if (props.action === 'add') {
-    await tasksStore.addNewTask(
+    const response = await tasksStore.addNewTask(
       selectedStatusItem.value.columnID as BoardColumn['columnID'],
       {
         title: formName.value.trim(),
@@ -141,22 +141,24 @@ const submit = async () => {
       },
       subtaskNames
     )
+
+    handleResponse(response)
   }
 
   if (props.action === 'edit') {
-    await tasksStore.editTask(
+    const response = await tasksStore.editTask(
       formName.value,
       taskDescription.value,
       formSubsetData.value.items,
       selectedStatusItem.value.columnID,
       isStatusUpdated.value
     )
+
+    handleResponse(response)
   }
 
   emits('change-var-to-false')
-  await boardsStore.getColumns()
 
-  formsStore.updateFormData('task')
   isPending.value = false
 }
 </script>

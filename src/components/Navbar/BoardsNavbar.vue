@@ -71,6 +71,7 @@ import type { Board } from '../../api/boardsTypes'
 import ThemeToggle from '../shared/ThemeToggle.vue'
 import BoardLabel from './BoardLabel.vue'
 import BoardModal from '../Modals/BoardModal.vue'
+import { handleResponse } from '../../composables/responseHandler'
 import { useUserStore } from '../../stores/user'
 import { useBoardsStore } from '../../stores/boards'
 import { ref } from 'vue'
@@ -142,13 +143,8 @@ const afterLeave = () => {
 const saveCurrentBoard = async (board: Board) => {
   emits('close-boards-navbar')
 
-  boardsStore.currentBoard = board
-  localStorage.setItem(
-    `TM-currentBoard-${userStore.userID}`,
-    JSON.stringify(boardsStore.currentBoard)
-  )
-
-  await boardsStore.getColumns()
+  const response = await boardsStore.saveCurrentBoard(board)
+  handleResponse(response)
 }
 </script>
 

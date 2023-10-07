@@ -1,4 +1,5 @@
 import type { AuthError, User } from 'firebase/auth'
+import type { FirestoreError } from 'firebase/firestore'
 import { defineStore } from 'pinia'
 import {
   onAuthStateChanged,
@@ -11,12 +12,14 @@ import {
 } from 'firebase/auth'
 import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore'
 import { auth, usersColRef, db } from '../firebase'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useBoardsStore } from './boards'
 
 export const useUserStore = defineStore('user', () => {
   const currentUser = ref<null | User>(null)
-  const userID = ref<null | string>(null)
+  const userID = computed(() =>
+    currentUser.value != null ? currentUser.value.uid : null
+  )
   const inputedPassword = ref<null | string>(null)
 
   const boardsStore = useBoardsStore()
@@ -30,37 +33,54 @@ export const useUserStore = defineStore('user', () => {
     }
 
     currentUser.value = user
-    userID.value = user.uid
     localStorage.setItem('TM-user', JSON.stringify(user))
 
-    await boardsStore.getBoards()
+    try {
+      const response = await boardsStore.getBoards()
+
+      if (response !== true) throw new Error(response)
+    } catch (err) {
+      return (err as FirestoreError).code
+    }
 
     const savedBoardJSON = localStorage.getItem(
       `TM-currentBoard-${userID.value}`
     )
     if (savedBoardJSON != null) {
       boardsStore.currentBoard = JSON.parse(savedBoardJSON as string)
-      await boardsStore.getColumns()
+      try {
+        const response = await boardsStore.getColumns()
+
+        if (response !== true) throw new Error(response)
+      } catch (err) {
+        return (err as FirestoreError).code
+      }
       isLoading.value = false
       return
     }
 
-    if (boardsStore.boards.length !== 0) {
-      boardsStore.currentBoard = boardsStore.boards[0]
-      localStorage.setItem(
-        `TM-currentBoard-${userID.value}`,
-        JSON.stringify(boardsStore.currentBoard)
-      )
-    }
-
     if (boardsStore.boards.length > 0) {
-      await boardsStore.getColumns()
-    }
+      try {
+        const boardResponse = await boardsStore.saveCurrentBoard(
+          boardsStore.boards[0]
+        )
+        const columnsResponse = await boardsStore.getColumns()
 
-    isLoading.value = false
+        if (boardResponse !== true) throw new Error(boardResponse)
+        if (columnsResponse !== true) throw new Error(columnsResponse)
+
+        isLoading.value = false
+      } catch (err) {
+        isLoading.value = false
+
+        return (err as FirestoreError).code
+      }
+    }
   })
 
   const register = async (email: string, password: string) => {
+    type RegisterError = FirestoreError | AuthError
+
     try {
       const authResponse = await createUserWithEmailAndPassword(
         auth,
@@ -70,13 +90,16 @@ export const useUserStore = defineStore('user', () => {
 
       if (authResponse == null) throw new Error()
 
-      await setDoc(doc(usersColRef, authResponse.user.uid), {})
-
-      await logout()
+      try {
+        await setDoc(doc(usersColRef, authResponse.user.uid), {})
+        await logout()
+      } catch (err) {
+        return (err as RegisterError).code
+      }
 
       return true
     } catch (err) {
-      return (err as AuthError).code
+      return (err as RegisterError).code
     }
   }
 
@@ -116,24 +139,39 @@ export const useUserStore = defineStore('user', () => {
       if (boardsDocRefs.length > 0) {
         boardsDocRefs.forEach(async (docRef) => {
           const boardDoc = docRef.id
-          await boardsStore.deleteBoard(boardDoc)
+
+          try {
+            const response = await boardsStore.deleteBoard(boardDoc)
+
+            if (response !== true) throw new Error(response)
+          } catch (err) {
+            return (err as FirestoreError).code
+          }
         })
       }
       const userDocRef = doc(usersColRef, (user as User).uid)
-      await deleteDoc(userDocRef)
+
+      try {
+        await deleteDoc(userDocRef)
+      } catch (err) {
+        return (err as FirestoreError).code
+      }
 
       const credential = EmailAuthProvider.credential(
         (user as User).email as string,
         inputedPassword.value as string
       )
-      await reauthenticateWithCredential(user as User, credential)
-      await deleteUser(user as User)
 
-      userID.value = null
+      try {
+        await reauthenticateWithCredential(user as User, credential)
+        await deleteUser(user as User)
+      } catch (err) {
+        return (err as AuthError).code
+      }
 
       return true
     } catch (err) {
-      return (err as AuthError).code
+      return (err as AuthError | FirestoreError).code
     }
   }
 

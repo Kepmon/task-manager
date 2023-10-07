@@ -1,9 +1,9 @@
 <template>
-  <div>
-    <p class="mb-2 text-xs">
+  <div class="grid gap-2">
+    <p class="text-xs">
       {{ element === 'board' ? 'Columns' : 'Subtasks' }}
     </p>
-    <div v-if="formData.items.length !== 0" class="grid gap-3">
+    <div class="grid gap-3">
       <div
         v-for="({ name, id }, index) in formData.items"
         :key="id"
@@ -41,24 +41,24 @@
         />
       </div>
     </div>
-    <p v-else class="text-xs text-gray-400">
+    <p v-if="formData.items.length === 0" class="text-xs text-gray-400">
       There are no {{ element === 'board' ? 'columns' : 'subtasks' }} to display
     </p>
+    <button
+      @click="() => handleFormDataAction({ callback: formsStore.addNewInput })"
+      ref="addNewInput"
+      aria-labelledby="add-new-element"
+      class="mt-4 regular-button white-button"
+      type="button"
+    >
+      <p>
+        <span aria-hidden="true">&#65291;</span>
+        <span id="add-new-element" aria-hidden="true"
+          >Add New {{ element === 'board' ? 'Column' : 'Subtask' }}</span
+        >
+      </p>
+    </button>
   </div>
-  <button
-    @click="() => handleFormDataAction({ callback: formsStore.addNewInput })"
-    ref="addNewInput"
-    aria-labelledby="add-new-element"
-    class="regular-button white-button"
-    type="button"
-  >
-    <p>
-      <span aria-hidden="true">&#65291;</span>
-      <span id="add-new-element" aria-hidden="true"
-        >Add New {{ element === 'board' ? 'Column' : 'Subtask' }}</span
-      >
-    </p>
-  </button>
 </template>
 
 <script setup lang="ts">
@@ -76,7 +76,7 @@ const props = defineProps<{
 const emits = defineEmits(['handle-blur'])
 
 const formsStore = useFormsStore()
-const formData = formsStore.formsData[props.element][props.action]
+const formData = formsStore.formsData[props.element].value[props.action]
 const formatItemNumber = (number: number) => converter.toWordsOrdinal(number)
 
 interface WithIndexArgs {

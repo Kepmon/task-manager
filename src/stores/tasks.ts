@@ -8,7 +8,8 @@ import type {
   CollectionReference,
   QueryDocumentSnapshot,
   Query,
-  DocumentData
+  DocumentData,
+  FirestoreError
 } from 'firebase/firestore'
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
@@ -16,6 +17,7 @@ import { query, orderBy, getDocs } from 'firebase/firestore'
 import {
   collection,
   doc,
+  getDoc,
   addDoc,
   setDoc,
   updateDoc,
@@ -43,6 +45,16 @@ export const useTasksStore = defineStore('tasks', () => {
   const clickedTask = ref<null | Task>(null)
   const subtasksOfClickedTask = ref<Subtask[]>([])
 
+  const getColumnsAgain = async () => {
+    try {
+      const response = await boardsStore.getColumns()
+
+      if (response !== true) throw new Error(response)
+    } catch (err) {
+      return (err as FirestoreError).code
+    }
+  }
+
   const getTasks = async (
     columnsColRef: CollectionReference<DocumentData>,
     columns: BoardColumn[]
@@ -60,28 +72,50 @@ export const useTasksStore = defineStore('tasks', () => {
                 orderBy('createdAt', 'asc')
               )
 
-              const tasksDocRefs = (await getDocs(tasksColRefOrdered)).docs
+              try {
+                const tasksDocRefs = (await getDocs(tasksColRefOrdered)).docs
 
-              return {
-                tasks: tasksDocRefs.map((tasksDocRef) => ({
-                  ...(tasksDocRef.data() as Omit<Task, 'taskID'>),
-                  taskID: tasksDocRef.id
-                })),
-                tasksDocRefs
+                if (tasksDocRefs == null) throw new Error('wrong response')
+
+                return {
+                  tasks: tasksDocRefs.map((tasksDocRef) => ({
+                    ...(tasksDocRef.data() as Omit<Task, 'taskID'>),
+                    taskID: tasksDocRef.id
+                  })),
+                  tasksDocRefs
+                }
+              } catch (err) {
+                return (err as FirestoreError).code
               }
             })
           )
         : null
 
-    if (returnedData != null) {
-      tasks.value = returnedData.map((item) => item.tasks)
+    const isReturnedDataOk = returnedData?.every(
+      (item) => typeof item !== 'string'
+    )
+    if (returnedData != null && isReturnedDataOk) {
+      interface ReturnedData {
+        tasks: Task[]
+        tasksDocRefs: QueryDocumentSnapshot<DocumentData>[]
+      }
+      tasks.value = (returnedData as ReturnedData[]).map((item) => item.tasks)
 
-      const tasksDocRefsArr = returnedData.map((item) => item.tasksDocRefs)
-      subtasks.value = await Promise.all(
+      const tasksDocRefsArr = (returnedData as ReturnedData[]).map(
+        (item) => item.tasksDocRefs
+      )
+
+      const response = await Promise.all(
         tasksDocRefsArr.map(
           async (tasksDocRefsArr) => await getSubtasks(tasksDocRefsArr)
         )
       )
+
+      if (typeof response !== 'string') {
+        subtasks.value = response as Subtask[][][]
+      }
+
+      return true
     }
   }
 
@@ -99,16 +133,18 @@ export const useTasksStore = defineStore('tasks', () => {
           orderBy('createdAt', 'asc')
         )
 
-        const subtasksDocRefs = (await getDocs(subtasksColRefOrdered)).docs
+        try {
+          const subtasksDocRefs = (await getDocs(subtasksColRefOrdered)).docs
 
-        if (subtasksDocRefs.length !== 0) {
+          if (subtasksDocRefs.length === 0) return []
+
           return subtasksDocRefs.map((subtasksDocRef) => ({
             ...(subtasksDocRef.data() as Omit<Subtask, 'subtaskID'>),
             subtaskID: subtasksDocRef.id
           }))
+        } catch (err) {
+          return (err as FirestoreError).code
         }
-
-        return []
       })
     )
   }
@@ -116,16 +152,18 @@ export const useTasksStore = defineStore('tasks', () => {
   const updateSubtasks = async (
     subtaskColRef: CollectionReference<DocumentData> | Query<DocumentData>
   ) => {
-    const subtasksDocRefs = (await getDocs(subtaskColRef)).docs
+    try {
+      const subtasksDocRefs = (await getDocs(subtaskColRef)).docs
 
-    if (subtasksDocRefs.length !== 0) {
+      if (subtasksDocRefs.length === 0) return []
+
       return subtasksDocRefs.map((subtasksDocRef) => ({
         ...(subtasksDocRef.data() as Omit<Subtask, 'subtaskID'>),
         subtaskID: subtasksDocRef.id
       }))
+    } catch (err) {
+      return (err as FirestoreError).code
     }
-
-    return []
   }
 
   const addNewTask = async (
@@ -138,23 +176,39 @@ export const useTasksStore = defineStore('tasks', () => {
       `${columnsColRefPrefix.value}/${columnID}/tasks`
     )
 
-    const addedDocRef = await addDoc(tasksColRef, {
-      createdAt: serverTimestamp(),
-      ...task
-    })
+    try {
+      const addedDocRef = await addDoc(tasksColRef, {
+        createdAt: serverTimestamp(),
+        ...task
+      })
+      if (addedDocRef == null) throw new Error('wrong response')
 
-    if (addedDocRef) {
       const subtasksColRef = collection(db, `${addedDocRef.path}/subtasks`)
 
-      if (subtasks.length === 0) return
+      if (subtasks.length === 0) {
+        await getColumnsAgain()
+        return true
+      }
 
       subtasks.forEach(async (subtask) => {
-        await addDoc(subtasksColRef, {
-          title: subtask,
-          isCompleted: false,
-          createdAt: serverTimestamp()
-        })
+        try {
+          const response = await addDoc(subtasksColRef, {
+            title: subtask,
+            isCompleted: false,
+            createdAt: serverTimestamp()
+          })
+
+          if (response == null) throw new Error(response)
+        } catch (err) {
+          return (err as FirestoreError).code
+        }
       })
+
+      await getColumnsAgain()
+
+      return true
+    } catch (err) {
+      return (err as FirestoreError).code
     }
   }
 
@@ -182,29 +236,47 @@ export const useTasksStore = defineStore('tasks', () => {
 
     const prevSubtasksColRef = collection(db, `${prevTaskDocRef.path}/subtasks`)
     const nextSubtasksColRef = collection(db, `${nextTaskDocRef.path}/subtasks`)
-    const prevSubtaskDocRefs = (await getDocs(prevSubtasksColRef)).docs
-    const subtasks = prevSubtaskDocRefs.map((subtask, index) => ({
-      ...(subtask.data() as Omit<Subtask, 'subtaskID'>),
-      subtaskID: prevSubtaskDocRefs[index].id
-    }))
 
-    await deleteTask()
+    try {
+      const prevSubtaskDocRefs = (await getDocs(prevSubtasksColRef)).docs
 
-    await setDoc(nextTaskDocRef, {
-      createdAt: (clickedTask.value as Task).createdAt,
-      title: (clickedTask.value as Task).title,
-      description: (clickedTask.value as Task).description
-    })
+      if (prevSubtaskDocRefs == null) throw new Error('wrong response')
 
-    if (subtasks.length > 0) {
-      subtasks.forEach(async (subtask) => {
-        const subtaskDocRef = doc(nextSubtasksColRef, subtask.subtaskID)
-        await setDoc(subtaskDocRef, {
-          title: subtask.title,
-          isCompleted: subtask.isCompleted,
-          createdAt: subtask.createdAt
+      const subtasks = prevSubtaskDocRefs.map((subtask, index) => ({
+        ...(subtask.data() as Omit<Subtask, 'subtaskID'>),
+        subtaskID: prevSubtaskDocRefs[index].id
+      }))
+
+      try {
+        await setDoc(nextTaskDocRef, {
+          createdAt: (clickedTask.value as Task).createdAt,
+          title: (clickedTask.value as Task).title,
+          description: (clickedTask.value as Task).description
         })
-      })
+
+        const deleteResponse = await deleteTask()
+        if (deleteResponse !== true) throw new Error(deleteResponse)
+      } catch (err) {
+        return (err as FirestoreError).code
+      }
+
+      if (subtasks.length > 0) {
+        subtasks.forEach(async (subtask) => {
+          const subtaskDocRef = doc(nextSubtasksColRef, subtask.subtaskID)
+
+          await setDoc(subtaskDocRef, {
+            title: subtask.title,
+            isCompleted: subtask.isCompleted,
+            createdAt: subtask.createdAt
+          })
+        })
+      }
+
+      await getColumnsAgain()
+
+      return true
+    } catch (err) {
+      return (err as FirestoreError).code
     }
   }
 
@@ -245,25 +317,31 @@ export const useTasksStore = defineStore('tasks', () => {
       areSubtasksTitlesSame
     ].every((item) => item === true)
 
-    if (isFormNotChanged) return
+    if (isFormNotChanged && !isStatusChanged) return true
 
-    if (!isTaskNameSame) {
-      await updateDoc(taskDocRef, {
-        title: taskName
-      })
+    try {
+      if (!isTaskNameSame) {
+        await updateDoc(taskDocRef, {
+          title: taskName
+        })
+      }
+
+      if (!isDescriptionSame) {
+        await updateDoc(taskDocRef, {
+          description: taskDescription
+        })
+      }
+
+      if (isStatusChanged) {
+        const response = await moveTaskBetweenColumns(nextColumnID)
+
+        if (response !== true) throw new Error(response)
+      }
+    } catch (err) {
+      return (err as FirestoreError).code
     }
 
-    if (!isDescriptionSame) {
-      await updateDoc(taskDocRef, {
-        description: taskDescription
-      })
-    }
-
-    if (isStatusChanged) {
-      await moveTaskBetweenColumns(nextColumnID)
-    }
-
-    const noRespectiveSubtasks = updatedSubtasks.filter(({ name, id }) => {
+    const newSubtasksNames = updatedSubtasks.filter(({ name, id }) => {
       if (
         subtasksOfClickedTask.value.length > 0 &&
         subtasksOfClickedTask.value.some(({ subtaskID }) => subtaskID === id)
@@ -272,13 +350,20 @@ export const useTasksStore = defineStore('tasks', () => {
 
       return name
     })
-    if (noRespectiveSubtasks) {
-      noRespectiveSubtasks.forEach(async ({ name }) => {
-        await addDoc(subtasksColRef, {
-          title: name,
-          isCompleted: false,
-          createdAt: serverTimestamp()
-        })
+
+    if (newSubtasksNames.length > 0) {
+      newSubtasksNames.forEach(async ({ name }) => {
+        try {
+          const response = await addDoc(subtasksColRef, {
+            title: name,
+            isCompleted: false,
+            createdAt: serverTimestamp()
+          })
+
+          if (response == null) throw new Error('wrong response')
+        } catch (err) {
+          return (err as FirestoreError).code
+        }
       })
     }
 
@@ -295,16 +380,28 @@ export const useTasksStore = defineStore('tasks', () => {
           if (respectiveSubtask && isSubtaskNameSame) return
 
           if (respectiveSubtask == null) {
-            await deleteDoc(subtaskDocRef)
-            return
+            try {
+              await deleteDoc(subtaskDocRef)
+              return
+            } catch (err) {
+              return (err as FirestoreError).code
+            }
           }
 
-          await updateDoc(subtaskDocRef, {
-            title: updatedSubtasks[index].name
-          })
+          try {
+            await updateDoc(subtaskDocRef, {
+              title: updatedSubtasks[index].name
+            })
+          } catch (err) {
+            return (err as FirestoreError).code
+          }
         }
       )
     }
+
+    await getColumnsAgain()
+
+    return true
   }
 
   const deleteTask = async () => {
@@ -317,15 +414,30 @@ export const useTasksStore = defineStore('tasks', () => {
     const tasksDocRef = doc(tasksColRef, clickedTask.value?.taskID)
 
     const subtasksColRef = collection(db, `${tasksDocRef.path}/subtasks`)
-    const subtasksDocRefs = await getDocs(subtasksColRef)
-    if (subtasksDocRefs.docs.length !== 0) {
-      subtasksDocRefs.forEach(async (subtasksDocRef) => {
-        await deleteDoc(subtasksDocRef.ref)
-      })
-    }
 
-    await deleteDoc(tasksDocRef)
-    await boardsStore.getColumns()
+    try {
+      const subtasksDocRefs = await getDocs(subtasksColRef)
+      if (subtasksDocRefs.docs.length !== 0) {
+        subtasksDocRefs.forEach(async (subtasksDocRef) => {
+          try {
+            await deleteDoc(subtasksDocRef.ref)
+            return true
+          } catch (err) {
+            return (err as FirestoreError).code
+          }
+        })
+      }
+
+      try {
+        await deleteDoc(tasksDocRef)
+        await getColumnsAgain()
+        return true
+      } catch (err) {
+        return (err as FirestoreError).code
+      }
+    } catch (err) {
+      return (err as FirestoreError).code
+    }
   }
 
   const toggleSubtask = async (subtask: Subtask) => {
@@ -341,11 +453,38 @@ export const useTasksStore = defineStore('tasks', () => {
     )
     const subtaskDocRef = doc(subtasksColRef, subtask.subtaskID)
 
-    await updateDoc(subtaskDocRef, {
-      isCompleted: !subtask.isCompleted
-    })
+    const statusBefore = subtask.isCompleted
 
-    subtasksOfClickedTask.value = await updateSubtasks(subtasksColRefOrdered)
+    try {
+      await updateDoc(subtaskDocRef, {
+        isCompleted: !subtask.isCompleted
+      })
+    } catch (err) {
+      return (err as FirestoreError).code
+    }
+
+    try {
+      const subtasksResponse = await updateSubtasks(subtasksColRefOrdered)
+      if (typeof subtasksResponse === 'string')
+        throw new Error(subtasksResponse)
+
+      subtasksOfClickedTask.value = subtasksResponse
+    } catch (err) {
+      return (err as FirestoreError).code
+    }
+
+    const statusAfter = ((await getDoc(subtaskDocRef)).data() as Subtask)
+      .isCompleted
+
+    if (statusBefore === statusAfter) return 'wrong response'
+
+    try {
+      await getColumnsAgain()
+    } catch (err) {
+      return (err as FirestoreError).code
+    }
+
+    return true
   }
 
   return {

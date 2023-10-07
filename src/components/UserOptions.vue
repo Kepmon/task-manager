@@ -5,16 +5,10 @@
   >
     <Teleport to="body">
       <transition name="popup">
-        <confirmation-popup v-if="isPopupShown" :isError="isAuthError" />
-      </transition>
-    </Teleport>
-    <Teleport to="body">
-      <transition name="popup">
         <confirmation-modal
           v-if="isConfirmationModalShown"
           @close-modal="isConfirmationModalShown = false"
           elementToDelete="user"
-          :isError="isAuthError"
         />
       </transition>
     </Teleport>
@@ -47,15 +41,10 @@
 import type { Ref } from 'vue'
 import UserIcon from './Svgs/UserIcon.vue'
 import MoreOptions from './shared/MoreOptions.vue'
-import ConfirmationPopup from './shared/ConfirmationPopup.vue'
 import ConfirmationModal from './Modals/ConfirmationModal.vue'
 import toggleMoreOptions from '../composables/toggleMoreOptions'
 import { useUserStore } from '../stores/user'
-import {
-  isAuthError,
-  isPopupShown,
-  handleAuthResponse
-} from '../composables/authHandler'
+import { handleResponse } from '../composables/responseHandler'
 import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 
@@ -72,7 +61,7 @@ const isConfirmationModalShown = ref(false)
 const logout = async () => {
   const response = await userStore.logout()
 
-  handleAuthResponse(response, route.path)
+  handleResponse(response, route.path)
 }
 
 const { toggleOptions, closeOptions } = toggleMoreOptions

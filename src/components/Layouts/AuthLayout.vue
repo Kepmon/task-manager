@@ -51,7 +51,7 @@
     <transition name="popup">
       <confirmation-popup
         v-if="isPopupShown"
-        :isError="isAuthError"
+        :isResponseError="isResponseError"
         :errorMessage="errorMessage"
       />
     </transition>
@@ -68,10 +68,10 @@ import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useUserStore } from '../../stores/user'
 import {
-  isAuthError,
   isPopupShown,
-  handleAuthResponse
-} from '../../composables/authHandler'
+  isResponseError,
+  handleResponse
+} from '../../composables/responseHandler'
 import { useForm } from 'vee-validate'
 import * as Yup from 'yup'
 import { toTypedSchema } from '@vee-validate/yup'
@@ -136,7 +136,7 @@ const onSubmit = form.handleSubmit(async (values) => {
     errorMessage.value = response
   }
 
-  handleAuthResponse(response, currentPath, buttonLoading)
+  handleResponse(response, currentPath, buttonLoading)
 })
 </script>
 

@@ -18,6 +18,7 @@
       class="mr-6"
     >
       <h1 class="inline font-bold text-lgFluid">
+        <span class="sr-only">Currently active board: </span>
         {{ boardsStore.currentBoard?.name }}
       </h1>
       <svg
