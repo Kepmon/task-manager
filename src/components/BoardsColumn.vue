@@ -32,27 +32,47 @@
             :data-focus="columnIndex === 0 ? 'true' : undefined"
           />
         </div>
-        <div class="grid gap-[20px]">
-          <task-card
-            @click="() => tasks.handleTaskCardClick(columnIndex, taskIndex)"
-            v-for="({ title, taskID }, taskIndex) in tasksStore.tasks[
-              columnIndex
-            ]"
-            :key="taskID"
-            :taskID="taskID"
-            :howManyCompleted="
-              returnNumberOfElements(
-                columnIndex,
-                taskIndex,
-                'subtasksCompleted'
-              )
-            "
-            :howManySubtasks="
-              returnNumberOfElements(columnIndex, taskIndex, 'subtasks')
-            "
-            :title="title"
-          />
-        </div>
+        <draggable
+          @change="dragTasks"
+          v-model="tasksStore.tasks[columnIndex]"
+          :move="findElementsIDs"
+          itemKey="taskID"
+          tag="div"
+          group="tasksCards"
+          :animation="200"
+          class="grid gap-[20px]"
+          ghostClass="bg-lime-500"
+          :data-columnID="boardsStore.boardColumns[columnIndex].columnID"
+        >
+          <template #item="{ element: columnTask }">
+            <task-card
+              @click="
+                () =>
+                  tasks.handleTaskCardClick(
+                    columnIndex,
+                    tasksStore.tasks[columnIndex].indexOf(columnTask)
+                  )
+              "
+              :key="columnTask.taskID"
+              :taskID="columnTask.taskID"
+              :howManyCompleted="
+                returnNumberOfElements(
+                  columnIndex,
+                  tasksStore.tasks[columnIndex].indexOf(columnTask),
+                  'subtasksCompleted'
+                )
+              "
+              :howManySubtasks="
+                returnNumberOfElements(
+                  columnIndex,
+                  tasksStore.tasks[columnIndex].indexOf(columnTask),
+                  'subtasks'
+                )
+              "
+              :title="columnTask.title"
+            />
+          </template>
+        </draggable>
       </div>
       <button
         v-if="boardsStore.boardColumns.length > 0"
@@ -135,6 +155,7 @@ import { computed, ref } from 'vue'
 import { useBoardsStore } from '../stores/boards'
 import { useTasksStore } from '../stores/tasks'
 import converter from 'number-to-words'
+import draggable from 'vuedraggable'
 
 const boardsStore = useBoardsStore()
 const tasksStore = useTasksStore()
@@ -246,6 +267,35 @@ const moveTask = async (value: BoardColumn['name']) => {
   handleResponse(response)
 
   modals.value.isSeeTaskModalShown = false
+}
+
+interface MoveDragEvent extends DragEvent {
+  from: HTMLElement
+  to: HTMLElement
+  draggedContext: {
+    element: Task
+  }
+}
+const prevColumnID = ref('')
+const nextColumnID = ref('')
+const taskToBeDragged = ref<null | Task>(null)
+const findElementsIDs = (e: MoveDragEvent) => {
+  prevColumnID.value = e.from.getAttribute('data-columnID') || ''
+  nextColumnID.value = e.to.getAttribute('data-columnID') || ''
+  taskToBeDragged.value = e.draggedContext.element
+}
+const dragTasks = async () => {
+  if (
+    prevColumnID.value !== '' &&
+    nextColumnID.value !== '' &&
+    taskToBeDragged.value != null
+  ) {
+    await tasksStore.moveTaskBetweenColumns(
+      nextColumnID.value,
+      prevColumnID.value,
+      taskToBeDragged.value
+    )
+  }
 }
 </script>
 

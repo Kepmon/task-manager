@@ -213,10 +213,14 @@ export const useTasksStore = defineStore('tasks', () => {
   }
 
   const moveTaskBetweenColumns = async (
-    nextColumnID: BoardColumn['columnID']
+    nextColumnID: BoardColumn['columnID'],
+    previousColumnID?: BoardColumn['columnID'],
+    taskToBeDragged?: Task
   ) => {
     const prevColumnID =
-      boardsStore.boardColumns[columnOfClickedTask.value as number].columnID
+      previousColumnID != null
+        ? previousColumnID
+        : boardsStore.boardColumns[columnOfClickedTask.value as number].columnID
     const prevTasksColRef = collection(
       db,
       `${columnsColRefPrefix.value}/${prevColumnID}/tasks`
@@ -225,15 +229,19 @@ export const useTasksStore = defineStore('tasks', () => {
       db,
       `${columnsColRefPrefix.value}/${nextColumnID}/tasks`
     )
+
     const prevTaskDocRef = doc(
       prevTasksColRef,
-      (clickedTask.value as Task).taskID
+      taskToBeDragged != null
+        ? taskToBeDragged.taskID
+        : (clickedTask.value as Task).taskID
     )
     const nextTaskDocRef = doc(
       nextTasksColRef,
-      (clickedTask.value as Task).taskID
+      taskToBeDragged != null
+        ? taskToBeDragged.taskID
+        : (clickedTask.value as Task).taskID
     )
-
     const prevSubtasksColRef = collection(db, `${prevTaskDocRef.path}/subtasks`)
     const nextSubtasksColRef = collection(db, `${nextTaskDocRef.path}/subtasks`)
 
@@ -249,12 +257,24 @@ export const useTasksStore = defineStore('tasks', () => {
 
       try {
         await setDoc(nextTaskDocRef, {
-          createdAt: (clickedTask.value as Task).createdAt,
-          title: (clickedTask.value as Task).title,
-          description: (clickedTask.value as Task).description
+          createdAt:
+            taskToBeDragged != null
+              ? taskToBeDragged.createdAt
+              : (clickedTask.value as Task).createdAt,
+          title:
+            taskToBeDragged != null
+              ? taskToBeDragged.title
+              : (clickedTask.value as Task).title,
+          description:
+            taskToBeDragged != null
+              ? taskToBeDragged.description
+              : (clickedTask.value as Task).description
         })
 
-        const deleteResponse = await deleteTask()
+        const deleteResponse =
+          taskToBeDragged != null
+            ? await deleteTask(taskToBeDragged.taskID, prevColumnID)
+            : await deleteTask()
         if (deleteResponse !== true) throw new Error(deleteResponse)
       } catch (err) {
         return (err as FirestoreError).code
@@ -404,14 +424,21 @@ export const useTasksStore = defineStore('tasks', () => {
     return true
   }
 
-  const deleteTask = async () => {
+  const deleteTask = async (
+    taskID?: Task['taskID'],
+    columnID?: BoardColumn['columnID']
+  ) => {
+    const deletedTaskID = taskID != null ? taskID : clickedTask.value?.taskID
+    const columnOfDeletedTaskID =
+      columnID != null
+        ? columnID
+        : boardsStore.boardColumns[columnOfClickedTask.value as number].columnID
+
     const tasksColRef = collection(
       db,
-      `${columnsColRefPrefix.value}/${
-        boardsStore.boardColumns[columnOfClickedTask.value as number].columnID
-      }/tasks`
+      `${columnsColRefPrefix.value}/${columnOfDeletedTaskID}/tasks`
     )
-    const tasksDocRef = doc(tasksColRef, clickedTask.value?.taskID)
+    const tasksDocRef = doc(tasksColRef, deletedTaskID)
 
     const subtasksColRef = collection(db, `${tasksDocRef.path}/subtasks`)
 
