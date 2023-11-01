@@ -41,7 +41,6 @@
           group="tasksCards"
           :animation="200"
           class="grid gap-[20px]"
-          ghostClass="bg-lime-500"
           :data-columnID="boardsStore.boardColumns[columnIndex].columnID"
         >
           <template #item="{ element: columnTask }">
@@ -143,6 +142,7 @@
 <script setup lang="ts">
 import type { Ref } from 'vue'
 import type { BoardColumn, Task, Subtask } from '../api/boardsTypes'
+import type { MoveDragEvent, DragTaskEvent } from '../api/dragTypes'
 import EmptyInfo from '../components/EmptyInfo.vue'
 import TaskCard from './TaskCard.vue'
 import SeeTaskModal from './Modals/SeeTaskModal.vue'
@@ -269,25 +269,23 @@ const moveTask = async (value: BoardColumn['name']) => {
   modals.value.isSeeTaskModalShown = false
 }
 
-interface MoveDragEvent extends DragEvent {
-  from: HTMLElement
-  to: HTMLElement
-  draggedContext: {
-    element: Task
-  }
-}
 const prevColumnID = ref('')
 const nextColumnID = ref('')
 const taskToBeDragged = ref<null | Task>(null)
+const indexOfNewColumn = ref<null | number>(null)
 
 const setIndexesOfTasksInNewColumn = () => {
   const newColumn = boardsStore.boardColumns.find(
     (column) => column.columnID === nextColumnID.value
   )
-  const indexOfNewColumn =
+
+  indexOfNewColumn.value =
     newColumn != null ? boardsStore.boardColumns.indexOf(newColumn) : null
+
   const newColumnTasks =
-    indexOfNewColumn != null ? [...tasksStore.tasks[indexOfNewColumn]] : []
+    indexOfNewColumn.value != null
+      ? [...tasksStore.tasks[indexOfNewColumn.value]]
+      : []
 
   if (newColumnTasks.length === 0) return []
 
@@ -303,26 +301,14 @@ const findElementsIDs = (e: MoveDragEvent) => {
   taskToBeDragged.value = e.draggedContext.element
 }
 
-interface DragTaskEvent {
-  moved: {
-    element: Task
-    newIndex: number
-    oldIndex: number
-  }
-  added: {
-    element: Task
-    newIndex: number
-  }
-  removed: {
-    element: Task
-    oldIndex: number
-  }
-}
-
 const dragTasks = async (e: Partial<DragTaskEvent>) => {
   if ('removed' in e) return
 
   const taskIndexes = setIndexesOfTasksInNewColumn()
+
+  if ('moved' in e && indexOfNewColumn.value != null) {
+    tasksStore.setNewIndexesForTheSameColumn(e, indexOfNewColumn.value)
+  }
 
   if (
     prevColumnID.value !== '' &&

@@ -4,6 +4,7 @@ import type {
   Subtask,
   FormSubsetItem
 } from '../api/boardsTypes'
+import type { DragTaskEvent } from '../api/dragTypes'
 import type {
   CollectionReference,
   QueryDocumentSnapshot,
@@ -222,6 +223,42 @@ export const useTasksStore = defineStore('tasks', () => {
     } catch (err) {
       return (err as FirestoreError).code
     }
+  }
+
+  const setNewIndexesForTheSameColumn = (
+    e: Partial<DragTaskEvent>,
+    indexOfNewColumn: number
+  ) => {
+    const subtasksForNewColumn = subtasks.value[indexOfNewColumn]
+    const oldIndex = (e.moved as DragTaskEvent['moved']).oldIndex
+    const newIndex = (e.moved as DragTaskEvent['moved']).newIndex
+
+    let subtasksBefore: Subtask[][] = []
+    let subtasksAfter: Subtask[][] = []
+
+    if (oldIndex > newIndex) {
+      subtasksBefore = subtasksForNewColumn.slice(0, newIndex)
+      subtasksAfter = [
+        ...subtasksForNewColumn.slice(0, oldIndex).slice(newIndex),
+        ...subtasksForNewColumn.slice(oldIndex + 1)
+      ]
+    }
+
+    if (oldIndex < newIndex) {
+      subtasksAfter = subtasksForNewColumn.slice(newIndex + 1)
+      subtasksBefore = [
+        ...subtasksForNewColumn.slice(0, oldIndex),
+        ...subtasksForNewColumn.slice(oldIndex + 1, newIndex + 1)
+      ]
+    }
+
+    const movedSubtasks = subtasksForNewColumn[oldIndex]
+
+    subtasks.value[indexOfNewColumn] = [
+      ...subtasksBefore,
+      movedSubtasks,
+      ...subtasksAfter
+    ]
   }
 
   const addIndexesToTasks = async (
@@ -566,6 +603,7 @@ export const useTasksStore = defineStore('tasks', () => {
     subtasksOfClickedTask,
     getTasks,
     addNewTask,
+    setNewIndexesForTheSameColumn,
     addIndexesToTasks,
     moveTaskBetweenColumns,
     editTask,
