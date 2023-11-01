@@ -67,13 +67,25 @@ export const useTasksStore = defineStore('tasks', () => {
                 db,
                 `${columnsColRef.path}/${column.columnID}/tasks`
               )
-              const tasksColRefOrdered = query(
+              const tasksColRefOrderedByIndex = query(
+                tasksColRef,
+                orderBy('taskIndex', 'asc')
+              )
+              const tasksColRefOrderedByDate = query(
                 tasksColRef,
                 orderBy('createdAt', 'asc')
               )
 
               try {
-                const tasksDocRefs = (await getDocs(tasksColRefOrdered)).docs
+                const tasksDocRefs = (await getDocs(tasksColRefOrderedByIndex))
+                  .docs
+
+                if (tasksDocRefs.length === 0) {
+                  const tasksOrderedByDate = (
+                    await getDocs(tasksColRefOrderedByDate)
+                  ).docs
+                  tasksDocRefs.push(...tasksOrderedByDate)
+                }
 
                 if (tasksDocRefs == null) throw new Error('wrong response')
 
@@ -212,15 +224,43 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
+  const addIndexesToTasks = async (
+    taskIndexes: { taskID: Task['taskID']; taskIndex: number }[],
+    columnID: BoardColumn['columnID']
+  ) => {
+    const nextTasksColRef = collection(
+      db,
+      `${columnsColRefPrefix.value}/${columnID}/tasks`
+    )
+
+    taskIndexes.forEach(async (task) => {
+      const taskDocRef = doc(nextTasksColRef, task.taskID)
+      const taskIndex = taskIndexes.find(
+        (task) => task.taskID === taskDocRef.id
+      )?.taskIndex
+
+      await updateDoc(taskDocRef, { taskIndex })
+    })
+  }
+
   const moveTaskBetweenColumns = async (
     nextColumnID: BoardColumn['columnID'],
     previousColumnID?: BoardColumn['columnID'],
-    taskToBeDragged?: Task
+    taskToBeDragged?: Task,
+    taskIndexes?: { taskID: Task['taskID']; taskIndex: number }[]
   ) => {
     const prevColumnID =
       previousColumnID != null
         ? previousColumnID
         : boardsStore.boardColumns[columnOfClickedTask.value as number].columnID
+
+    if (nextColumnID === previousColumnID) {
+      if (taskIndexes != null) {
+        addIndexesToTasks(taskIndexes, nextColumnID)
+      }
+      return
+    }
+
     const prevTasksColRef = collection(
       db,
       `${columnsColRefPrefix.value}/${prevColumnID}/tasks`
@@ -270,6 +310,10 @@ export const useTasksStore = defineStore('tasks', () => {
               ? taskToBeDragged.description
               : (clickedTask.value as Task).description
         })
+
+        if (taskIndexes != null && taskIndexes.length > 0) {
+          addIndexesToTasks(taskIndexes, nextColumnID)
+        }
 
         const deleteResponse =
           taskToBeDragged != null
@@ -522,6 +566,7 @@ export const useTasksStore = defineStore('tasks', () => {
     subtasksOfClickedTask,
     getTasks,
     addNewTask,
+    addIndexesToTasks,
     moveTaskBetweenColumns,
     editTask,
     deleteTask,

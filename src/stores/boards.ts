@@ -66,20 +66,29 @@ export const useBoardsStore = defineStore('boards', () => {
     }
   }
 
+  const returnColumnsColRef = () => {
+    const columnsColRef = collection(
+      db,
+      `${boardsColRefGlobal.value?.path}/${currentBoardID.value}/columns`
+    )
+
+    const columnsColRefOrdered = query(
+      columnsColRef,
+      orderBy('createdAt', 'asc')
+    )
+
+    return { columnsColRef, columnsColRefOrdered }
+  }
+
   const getColumns = async () => {
     if (boardsColRefGlobal.value != null) {
-      const columnsColRef = collection(
-        db,
-        `${boardsColRefGlobal.value.path}/${currentBoardID.value}/columns`
-      )
-
-      const columnsColRefOrdered = query(
-        columnsColRef,
-        orderBy('createdAt', 'asc')
-      )
+      const columnRefs = returnColumnsColRef()
 
       try {
-        const columnDocs = (await getDocs(columnsColRefOrdered)).docs
+        const columnDocs =
+          columnRefs.columnsColRefOrdered != null
+            ? (await getDocs(columnRefs.columnsColRefOrdered)).docs
+            : (await getDocs(columnRefs.columnsColRef)).docs
 
         if (columnDocs == null) throw new Error()
 
@@ -97,7 +106,7 @@ export const useBoardsStore = defineStore('boards', () => {
 
         if (columnDocs.length !== 0) {
           const response = await tasksStore.getTasks(
-            columnsColRef,
+            columnRefs.columnsColRef,
             boardColumns.value
           )
 

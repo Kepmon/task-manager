@@ -279,12 +279,51 @@ interface MoveDragEvent extends DragEvent {
 const prevColumnID = ref('')
 const nextColumnID = ref('')
 const taskToBeDragged = ref<null | Task>(null)
+
+const setIndexesOfTasksInNewColumn = () => {
+  const newColumn = boardsStore.boardColumns.find(
+    (column) => column.columnID === nextColumnID.value
+  )
+  const indexOfNewColumn =
+    newColumn != null ? boardsStore.boardColumns.indexOf(newColumn) : null
+  const newColumnTasks =
+    indexOfNewColumn != null ? [...tasksStore.tasks[indexOfNewColumn]] : []
+
+  if (newColumnTasks.length === 0) return []
+
+  return newColumnTasks.map(({ taskID }, taskIndex) => ({
+    taskID,
+    taskIndex
+  }))
+}
+
 const findElementsIDs = (e: MoveDragEvent) => {
   prevColumnID.value = e.from.getAttribute('data-columnID') || ''
   nextColumnID.value = e.to.getAttribute('data-columnID') || ''
   taskToBeDragged.value = e.draggedContext.element
 }
-const dragTasks = async () => {
+
+interface DragTaskEvent {
+  moved: {
+    element: Task
+    newIndex: number
+    oldIndex: number
+  }
+  added: {
+    element: Task
+    newIndex: number
+  }
+  removed: {
+    element: Task
+    oldIndex: number
+  }
+}
+
+const dragTasks = async (e: Partial<DragTaskEvent>) => {
+  if ('removed' in e) return
+
+  const taskIndexes = setIndexesOfTasksInNewColumn()
+
   if (
     prevColumnID.value !== '' &&
     nextColumnID.value !== '' &&
@@ -293,7 +332,8 @@ const dragTasks = async () => {
     await tasksStore.moveTaskBetweenColumns(
       nextColumnID.value,
       prevColumnID.value,
-      taskToBeDragged.value
+      taskToBeDragged.value,
+      taskIndexes
     )
   }
 }
