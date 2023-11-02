@@ -33,7 +33,7 @@
           />
         </div>
         <draggable
-          @change="dragTasks"
+          @end="dragTasks"
           v-model="tasksStore.tasks[columnIndex]"
           :move="findElementsIDs"
           itemKey="taskID"
@@ -142,7 +142,7 @@
 <script setup lang="ts">
 import type { Ref } from 'vue'
 import type { BoardColumn, Task, Subtask } from '../api/boardsTypes'
-import type { MoveDragEvent, DragTaskEvent } from '../api/dragTypes'
+import type { MoveDragEvent, DragEndEvent } from '../api/dragTypes'
 import EmptyInfo from '../components/EmptyInfo.vue'
 import TaskCard from './TaskCard.vue'
 import SeeTaskModal from './Modals/SeeTaskModal.vue'
@@ -269,16 +269,24 @@ const moveTask = async (value: BoardColumn['name']) => {
   modals.value.isSeeTaskModalShown = false
 }
 
+const oldTaskIndex = ref<null | number>(null)
+const newTaskIndex = ref<null | number>(null)
 const prevColumnID = ref('')
 const nextColumnID = ref('')
 const taskToBeDragged = ref<null | Task>(null)
+const indexOfOldColumn = ref<null | number>(null)
 const indexOfNewColumn = ref<null | number>(null)
 
 const setIndexesOfTasksInNewColumn = () => {
+  const oldColumn = boardsStore.boardColumns.find(
+    (column) => column.columnID === prevColumnID.value
+  )
   const newColumn = boardsStore.boardColumns.find(
     (column) => column.columnID === nextColumnID.value
   )
 
+  indexOfOldColumn.value =
+    oldColumn != null ? boardsStore.boardColumns.indexOf(oldColumn) : null
   indexOfNewColumn.value =
     newColumn != null ? boardsStore.boardColumns.indexOf(newColumn) : null
 
@@ -301,13 +309,42 @@ const findElementsIDs = (e: MoveDragEvent) => {
   taskToBeDragged.value = e.draggedContext.element
 }
 
-const dragTasks = async (e: Partial<DragTaskEvent>) => {
-  if ('removed' in e) return
-
+const dragTasks = async (e: DragEndEvent) => {
+  const isTaskMovedWithinTheSameColumn = e.from === e.to
   const taskIndexes = setIndexesOfTasksInNewColumn()
 
-  if ('moved' in e && indexOfNewColumn.value != null) {
-    tasksStore.setNewIndexesForTheSameColumn(e, indexOfNewColumn.value)
+  oldTaskIndex.value = e.oldIndex
+  newTaskIndex.value = e.newIndex
+
+  prevColumnID.value = e.from.getAttribute('data-columnID') || ''
+  nextColumnID.value = e.to.getAttribute('data-columnID') || ''
+
+  if (
+    !isTaskMovedWithinTheSameColumn &&
+    indexOfOldColumn.value != null &&
+    indexOfNewColumn.value != null &&
+    oldTaskIndex.value != null &&
+    newTaskIndex.value != null
+  ) {
+    tasksStore.setNewIndexesForDifferentColumns(
+      indexOfOldColumn.value,
+      indexOfNewColumn.value,
+      oldTaskIndex.value,
+      newTaskIndex.value
+    )
+  }
+
+  if (
+    isTaskMovedWithinTheSameColumn &&
+    indexOfNewColumn.value != null &&
+    oldTaskIndex.value != null &&
+    newTaskIndex.value != null
+  ) {
+    tasksStore.setNewIndexesForTheSameColumn(
+      indexOfNewColumn.value,
+      oldTaskIndex.value,
+      newTaskIndex.value
+    )
   }
 
   if (

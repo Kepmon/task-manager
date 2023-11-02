@@ -8,6 +8,13 @@ export interface MoveDragEvent extends DragEvent {
   }
 }
 
+export interface DragEndEvent extends DragEvent {
+  from: HTMLElement
+  to: HTMLElement
+  oldIndex: number
+  newIndex: number
+}
+
 export interface DragTaskEvent {
   moved: {
     element: Task

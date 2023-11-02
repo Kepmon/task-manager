@@ -4,7 +4,6 @@ import type {
   Subtask,
   FormSubsetItem
 } from '../api/boardsTypes'
-import type { DragTaskEvent } from '../api/dragTypes'
 import type {
   CollectionReference,
   QueryDocumentSnapshot,
@@ -226,12 +225,11 @@ export const useTasksStore = defineStore('tasks', () => {
   }
 
   const setNewIndexesForTheSameColumn = (
-    e: Partial<DragTaskEvent>,
-    indexOfNewColumn: number
+    indexOfNewColumn: number,
+    oldIndex: number,
+    newIndex: number
   ) => {
     const subtasksForNewColumn = subtasks.value[indexOfNewColumn]
-    const oldIndex = (e.moved as DragTaskEvent['moved']).oldIndex
-    const newIndex = (e.moved as DragTaskEvent['moved']).newIndex
 
     let subtasksBefore: Subtask[][] = []
     let subtasksAfter: Subtask[][] = []
@@ -258,6 +256,33 @@ export const useTasksStore = defineStore('tasks', () => {
       ...subtasksBefore,
       movedSubtasks,
       ...subtasksAfter
+    ]
+  }
+
+  const setNewIndexesForDifferentColumns = (
+    indexOfOldColumn: number,
+    indexOfNewColumn: number,
+    oldIndex: number,
+    newIndex: number
+  ) => {
+    const subtasksForOldColumn = [...subtasks.value[indexOfOldColumn]]
+    const subtasksForNewColumn = [...subtasks.value[indexOfNewColumn]]
+
+    const oldSubtasksBefore = subtasksForOldColumn.slice(0, oldIndex)
+    const oldSubtasksAfter = subtasksForOldColumn.slice(oldIndex + 1)
+    const newSubtasksBefore = subtasksForNewColumn.slice(0, newIndex)
+    const newSubtasksAfter = subtasksForNewColumn.slice(newIndex)
+    const movedSubtasks = subtasksForOldColumn[oldIndex]
+
+    subtasks.value[indexOfOldColumn] = [
+      ...oldSubtasksBefore,
+      ...oldSubtasksAfter
+    ]
+
+    subtasks.value[indexOfNewColumn] = [
+      ...newSubtasksBefore,
+      movedSubtasks,
+      ...newSubtasksAfter
     ]
   }
 
@@ -372,8 +397,6 @@ export const useTasksStore = defineStore('tasks', () => {
           })
         })
       }
-
-      await getColumnsAgain()
 
       return true
     } catch (err) {
@@ -538,7 +561,10 @@ export const useTasksStore = defineStore('tasks', () => {
 
       try {
         await deleteDoc(tasksDocRef)
-        await getColumnsAgain()
+
+        if (taskID == null) {
+          await getColumnsAgain()
+        }
         return true
       } catch (err) {
         return (err as FirestoreError).code
@@ -604,6 +630,7 @@ export const useTasksStore = defineStore('tasks', () => {
     getTasks,
     addNewTask,
     setNewIndexesForTheSameColumn,
+    setNewIndexesForDifferentColumns,
     addIndexesToTasks,
     moveTaskBetweenColumns,
     editTask,
