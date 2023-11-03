@@ -141,8 +141,8 @@ const { width: windowWidth } = useWindowSize()
 
 <style lang="postcss" scoped>
 .main {
-  @apply p-4 sm:p-6 col-span-2 sm:col-start-2;
-  @apply overflow-auto scrollbar-invisible;
+  @apply col-span-2 sm:col-start-2;
+  @apply overflow-y-auto scrollbar-invisible;
   @apply hover:scrollbar-visibleLight dark:hover:scrollbar-visibleDark;
 }
 .show-sidebar {

@@ -28,7 +28,7 @@ defineProps<{
 
 <style lang="postcss" scoped>
 .task-card {
-  @apply relative p-4 text-left shadow-xs rounded-lg bg-white dark:bg-gray-700;
+  @apply w-full relative p-4 text-left shadow-xs rounded-lg bg-white dark:bg-gray-700;
 }
 
 .task-card__title {

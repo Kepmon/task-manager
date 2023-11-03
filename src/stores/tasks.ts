@@ -229,6 +229,8 @@ export const useTasksStore = defineStore('tasks', () => {
     oldIndex: number,
     newIndex: number
   ) => {
+    if (oldIndex === newIndex) return
+
     const subtasksForNewColumn = subtasks.value[indexOfNewColumn]
 
     let subtasksBefore: Subtask[][] = []

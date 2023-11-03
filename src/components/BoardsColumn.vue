@@ -1,7 +1,7 @@
 <template>
-  <div class="columns-container">
+  <div class="columns-wrapper">
     <div
-      class="flex gap-6"
+      class="flex gap-6 py-4 sm:py-6 col-start-2 col-span-1"
       :class="{
         'place-content-center h-full': boardsStore.boardColumns.length === 0
       }"
@@ -37,39 +37,41 @@
           v-model="tasksStore.tasks[columnIndex]"
           :move="findElementsIDs"
           itemKey="taskID"
-          tag="div"
+          tag="ul"
           group="tasksCards"
           :animation="200"
           class="grid gap-[20px]"
           :data-columnID="boardsStore.boardColumns[columnIndex].columnID"
         >
           <template #item="{ element: columnTask }">
-            <task-card
-              @click="
-                () =>
-                  tasks.handleTaskCardClick(
+            <li>
+              <task-card
+                @click="
+                  () =>
+                    tasks.handleTaskCardClick(
+                      columnIndex,
+                      tasksStore.tasks[columnIndex].indexOf(columnTask)
+                    )
+                "
+                :key="columnTask.taskID"
+                :taskID="columnTask.taskID"
+                :howManyCompleted="
+                  returnNumberOfElements(
                     columnIndex,
-                    tasksStore.tasks[columnIndex].indexOf(columnTask)
+                    tasksStore.tasks[columnIndex].indexOf(columnTask),
+                    'subtasksCompleted'
                   )
-              "
-              :key="columnTask.taskID"
-              :taskID="columnTask.taskID"
-              :howManyCompleted="
-                returnNumberOfElements(
-                  columnIndex,
-                  tasksStore.tasks[columnIndex].indexOf(columnTask),
-                  'subtasksCompleted'
-                )
-              "
-              :howManySubtasks="
-                returnNumberOfElements(
-                  columnIndex,
-                  tasksStore.tasks[columnIndex].indexOf(columnTask),
-                  'subtasks'
-                )
-              "
-              :title="columnTask.title"
-            />
+                "
+                :howManySubtasks="
+                  returnNumberOfElements(
+                    columnIndex,
+                    tasksStore.tasks[columnIndex].indexOf(columnTask),
+                    'subtasks'
+                  )
+                "
+                :title="columnTask.title"
+              />
+            </li>
           </template>
         </draggable>
       </div>
@@ -363,8 +365,10 @@ const dragTasks = async (e: DragEndEvent) => {
 </script>
 
 <style lang="postcss" scoped>
-.columns-container {
-  @apply px-[var(--room-for-outline)] h-full;
+.columns-wrapper {
+  @apply grid grid-cols-[16px_auto_16px] sm:grid-cols-[24px_auto_24px];
+  @apply h-full overflow-x-auto scrollbar-invisible;
+  @apply hover:scrollbar-visibleLight dark:hover:scrollbar-visibleDark;
 }
 
 .new-column {
