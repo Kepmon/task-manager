@@ -40,7 +40,6 @@ const props = defineProps<{
   placeholder?: string
   whitePlaceholder?: boolean
   modelValue?: string
-  value?: string
   condition?: boolean
 }>()
 const emits = defineEmits(['handle-blur', 'update:modelValue'])

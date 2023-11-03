@@ -77,7 +77,7 @@
       </div>
       <button
         v-if="boardsStore.boardColumns.length > 0"
-        @click="modals.isEditBoardModalShown = true"
+        @click="modals.isNewColumnModalShown = true"
         aria-label="click here to add a new column"
         class="new-column group"
       >
@@ -85,6 +85,7 @@
       </button>
       <empty-info :emptyBoard="boardsStore.boardColumns.length === 0" />
     </div>
+
     <Teleport to="body">
       <transition name="modal">
         <see-task-modal
@@ -138,6 +139,12 @@
         action="edit"
       />
     </transition>
+    <transition name="modal">
+      <new-column-modal
+        v-if="modals.isNewColumnModalShown"
+        @close-modal="modals.isNewColumnModalShown = false"
+      />
+    </transition>
   </div>
 </template>
 
@@ -151,6 +158,7 @@ import SeeTaskModal from './Modals/SeeTaskModal.vue'
 import ConfirmationModal from '../components/Modals/ConfirmationModal.vue'
 import TaskModal from '../components/Modals/TaskModal.vue'
 import BoardModal from '../components/Modals/BoardModal.vue'
+import NewColumnModal from './Modals/NewColumnModal.vue'
 import CloseIcon from './Svgs/CloseIcon.vue'
 import { handleResponse } from '../composables/responseHandler'
 import { computed, ref } from 'vue'
@@ -184,6 +192,7 @@ const modals = ref({
   isDeleteTaskModalShown: false,
   isEditBoardModalShown: false,
   isDeleteColumnModalShown: false,
+  isNewColumnModalShown: false,
   columnToDelete: <null | BoardColumn>null,
   showEditForm: () => {
     modals.value.isSeeTaskModalShown = false
