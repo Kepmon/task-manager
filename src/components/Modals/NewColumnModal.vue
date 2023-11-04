@@ -84,6 +84,7 @@ const submitForm = async () => {
   )
 
   handleResponse(response)
+  closeModal()
 }
 
 onMounted(() => {

@@ -158,6 +158,21 @@ export const useBoardsStore = defineStore('boards', () => {
     return true
   }
 
+  const updateColumns = (
+    updatedColumn: BoardColumn,
+    action: 'add' | 'delete'
+  ) => {
+    const actionHandlers = {
+      add: () => (boardColumns.value = [...boardColumns.value, updatedColumn]),
+      delete: () =>
+        (boardColumns.value = boardColumns.value.filter(
+          ({ columnID }) => columnID !== updatedColumn.columnID
+        ))
+    }
+
+    return actionHandlers[action]()
+  }
+
   const addNewColumn = async (name: string, dotColor: string) => {
     const { columnsColRef } = returnColumnsColRef()
 
@@ -169,6 +184,9 @@ export const useBoardsStore = defineStore('boards', () => {
       })
 
       if (addedDocRef == null) throw new Error()
+
+      const newColumn = (await getDoc(addedDocRef)).data() as BoardColumn
+      updateColumns(newColumn, 'add')
 
       return true
     } catch (err) {
@@ -356,7 +374,7 @@ export const useBoardsStore = defineStore('boards', () => {
     const columnResponses = await Promise.all(
       columnsDocRefs.map(async (columnDocRef) => {
         try {
-          const response = await deleteColumn(columnDocRef.id, true)
+          const response = await deleteColumn(columnDocRef.id)
 
           if (response !== true) throw new Error(response)
 
@@ -399,10 +417,7 @@ export const useBoardsStore = defineStore('boards', () => {
     }
   }
 
-  const deleteColumn = async (
-    columnID: BoardColumn['columnID'],
-    omitFetch?: true
-  ) => {
+  const deleteColumn = async (columnID: BoardColumn['columnID']) => {
     const columnsColRef = collection(
       db,
       `${
@@ -436,14 +451,11 @@ export const useBoardsStore = defineStore('boards', () => {
 
       await deleteDoc(columnDocRef)
 
-      if (omitFetch != null) {
-        try {
-          const response = await getColumns()
-
-          if (response !== true) throw new Error(response)
-        } catch (err) {
-          return (err as FirestoreError).code
-        }
+      const columnToBeDeleted = boardColumns.value.find(
+        (column) => column.columnID === columnID
+      )
+      if (columnToBeDeleted != null) {
+        updateColumns(columnToBeDeleted, 'delete')
       }
 
       return true
