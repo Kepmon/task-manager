@@ -21,6 +21,9 @@ module.exports = {
       fontFamily: {
         sans: ['Plus Jakarta Sans', ...defaultTheme.fontFamily.sans]
       },
+      borderRadius: {
+        inherit: 'inherit'
+      },
       colors: {
         blue: {
           40: 'hsl(216 15% 57% / .4)',

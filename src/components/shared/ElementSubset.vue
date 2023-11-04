@@ -87,7 +87,7 @@ interface NoIndexArgs {
   callback: (FormData: FormData) => void
 }
 
-const addNewInput = ref(null)
+const addNewInput = ref<null | HTMLButtonElement>(null)
 const handleFormDataAction = <T extends NoIndexArgs | WithIndexArgs>(
   args: T,
   moveFocus?: true
@@ -101,7 +101,7 @@ const handleFormDataAction = <T extends NoIndexArgs | WithIndexArgs>(
   }
 
   if (moveFocus && addNewInput.value != null) {
-    ;(addNewInput.value as HTMLButtonElement).focus()
+    addNewInput.value.focus()
   }
 
   emits('handle-blur')
