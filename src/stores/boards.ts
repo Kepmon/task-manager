@@ -158,6 +158,24 @@ export const useBoardsStore = defineStore('boards', () => {
     return true
   }
 
+  const addNewColumn = async (name: string, dotColor: string) => {
+    const { columnsColRef } = returnColumnsColRef()
+
+    try {
+      const addedDocRef = await addDoc(columnsColRef, {
+        dotColor,
+        name,
+        createdAt: serverTimestamp()
+      })
+
+      if (addedDocRef == null) throw new Error()
+
+      return true
+    } catch (err) {
+      return (err as FirestoreError).code
+    }
+  }
+
   const addNewBoard = async (
     boardName: Board['name'],
     boardColumns: string[]
@@ -441,6 +459,7 @@ export const useBoardsStore = defineStore('boards', () => {
     getBoards,
     getColumns,
     saveCurrentBoard,
+    addNewColumn,
     addNewBoard,
     editBoard,
     deleteBoard,

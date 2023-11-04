@@ -1,5 +1,9 @@
 <template>
-  <modals-template @close-modal="closeModal" :allowOverflow="true">
+  <modals-template
+    @close-modal="closeModal"
+    @submit-form="submitForm"
+    :allowOverflow="true"
+  >
     <template #form-title>
       <h2>Add New Column</h2>
     </template>
@@ -16,7 +20,7 @@
         <transition name="modal">
           <ColorPicker
             v-show="isColorPickerShown"
-            @color-change="updateDotColor"
+            @color-change="(color: ColorChangeEvent) => startColor = color.cssColor"
             ref="colorPicker"
             :color="startColor"
             class="color-picker"
@@ -37,6 +41,7 @@
           class="grow"
         />
       </div>
+      <button class="regular-button purple-class">Add New Column</button>
     </template>
   </modals-template>
 </template>
@@ -49,25 +54,36 @@ import { ref, onMounted } from 'vue'
 import { MaybeElementRef, onClickOutside } from '@vueuse/core'
 import { ColorPicker } from 'vue-accessible-color-picker'
 import { addStylesToColorPicker } from '../../composables/colorPicker'
+import { useBoardsStore } from '../../stores/boards'
+import { handleResponse } from '../../composables/responseHandler'
 
 const emits = defineEmits(['close-modal'])
+
+const boardsStore = useBoardsStore()
 
 const columnName = ref('')
 const isColumnNameError = ref(false)
 
 const isColorPickerShown = ref(false)
 const colorPicker = ref<null | { $el: HTMLDivElement }>(null)
-
 const startColor = ref('hsl(193 75% 59%)')
-const updateDotColor = (color: ColorChangeEvent) => {
-  startColor.value = color.cssColor
-}
 
 const shouldModalBeClosed = ref(true)
 const closeModal = () => {
   if (!shouldModalBeClosed.value) return
 
   emits('close-modal')
+}
+
+const submitForm = async () => {
+  if (isColumnNameError.value) return
+
+  const response = await boardsStore.addNewColumn(
+    columnName.value,
+    startColor.value
+  )
+
+  handleResponse(response)
 }
 
 onMounted(() => {

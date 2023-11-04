@@ -8,6 +8,7 @@ export interface BoardColumn {
   columnID: string
   createdAt: string
   name: string
+  dotColor?: string
 }
 
 export interface Task {

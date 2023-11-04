@@ -16,7 +16,7 @@
         >
           <div
             class="h-[15px] w-[15px] rounded-full"
-            :class="circleColor ? circleColor(column) : ''"
+            :style="`background-color: ${returnCircleColor(column)};`"
           ></div>
           <p class="text-xs text-gray-400 uppercase">
             <span class="sr-only">
@@ -161,6 +161,7 @@ import BoardModal from '../components/Modals/BoardModal.vue'
 import NewColumnModal from './Modals/NewColumnModal.vue'
 import CloseIcon from './Svgs/CloseIcon.vue'
 import { handleResponse } from '../composables/responseHandler'
+import { returnCircleColor } from '../composables/circleColor'
 import { computed, ref } from 'vue'
 import { useBoardsStore } from '../stores/boards'
 import { useTasksStore } from '../stores/tasks'
@@ -171,20 +172,6 @@ const boardsStore = useBoardsStore()
 const tasksStore = useTasksStore()
 
 const formatColumnNumber = (number: number) => converter.toWordsOrdinal(number)
-
-const circleColor = computed(() => {
-  if (boardsStore.boardColumns != null) {
-    return (column: BoardColumn) => ({
-      'bg-blue-600':
-        (boardsStore.boardColumns as BoardColumn[]).indexOf(column) % 3 === 0,
-      'bg-blue-500':
-        (boardsStore.boardColumns as BoardColumn[]).indexOf(column) % 3 === 1,
-      'bg-green-400':
-        (boardsStore.boardColumns as BoardColumn[]).indexOf(column) % 3 === 2
-    })
-  }
-  return null
-})
 
 const modals = ref({
   isSeeTaskModalShown: false,
