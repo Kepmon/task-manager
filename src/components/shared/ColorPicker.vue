@@ -15,6 +15,7 @@
       ref="colorPicker"
       :color="startColor"
       class="color-picker"
+      :class="noTranslate ? 'left-14 top-7' : 'top-0 left-7 -translate-y-1/2'"
     />
   </transition>
 </template>
@@ -29,6 +30,7 @@ import { onClickOutside } from '@vueuse/core'
 
 defineProps<{
   startColor: string
+  noTranslate?: true
 }>()
 const emits = defineEmits(['set-show-modal', 'set-new-color'])
 
@@ -41,7 +43,6 @@ onMounted(() => {
 
 onClickOutside(colorPicker as MaybeElementRef, (e: Event) => {
   if (
-    isColorPickerShown.value === false ||
     (e.target as HTMLElement)
       .closest('button')
       ?.getAttribute('data-protected') === 'column-dot'
@@ -55,13 +56,13 @@ onClickOutside(colorPicker as MaybeElementRef, (e: Event) => {
 
 <style lang="postcss" scoped>
 .color-dot-button {
-  @apply relative w-6 aspect-square rounded-full outline-offset-2;
+  @apply mr-2 relative w-6 aspect-square rounded-full outline-offset-2;
   @apply focus-visible:outline-purple-400 before:absolute before:inset-0;
   @apply before:bg-purple-400 before:rounded-inherit before:-z-10;
   @apply before:animate-ping-once;
 }
 .color-picker {
-  @apply absolute top-0 left-7 p-3 -translate-y-1/2 z-10;
-  @apply bg-gray-200 dark:bg-gray-900 text-black dark:text-white rounded-lg;
+  @apply absolute p-3 text-black dark:text-white z-10;
+  @apply bg-gray-200 dark:bg-gray-900  rounded-lg;
 }
 </style>

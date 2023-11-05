@@ -1,7 +1,9 @@
-import type { BoardColumn } from '../api/boardsTypes'
 import { useBoardsStore } from '../stores/boards'
 
-export const returnCircleColor = (column: BoardColumn) => {
+export const returnCircleColor = (
+  index: number,
+  dotColor: null | undefined | string
+) => {
   const boardsStore = useBoardsStore()
   const dotColors = {
     0: 'hsl(193 75% 59%)',
@@ -9,12 +11,9 @@ export const returnCircleColor = (column: BoardColumn) => {
     2: 'hsl(155 75% 70%)'
   }
   if (boardsStore.boardColumns.length > 0) {
-    const noDotColorGiven =
-      dotColors[
-        (boardsStore.boardColumns.indexOf(column) % 3) as keyof typeof dotColors
-      ]
-    return column.dotColor ? column.dotColor : noDotColorGiven
+    const noDotColorGiven = dotColors[(index % 3) as keyof typeof dotColors]
+    return dotColor ? dotColor : noDotColorGiven
   }
 
-  return ''
+  return 'black'
 }

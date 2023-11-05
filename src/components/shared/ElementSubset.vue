@@ -5,10 +5,15 @@
     </p>
     <div class="grid gap-3">
       <div
-        v-for="({ name, id }, index) in formData.items"
+        v-for="({ name, id, dotColor }, index) in formData.items"
         :key="id"
         class="flex items-center"
       >
+        <color-picker
+          v-if="element === 'board'"
+          :startColor="returnCircleColor(index, dotColor)"
+          :noTranslate="true"
+        />
         <text-input
           @handle-blur="
             () =>
@@ -27,6 +32,9 @@
             element === 'board' ? 'column name' : 'subtask name'
           }`"
           class="grow"
+          :nameAttr="
+            element === 'board' ? `column${index + 1}` : `subtask${index + 1}`
+          "
         ></text-input>
         <close-icon
           @handle-close="
@@ -65,7 +73,9 @@
 import type { FormData } from '../../api/boardsTypes'
 import TextInput from './Inputs/TextInput.vue'
 import CloseIcon from '../Svgs/CloseIcon.vue'
+import ColorPicker from '../shared/ColorPicker.vue'
 import { useFormsStore } from '../../stores/forms'
+import { returnCircleColor } from '../../composables/circleColor'
 import converter from 'number-to-words'
 import { ref } from 'vue'
 

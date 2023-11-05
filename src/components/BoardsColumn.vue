@@ -16,7 +16,10 @@
         >
           <div
             class="h-[15px] w-[15px] rounded-full"
-            :style="`background-color: ${returnCircleColor(column)};`"
+            :style="`background-color: ${returnCircleColor(
+              columnIndex,
+              column.dotColor
+            )};`"
           ></div>
           <p class="text-xs text-gray-400 uppercase">
             <span class="sr-only">

@@ -23,6 +23,7 @@
             ? `Error: Please fill in this ${fieldDescription} field`
             : undefined
         "
+        :name="nameAttr || undefined"
       />
     </div>
   </div>
@@ -41,6 +42,7 @@ const props = defineProps<{
   whitePlaceholder?: boolean
   modelValue?: string
   condition?: boolean
+  nameAttr?: string
 }>()
 const emits = defineEmits(['handle-blur', 'update:modelValue'])
 
