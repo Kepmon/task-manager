@@ -80,12 +80,19 @@ export const useTasksStore = defineStore('tasks', () => {
                 const tasksDocRefs = (await getDocs(tasksColRefOrderedByIndex))
                   .docs
 
-                if (tasksDocRefs.length === 0) {
-                  const tasksOrderedByDate = (
-                    await getDocs(tasksColRefOrderedByDate)
-                  ).docs
-                  tasksDocRefs.push(...tasksOrderedByDate)
-                }
+                const tasksOrderedByDate = (
+                  await getDocs(tasksColRefOrderedByDate)
+                ).docs
+
+                tasksOrderedByDate.forEach((dateTask) => {
+                  const isTaskDocAlreadyInArr = tasksDocRefs.some(
+                    (taskDocRef) => taskDocRef.id === dateTask.id
+                  )
+
+                  if (!isTaskDocAlreadyInArr) {
+                    tasksDocRefs.push(dateTask)
+                  }
+                })
 
                 if (tasksDocRefs == null) throw new Error('wrong response')
 
