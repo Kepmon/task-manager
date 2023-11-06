@@ -11,7 +11,7 @@
 
     <template #main-content>
       <text-input
-        @handle-blur="() => handleBlur(true)"
+        @handle-blur="handleNameInputBlur"
         v-model="formName"
         idAttr="task-title"
         :isError="formNameError"
@@ -29,11 +29,7 @@
         :whitePlaceholder="action === 'add' ? false : true"
       />
 
-      <element-subset
-        @handle-blur="handleBlur"
-        :action="action"
-        element="task"
-      />
+      <element-subset :action="action" element="task" />
 
       <div>
         <p class="mb-2 text-xs text-gray-400 dark:text-white">Status</p>
@@ -107,12 +103,10 @@ const updateStatusItem = (newItem: BoardColumn['name']) => {
 }
 
 const isPending = ref(false)
-const handleBlur = (isFormNameInput?: true) => {
-  if (isFormNameInput) {
-    formName.value === ''
-      ? (formNameError.value = true)
-      : (formNameError.value = false)
-  }
+const handleNameInputBlur = () => {
+  formName.value === ''
+    ? (formNameError.value = true)
+    : (formNameError.value = false)
 }
 
 const submit = async () => {
@@ -137,6 +131,7 @@ const submit = async () => {
       )
   }
 
+  handleNameInputBlur()
   await formsStore.submitForm(
     isPending.value,
     callback[props.action as keyof typeof callback],

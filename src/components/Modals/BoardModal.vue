@@ -10,7 +10,7 @@
     </template>
     <template #main-content>
       <text-input
-        @handle-blur="() => handleBlur(true)"
+        @handle-blur="handleNameInputBlur"
         v-model="formName"
         :isError="formNameError"
         label="Board Name"
@@ -21,7 +21,6 @@
         nameAttr="boardName"
       />
       <element-subset
-        @handle-blur="handleBlur"
         @set-new-color="(color: ColorChangeEvent, index: number) => (columnDotColors[index] = color.cssColor)"
         :action="action"
         element="board"
@@ -64,12 +63,10 @@ const formSubsetData = computed(
 const columnDotColors = ref(formSubsetData.value.items.map(() => ''))
 
 const isPending = ref(false)
-const handleBlur = (isFormNameInput?: true) => {
-  if (isFormNameInput) {
-    formName.value === ''
-      ? (formNameError.value = true)
-      : (formNameError.value = false)
-  }
+const handleNameInputBlur = () => {
+  formName.value === ''
+    ? (formNameError.value = true)
+    : (formNameError.value = false)
 }
 
 const submit = async () => {
@@ -87,6 +84,8 @@ const submit = async () => {
         formSubsetData.value.items
       )
   }
+
+  handleNameInputBlur()
 
   await formsStore.submitForm(
     isPending.value,
