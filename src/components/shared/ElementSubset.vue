@@ -3,7 +3,7 @@
     <p class="text-xs">
       {{ element === 'board' ? 'Columns' : 'Subtasks' }}
     </p>
-    <div class="grid gap-3">
+    <div v-if="formData.items.length > 0" class="grid gap-3">
       <div
         v-for="({ name, id, dotColor }, index) in formData.items"
         :key="id"
@@ -11,7 +11,12 @@
       >
         <color-picker
           v-if="element === 'board'"
-          :startColor="returnCircleColor(index, dotColor)"
+          @set-new-color="(color: ColorChangeEvent) => setNewColumn(color, index)"
+          :startColor="
+            buttonColors.length === 0
+              ? returnCircleColor(index, dotColor, action === 'add')
+              : buttonColors[index]
+          "
           :noTranslate="true"
         />
         <text-input
@@ -49,7 +54,7 @@
         />
       </div>
     </div>
-    <p v-if="formData.items.length === 0" class="text-xs text-gray-400">
+    <p v-else class="text-xs text-gray-400">
       There are no {{ element === 'board' ? 'columns' : 'subtasks' }} to display
     </p>
     <button
@@ -70,6 +75,7 @@
 </template>
 
 <script setup lang="ts">
+import type { ColorChangeEvent } from 'vue-accessible-color-picker'
 import type { FormData } from '../../api/boardsTypes'
 import TextInput from './Inputs/TextInput.vue'
 import CloseIcon from '../Svgs/CloseIcon.vue'
@@ -83,11 +89,18 @@ const props = defineProps<{
   action: 'add' | 'edit'
   element: 'board' | 'task'
 }>()
-const emits = defineEmits(['handle-blur'])
+const emits = defineEmits(['handle-blur', 'set-new-color'])
 
 const formsStore = useFormsStore()
 const formData = formsStore.formsData[props.element].value[props.action]
 const formatItemNumber = (number: number) => converter.toWordsOrdinal(number)
+
+const buttonColors = ref<string[]>([])
+const setNewColumn = (color: ColorChangeEvent, index: number) => {
+  buttonColors.value[index] = color.cssColor
+
+  emits('set-new-color', color, index)
+}
 
 interface WithIndexArgs {
   callback: (FormData: FormData, index: number) => void

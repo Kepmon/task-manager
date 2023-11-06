@@ -135,12 +135,19 @@ export const useBoardsStore = defineStore('boards', () => {
 
   const addDocToFirestore = async (
     colRef: CollectionReference<DocumentData>,
-    name: string
+    name: string,
+    dotColor?: string
   ) => {
-    return await addDoc(colRef, {
-      createdAt: serverTimestamp(),
-      name
-    })
+    return dotColor != null
+      ? await addDoc(colRef, {
+          createdAt: serverTimestamp(),
+          name,
+          dotColor
+        })
+      : await addDoc(colRef, {
+          createdAt: serverTimestamp(),
+          name
+        })
   }
 
   const updateFirestoreDoc = async (
@@ -196,7 +203,8 @@ export const useBoardsStore = defineStore('boards', () => {
 
   const addNewBoard = async (
     boardName: Board['name'],
-    boardColumns: string[]
+    boardColumns: string[],
+    dotColors: string[]
   ) => {
     try {
       const addedDocRef = await addDocToFirestore(
@@ -209,8 +217,8 @@ export const useBoardsStore = defineStore('boards', () => {
       if (addedDocRef) {
         const columnsColRef = collection(db, `${addedDocRef.path}/columns`)
 
-        boardColumns.forEach(async (column) => {
-          await addDocToFirestore(columnsColRef, column)
+        boardColumns.forEach(async (column, index) => {
+          await addDocToFirestore(columnsColRef, column, dotColors[index])
         })
       }
 

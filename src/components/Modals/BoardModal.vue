@@ -22,6 +22,7 @@
       />
       <element-subset
         @handle-blur="handleBlur"
+        @set-new-color="(color: ColorChangeEvent, index: number) => (columnDotColors[index] = color.cssColor)"
         :action="action"
         element="board"
       />
@@ -36,6 +37,7 @@
 </template>
 
 <script setup lang="ts">
+import type { ColorChangeEvent } from 'vue-accessible-color-picker'
 import type { Board } from '../../api/boardsTypes'
 import ModalsTemplate from './ModalsTemplate.vue'
 import TextInput from '../shared/Inputs/TextInput.vue'
@@ -59,6 +61,7 @@ const formNameError = ref(false)
 const formSubsetData = computed(
   () => formsStore.formsData.board.value[props.action]
 )
+const columnDotColors = ref(formSubsetData.value.items.map(() => ''))
 
 const isPending = ref(false)
 const handleBlur = (isFormNameInput?: true) => {
@@ -73,7 +76,11 @@ const submit = async () => {
   const columnNames = formSubsetData.value.items.map(({ name }) => name.trim())
   const callback = {
     add: async () =>
-      await boardsStore.addNewBoard(formName.value.trim(), columnNames),
+      await boardsStore.addNewBoard(
+        formName.value.trim(),
+        columnNames,
+        columnDotColors.value
+      ),
     edit: async () =>
       await boardsStore.editBoard(
         formName.value.trim(),
