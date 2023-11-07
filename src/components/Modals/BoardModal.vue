@@ -27,7 +27,7 @@
       />
       <button :disabled="isPending" class="regular-button purple-class">
         <span v-if="isPending">Loading...</span>
-        <span v-if="!isPending">{{
+        <span v-else>{{
           action === 'add' ? 'Create New Board' : 'Save Changes'
         }}</span>
       </button>
@@ -81,7 +81,8 @@ const submit = async () => {
     edit: async () =>
       await boardsStore.editBoard(
         formName.value.trim(),
-        formSubsetData.value.items
+        formSubsetData.value.items,
+        columnDotColors.value
       )
   }
 

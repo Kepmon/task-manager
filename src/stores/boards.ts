@@ -242,22 +242,27 @@ export const useBoardsStore = defineStore('boards', () => {
 
   const editBoard = async (
     boardName: Board['name'],
-    updatedColumns: FormSubsetItem[]
+    updatedColumns: FormSubsetItem[],
+    dotColors: string[]
   ) => {
     const isBoardNameSame = boardName === (currentBoard.value as Board).name
     const isNumberOfColumnsSame =
       boardColumns.value?.length === updatedColumns.length
-    const areColumnsNamesSame = (boardColumns.value as BoardColumn[]).every(
-      ({ columnID, name: columnName }) =>
-        updatedColumns.find(
-          ({ name, id }) => columnName === name && columnID === id
-        )
+    const areColumnsNamesAndDotsSame = (
+      boardColumns.value as BoardColumn[]
+    ).every(({ columnID, name: columnName, dotColor }) =>
+      updatedColumns.find(
+        ({ name, id }, index) =>
+          columnName === name &&
+          columnID === id &&
+          dotColor === dotColors[index]
+      )
     )
 
     const isFormNotChanged = [
       isBoardNameSame,
       isNumberOfColumnsSame,
-      areColumnsNamesSame
+      areColumnsNamesAndDotsSame
     ].every((item) => item === true)
 
     if (isFormNotChanged) return true
@@ -274,7 +279,7 @@ export const useBoardsStore = defineStore('boards', () => {
 
         if (response !== true) throw new Error()
 
-        if (areColumnsNamesSame) {
+        if (areColumnsNamesAndDotsSame) {
           try {
             const response = await getBoards()
 
@@ -303,39 +308,54 @@ export const useBoardsStore = defineStore('boards', () => {
     }
 
     const columnsColRef = collection(db, `${docToEditRef.path}/columns`)
-    const noRespectiveColumns = updatedColumns.filter(({ name, id }) => {
+    const noRespectiveColumns = updatedColumns.map(({ name, id }, index) => {
       if (
         boardColumns.value != null &&
-        (boardColumns.value as BoardColumn[]).some(
-          ({ columnID }) => columnID === id
-        )
+        boardColumns.value.some(({ columnID }) => columnID === id)
       )
-        return
+        return null
 
-      return name
+      return { name, dotColor: dotColors[index] }
     })
-    if (noRespectiveColumns) {
-      noRespectiveColumns.forEach(async ({ name }) => {
-        try {
-          const response = await addDocToFirestore(columnsColRef, name)
+    const columnsToBeAdded = noRespectiveColumns.filter(
+      (column) => column != null
+    )
+    if (columnsToBeAdded.length > 0) {
+      ;(columnsToBeAdded as { name: string; dotColor: string }[]).forEach(
+        async ({ name, dotColor }) => {
+          try {
+            const response = await addDocToFirestore(
+              columnsColRef,
+              name,
+              dotColor
+            )
 
-          if (response == null) throw new Error()
-        } catch (err) {
-          return (err as FirestoreError).code
+            if (response == null) throw new Error()
+          } catch (err) {
+            return (err as FirestoreError).code
+          }
         }
-      })
+      )
     }
 
     if (boardColumns.value != null) {
-      boardColumns.value.forEach(async ({ columnID, name }) => {
+      boardColumns.value.forEach(async ({ columnID, name, dotColor }) => {
         const columnDocRef = doc(columnsColRef, columnID)
 
         const respectiveColumn = updatedColumns.find(
           ({ id }) => id === columnID
         )
+        const indexOfRespectiveColumn =
+          respectiveColumn != null
+            ? updatedColumns.indexOf(respectiveColumn)
+            : null
         const isColumnNameSame = respectiveColumn?.name === name
+        const isDotColorSame =
+          indexOfRespectiveColumn != null
+            ? dotColors[indexOfRespectiveColumn] === dotColor
+            : false
 
-        if (respectiveColumn && isColumnNameSame) return
+        if (respectiveColumn && isColumnNameSame && isDotColorSame) return
 
         if (respectiveColumn == null) {
           try {
@@ -346,10 +366,22 @@ export const useBoardsStore = defineStore('boards', () => {
           return
         }
 
-        try {
-          await updateFirestoreDoc(columnDocRef, respectiveColumn.name)
-        } catch (err) {
-          return (err as FirestoreError).code
+        if (!isColumnNameSame) {
+          try {
+            await updateFirestoreDoc(columnDocRef, respectiveColumn.name)
+          } catch (err) {
+            return (err as FirestoreError).code
+          }
+        }
+
+        if (!isDotColorSame) {
+          try {
+            await updateDoc(columnDocRef, {
+              dotColor: dotColors[indexOfRespectiveColumn as number]
+            })
+          } catch (err) {
+            return (err as FirestoreError).code
+          }
         }
       })
     }

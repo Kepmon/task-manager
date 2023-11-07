@@ -5,6 +5,7 @@ import { ref, computed } from 'vue'
 import { useBoardsStore } from './boards'
 import { useTasksStore } from './tasks'
 import { handleResponse } from '../composables/responseHandler'
+import { returnCircleColor } from '../composables/circleColor'
 
 export const useFormsStore = defineStore('forms', () => {
   const boardsStore = useBoardsStore()
@@ -32,7 +33,7 @@ export const useFormsStore = defineStore('forms', () => {
         items: ['Todo', 'Doing'].map((item, index) => ({
           name: item,
           id: index.toString(),
-          dotColor: 'hsl(193 75% 59%)'
+          dotColor: returnCircleColor(index, undefined, false)
         })),
         placeholderItems: undefined,
         errors: [false, false]
@@ -64,7 +65,7 @@ export const useFormsStore = defineStore('forms', () => {
   const isNewInputAdded = ref(false)
   const isFormValid = ref(false)
 
-  const addNewInput = (formData: FormData) => {
+  const addNewInput = (formData: FormData, buttonColors: string[]) => {
     const index = formData.items.length + 1
 
     formData.items.push({
@@ -72,6 +73,7 @@ export const useFormsStore = defineStore('forms', () => {
       id: index.toString()
     })
     formData.errors.push(false)
+    buttonColors.push('hsl(193 75% 59%)')
     isNewInputAdded.value = true
   }
 

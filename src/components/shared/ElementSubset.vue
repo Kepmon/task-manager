@@ -95,7 +95,13 @@ const formsStore = useFormsStore()
 const formData = formsStore.formsData[props.element].value[props.action]
 const formatItemNumber = (number: number) => converter.toWordsOrdinal(number)
 
-const buttonColors = ref<string[]>([])
+const buttonColors = ref(
+  formData.items.map(({ dotColor }) => {
+    if (dotColor == null) return 'hsl(193 75% 59%)'
+
+    return dotColor
+  })
+)
 const setNewColumn = (color: ColorChangeEvent, index: number) => {
   buttonColors.value[index] = color.cssColor
 
@@ -107,7 +113,7 @@ interface WithIndexArgs {
   index: number
 }
 interface NoIndexArgs {
-  callback: (FormData: FormData) => void
+  callback: (FormData: FormData, buttonColors: string[]) => void
 }
 
 const addNewInput = ref<null | HTMLButtonElement>(null)
@@ -120,7 +126,7 @@ const handleFormDataAction = <T extends NoIndexArgs | WithIndexArgs>(
   }
 
   if (!('index' in args)) {
-    args.callback(formData)
+    args.callback(formData, buttonColors.value)
   }
 
   if (moveFocus && addNewInput.value != null) {
