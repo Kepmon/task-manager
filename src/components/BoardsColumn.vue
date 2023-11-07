@@ -87,7 +87,6 @@
       >
         &#65291;New Column
       </button>
-      <empty-info :emptyBoard="boardsStore.boardColumns.length === 0" />
     </div>
 
     <Teleport to="body">
@@ -156,7 +155,6 @@
 import type { Ref } from 'vue'
 import type { BoardColumn, Task, Subtask } from '../api/boardsTypes'
 import type { MoveDragEvent, DragEndEvent } from '../api/dragTypes'
-import EmptyInfo from '../components/EmptyInfo.vue'
 import TaskCard from './TaskCard.vue'
 import SeeTaskModal from './Modals/SeeTaskModal.vue'
 import ConfirmationModal from '../components/Modals/ConfirmationModal.vue'

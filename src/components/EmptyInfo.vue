@@ -1,29 +1,29 @@
 <template>
-  <div
-    v-if="emptyDashboard || emptyBoard"
-    class="grid content-center justify-items-center h-full"
-  >
-    <theme-toggle
-      class="absolute top-0 px-8 bg-white dark:bg-gray-700 rounded-b-3xl sm:hidden"
-    />
+  <div class="grid content-center justify-items-center h-full">
+    <theme-toggle v-if="emptyDashboard && width < 640" class="absolute top-0" />
     <p
       class="mb-[25px] text-lgFluid text-center text-gray-400 first-letter:capitalize"
     >
       {{ message }}
     </p>
     <button
-      @click="isBoardModalShown = true"
+      @click="isModalShown = true"
       :regularButton="true"
-      class="w-max regular-button purple-class gap-[2px]"
+      class="w-max regular-button purple-class gap-[2px] capitalize"
     >
-      &#65291; Add New
-      <span class="capitalize">{{ emptyDashboard ? 'board' : 'column' }}</span>
+      &#65291; Add New {{ emptyDashboard ? 'board' : 'column' }}
     </button>
     <transition name="modal">
       <board-modal
-        v-if="isBoardModalShown"
-        @close-modal="isBoardModalShown = false"
-        :action="emptyDashboard ? 'add' : 'edit'"
+        v-if="isModalShown && emptyDashboard"
+        @close-modal="isModalShown = false"
+        action="add"
+      />
+    </transition>
+    <transition name="modal">
+      <new-column-modal
+        v-if="isModalShown && !emptyDashboard"
+        @close-modal="isModalShown = false"
       />
     </transition>
   </div>
@@ -31,15 +31,16 @@
 
 <script setup lang="ts">
 import BoardModal from './Modals/BoardModal.vue'
+import NewColumnModal from './Modals/NewColumnModal.vue'
 import ThemeToggle from './shared/ThemeToggle.vue'
 import { ref, computed } from 'vue'
 
 const props = defineProps<{
-  emptyDashboard?: boolean
-  emptyBoard?: boolean
+  emptyDashboard: boolean
+  width: number
 }>()
 
-const isBoardModalShown = ref(false)
+const isModalShown = ref(false)
 
 const message = computed(
   () =>
