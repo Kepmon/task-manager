@@ -1,4 +1,4 @@
-import { Task } from './boardsTypes'
+import type { Task } from './boardsTypes'
 
 export interface MoveDragEvent extends DragEvent {
   from: HTMLElement

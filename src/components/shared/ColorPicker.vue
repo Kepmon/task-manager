@@ -25,23 +25,28 @@ import type { ColorChangeEvent } from 'vue-accessible-color-picker'
 import type { MaybeElementRef } from '@vueuse/core'
 import { ColorPicker } from 'vue-accessible-color-picker'
 import { addStylesToColorPicker } from '../../composables/colorPicker'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { onClickOutside } from '@vueuse/core'
 
 defineProps<{
   startColor: string
   noTranslate?: true
 }>()
-const emits = defineEmits(['set-show-modal', 'set-new-color'])
+const emits = defineEmits([
+  'set-show-modal',
+  'set-new-color',
+  'close-parent-modal'
+])
 
 const isColorPickerShown = ref(false)
 const colorPicker = ref<null | { $el: HTMLDivElement }>(null)
 
-onMounted(() => {
-  addStylesToColorPicker(colorPicker.value)
-})
+const closeColorPicker = () => {
+  emits('set-show-modal', isColorPickerShown.value)
+  isColorPickerShown.value = false
+}
 
-onClickOutside(colorPicker as MaybeElementRef, (e: Event) => {
+const closeColorPickerOnClick = (e: Event) => {
   if (
     (e.target as HTMLElement)
       .closest('button')
@@ -49,8 +54,32 @@ onClickOutside(colorPicker as MaybeElementRef, (e: Event) => {
   )
     return
 
-  emits('set-show-modal', isColorPickerShown.value)
-  isColorPickerShown.value = false
+  closeColorPicker()
+}
+
+const closeColorPickerOnEsc = (e: KeyboardEvent) => {
+  if (e.key !== 'Escape') return
+
+  if (!isColorPickerShown.value) {
+    emits('close-parent-modal')
+  }
+
+  if (isColorPickerShown.value) {
+    closeColorPicker()
+  }
+}
+
+onClickOutside(colorPicker as MaybeElementRef, (e: Event) => {
+  closeColorPickerOnClick(e)
+})
+
+onMounted(() => {
+  addStylesToColorPicker(colorPicker.value)
+  window.addEventListener('keydown', closeColorPickerOnEsc)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', closeColorPickerOnEsc)
 })
 </script>
 

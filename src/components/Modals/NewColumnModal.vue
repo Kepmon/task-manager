@@ -10,10 +10,12 @@
     <template #main-content>
       <div class="flex items-center gap-4 relative isolate">
         <color-picker
+          @close-parent-modal="$emit('close-modal')"
+          @set-new-color="(color: ColorChangeEvent) => startColor =
+          color.cssColor"
           @set-show-modal="
             (isColorPickerShown) => setShowModal(isColorPickerShown)
           "
-          @set-new-color="(color: ColorChangeEvent) => startColor = color.cssColor"
           :startColor="startColor"
         />
 
@@ -62,6 +64,7 @@ const setShowModal = (isColorPickerShown: boolean) => {
   }
 
   shouldModalBeClosed.value = true
+  emits('close-modal')
 }
 
 const closeModal = () => {
@@ -71,6 +74,10 @@ const closeModal = () => {
 }
 
 const submitForm = async () => {
+  if (columnName.value === '') {
+    isColumnNameError.value = true
+  }
+
   if (isColumnNameError.value) return
 
   const response = await boardsStore.addNewColumn(
