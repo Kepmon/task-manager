@@ -7,7 +7,7 @@
       <div
         v-for="({ name, id, dotColor }, index) in formData.items"
         :key="id"
-        class="flex items-center"
+        class="flex items-center isolate"
       >
         <color-picker
           v-if="element === 'board'"

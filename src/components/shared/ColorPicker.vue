@@ -86,6 +86,6 @@ onUnmounted(() => {
 }
 .color-picker {
   @apply absolute p-3 text-black dark:text-white z-10;
-  @apply bg-gray-200 dark:bg-gray-900  rounded-lg;
+  @apply bg-gray-200 dark:bg-gray-900 rounded-lg;
 }
 </style>
