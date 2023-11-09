@@ -41,36 +41,30 @@ const emits = defineEmits([
 const isColorPickerShown = ref(false)
 const colorPicker = ref<null | { $el: HTMLDivElement }>(null)
 
-const closeColorPicker = () => {
-  emits('set-show-modal', isColorPickerShown.value)
-  isColorPickerShown.value = false
-}
+const closeColorPicker = (conditionOne: boolean, conditionTwo: boolean) => {
+  if (conditionOne) return
 
-const closeColorPickerOnClick = (e: Event) => {
-  if (
-    (e.target as HTMLElement)
-      .closest('button')
-      ?.getAttribute('data-protected') === 'column-dot'
-  )
-    return
-
-  closeColorPicker()
-}
-
-const closeColorPickerOnEsc = (e: KeyboardEvent) => {
-  if (e.key !== 'Escape') return
-
-  if (!isColorPickerShown.value) {
+  if (!isColorPickerShown.value && conditionTwo) {
     emits('close-parent-modal')
   }
 
   if (isColorPickerShown.value) {
-    closeColorPicker()
+    emits('set-show-modal', isColorPickerShown.value)
+    isColorPickerShown.value = false
   }
 }
 
+const closeColorPickerOnEsc = (e: KeyboardEvent) => {
+  closeColorPicker(e.key !== 'Escape', true)
+}
+
 onClickOutside(colorPicker as MaybeElementRef, (e: Event) => {
-  closeColorPickerOnClick(e)
+  closeColorPicker(
+    (e.target as HTMLElement)
+      .closest('button')
+      ?.getAttribute('data-protected') === 'column-dot',
+    (e.target as HTMLElement).closest('form') == null
+  )
 })
 
 onMounted(() => {

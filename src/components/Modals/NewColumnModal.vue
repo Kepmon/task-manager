@@ -64,7 +64,6 @@ const setShowModal = (isColorPickerShown: boolean) => {
   }
 
   shouldModalBeClosed.value = true
-  emits('close-modal')
 }
 
 const closeModal = () => {
