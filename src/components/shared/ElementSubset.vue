@@ -3,12 +3,22 @@
     <p class="text-xs">
       {{ element === 'board' ? 'Columns' : 'Subtasks' }}
     </p>
-    <div class="grid gap-3">
+    <div v-if="formData.items.length > 0" class="grid gap-3">
       <div
-        v-for="({ name, id }, index) in formData.items"
+        v-for="({ name, id, dotColor }, index) in formData.items"
         :key="id"
-        class="flex items-center"
+        class="flex items-center isolate"
       >
+        <color-picker
+          v-if="element === 'board'"
+          @set-new-color="(color: ColorChangeEvent) => setNewColumn(color, index)"
+          :startColor="
+            buttonColors.length === 0
+              ? returnCircleColor(index, dotColor, action === 'add')
+              : buttonColors[index]
+          "
+          :noTranslate="true"
+        />
         <text-input
           @handle-blur="
             () =>
@@ -27,6 +37,9 @@
             element === 'board' ? 'column name' : 'subtask name'
           }`"
           class="grow"
+          :nameAttr="
+            element === 'board' ? `column${index + 1}` : `subtask${index + 1}`
+          "
         ></text-input>
         <close-icon
           @handle-close="
@@ -41,7 +54,7 @@
         />
       </div>
     </div>
-    <p v-if="formData.items.length === 0" class="text-xs text-gray-400">
+    <p v-else class="text-xs text-gray-400">
       There are no {{ element === 'board' ? 'columns' : 'subtasks' }} to display
     </p>
     <button
@@ -62,10 +75,13 @@
 </template>
 
 <script setup lang="ts">
+import type { ColorChangeEvent } from 'vue-accessible-color-picker'
 import type { FormData } from '../../api/boardsTypes'
 import TextInput from './Inputs/TextInput.vue'
 import CloseIcon from '../Svgs/CloseIcon.vue'
+import ColorPicker from '../shared/ColorPicker.vue'
 import { useFormsStore } from '../../stores/forms'
+import { returnCircleColor } from '../../composables/circleColor'
 import converter from 'number-to-words'
 import { ref } from 'vue'
 
@@ -73,21 +89,34 @@ const props = defineProps<{
   action: 'add' | 'edit'
   element: 'board' | 'task'
 }>()
-const emits = defineEmits(['handle-blur'])
+const emits = defineEmits(['handle-blur', 'set-new-color'])
 
 const formsStore = useFormsStore()
 const formData = formsStore.formsData[props.element].value[props.action]
 const formatItemNumber = (number: number) => converter.toWordsOrdinal(number)
+
+const buttonColors = ref(
+  formData.items.map(({ dotColor }) => {
+    if (dotColor == null) return 'hsl(193 75% 59%)'
+
+    return dotColor
+  })
+)
+const setNewColumn = (color: ColorChangeEvent, index: number) => {
+  buttonColors.value[index] = color.cssColor
+
+  emits('set-new-color', color, index)
+}
 
 interface WithIndexArgs {
   callback: (FormData: FormData, index: number) => void
   index: number
 }
 interface NoIndexArgs {
-  callback: (FormData: FormData) => void
+  callback: (FormData: FormData, buttonColors: string[]) => void
 }
 
-const addNewInput = ref(null)
+const addNewInput = ref<null | HTMLButtonElement>(null)
 const handleFormDataAction = <T extends NoIndexArgs | WithIndexArgs>(
   args: T,
   moveFocus?: true
@@ -97,11 +126,11 @@ const handleFormDataAction = <T extends NoIndexArgs | WithIndexArgs>(
   }
 
   if (!('index' in args)) {
-    args.callback(formData)
+    args.callback(formData, buttonColors.value)
   }
 
   if (moveFocus && addNewInput.value != null) {
-    ;(addNewInput.value as HTMLButtonElement).focus()
+    addNewInput.value.focus()
   }
 
   emits('handle-blur')

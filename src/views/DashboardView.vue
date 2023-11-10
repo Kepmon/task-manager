@@ -16,16 +16,19 @@
     </transition>
 
     <header
+      v-if="!isDashboardEmpty && !userStore.isLoading"
       class="bg-white dark:bg-gray-700"
       :class="{ 'col-span-2 grid grid-cols-[auto_1fr]': !isDashboardEmpty }"
     >
       <logo-icon
-        v-if="!userStore.isLoading"
+        v-if="
+          isDashboardEmpty
+            ? isSidebarShown && !userStore.isLoading
+            : !userStore.isLoading
+        "
         :isSidebarShown="isSidebarShown"
-        aria-label="The app logo"
       />
       <the-header
-        v-if="!isDashboardEmpty && !userStore.isLoading"
         @toggle-boards-nav="toggleBoardsNav"
         :isBoardEmpty="isBoardEmpty"
         :navOpen="isNavOpen"
@@ -38,13 +41,13 @@
       @close-boards-navbar="isNavOpen = false"
       :boards="boardsStore.boards"
       :boardName="boardsStore.currentBoard?.name || ''"
-      :condition="windowWidth >= 640 ? isSidebarShown : isNavOpen"
       :width="windowWidth"
-      :isSidebarOpen="isSidebarShown"
+      :isSidebarShown="isSidebarShown"
       :isNavOpen="isNavOpen"
+      :isDashboardEmpty="isDashboardEmpty"
     />
     <button
-      v-if="isShownSidebarShown && windowWidth > 640"
+      v-if="isOpenSidebarShown && windowWidth > 640"
       @click="toggleSidebar"
       aria-label="show sidebar"
       class="show-sidebar purple-class"
@@ -60,10 +63,13 @@
           !isDashboardEmpty
       }"
     >
-      <boards-column v-if="!isDashboardEmpty && !userStore.isLoading" />
+      <boards-column
+        v-if="!isDashboardEmpty && !isBoardEmpty && !userStore.isLoading"
+      />
       <empty-info
-        v-if="isDashboardEmpty && !userStore.isLoading"
+        v-if="(isDashboardEmpty || isBoardEmpty) && !userStore.isLoading"
         :emptyDashboard="isDashboardEmpty"
+        :width="windowWidth"
       />
       <user-options
         v-if="isDashboardEmpty && !userStore.isLoading"
@@ -100,14 +106,15 @@ const isBoardEmpty = computed(() =>
 )
 
 const isSidebarShown = ref(true)
-const isShownSidebarShown = ref(false)
+const isOpenSidebarShown = ref(false)
 const isNavOpen = ref(false)
 const toggleSidebar = () => {
   isSidebarShown.value = !isSidebarShown.value
-  isShownSidebarShown.value = false
+
+  isOpenSidebarShown.value = false
   setTimeout(() => {
     if (!isSidebarShown.value) {
-      isShownSidebarShown.value = true
+      isOpenSidebarShown.value = true
     }
   }, 100)
 }
@@ -141,8 +148,8 @@ const { width: windowWidth } = useWindowSize()
 
 <style lang="postcss" scoped>
 .main {
-  @apply p-4 sm:p-6 col-span-2 sm:col-start-2;
-  @apply overflow-auto scrollbar-invisible;
+  @apply col-span-2 sm:col-start-2;
+  @apply overflow-y-auto scrollbar-invisible;
   @apply hover:scrollbar-visibleLight dark:hover:scrollbar-visibleDark;
 }
 .show-sidebar {

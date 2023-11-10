@@ -21,6 +21,9 @@ module.exports = {
       fontFamily: {
         sans: ['Plus Jakarta Sans', ...defaultTheme.fontFamily.sans]
       },
+      borderRadius: {
+        inherit: 'inherit'
+      },
       colors: {
         blue: {
           40: 'hsl(216 15% 57% / .4)',
@@ -81,7 +84,7 @@ module.exports = {
         'checked': 'url("/img/icon-check.svg")'
       },
       animation: {
-        'ping-once': 'ping 1s ease-in-out forwards',
+        'ping-once': 'ping 1s ease-in-out',
         'lds-roller-1': 'lds-roller 1.2s -0.036s cubic-bezier(0.5, 0, 0.5, 1) infinite',
         'lds-roller-2': 'lds-roller 1.2s -0.072s cubic-bezier(0.5, 0, 0.5, 1) infinite',
         'lds-roller-3': 'lds-roller 1.2s -0.108s cubic-bezier(0.5, 0, 0.5, 1) infinite',

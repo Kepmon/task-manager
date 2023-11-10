@@ -11,7 +11,7 @@
 
     <template #main-content>
       <text-input
-        @handle-blur="() => handleBlur(true)"
+        @handle-blur="handleNameInputBlur"
         v-model="formName"
         idAttr="task-title"
         :isError="formNameError"
@@ -19,6 +19,7 @@
         fieldDescription="task title"
         :placeholder="action === 'add' ? 'e.g. Take coffee break' : ''"
         :whitePlaceholder="action === 'add' ? false : true"
+        nameAttr="taskTitle"
       />
 
       <description-field
@@ -28,11 +29,7 @@
         :whitePlaceholder="action === 'add' ? false : true"
       />
 
-      <element-subset
-        @handle-blur="handleBlur"
-        :action="action"
-        element="task"
-      />
+      <element-subset :action="action" element="task" />
 
       <div>
         <p class="mb-2 text-xs text-gray-400 dark:text-white">Status</p>
@@ -60,7 +57,6 @@ import ModalsTemplate from './ModalsTemplate.vue'
 import TextInput from '../shared/Inputs/TextInput.vue'
 import DescriptionField from '../shared/Inputs/DescriptionField.vue'
 import ElementSubset from '../shared/ElementSubset.vue'
-import { handleResponse } from '../../composables/responseHandler'
 import { useBoardsStore } from '../../stores/boards'
 import { useTasksStore } from '../../stores/tasks'
 import { useFormsStore } from '../../stores/forms'
@@ -107,58 +103,39 @@ const updateStatusItem = (newItem: BoardColumn['name']) => {
 }
 
 const isPending = ref(false)
-const handleBlur = (isFormNameInput?: true) => {
-  if (isFormNameInput) {
-    formName.value === ''
-      ? (formNameError.value = true)
-      : (formNameError.value = false)
-  }
-  formsStore.checkFormValidity(formName, formSubsetData)
+const handleNameInputBlur = () => {
+  formName.value === ''
+    ? (formNameError.value = true)
+    : (formNameError.value = false)
 }
+
 const submit = async () => {
-  formsStore.handleFormValidation(formName, formNameError, formSubsetData)
-
-  const invalidInputs = [
-    ...document.querySelectorAll('[aria-invalid]')
-  ] as HTMLInputElement[]
-
-  if (invalidInputs.length > 0) {
-    invalidInputs[0].focus()
-  }
-
-  if (!formsStore.isFormValid) return
-
-  isPending.value = true
-
   const subtaskNames = formSubsetData.value.items.map(({ name }) => name.trim())
-
-  if (props.action === 'add') {
-    const response = await tasksStore.addNewTask(
-      selectedStatusItem.value.columnID as BoardColumn['columnID'],
-      {
-        title: formName.value.trim(),
-        description: taskDescription.value.trim()
-      },
-      subtaskNames
-    )
-
-    handleResponse(response)
+  const callback = {
+    add: async () =>
+      await tasksStore.addNewTask(
+        selectedStatusItem.value.columnID as BoardColumn['columnID'],
+        {
+          title: formName.value.trim(),
+          description: taskDescription.value.trim()
+        },
+        subtaskNames
+      ),
+    edit: async () =>
+      await tasksStore.editTask(
+        formName.value,
+        taskDescription.value,
+        formSubsetData.value.items,
+        selectedStatusItem.value.columnID,
+        isStatusUpdated.value
+      )
   }
 
-  if (props.action === 'edit') {
-    const response = await tasksStore.editTask(
-      formName.value,
-      taskDescription.value,
-      formSubsetData.value.items,
-      selectedStatusItem.value.columnID,
-      isStatusUpdated.value
-    )
-
-    handleResponse(response)
-  }
-
-  emits('change-var-to-false')
-
-  isPending.value = false
+  handleNameInputBlur()
+  await formsStore.submitForm(
+    isPending.value,
+    callback[props.action as keyof typeof callback],
+    () => emits('change-var-to-false')
+  )
 }
 </script>

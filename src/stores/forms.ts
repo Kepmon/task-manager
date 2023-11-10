@@ -1,9 +1,11 @@
 import type { FormData } from '../api/boardsTypes'
-import type { Ref } from 'vue'
+import type { FirestoreErrorCode } from 'firebase/firestore'
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useBoardsStore } from './boards'
 import { useTasksStore } from './tasks'
+import { handleResponse } from '../composables/responseHandler'
+import { returnCircleColor } from '../composables/circleColor'
 
 export const useFormsStore = defineStore('forms', () => {
   const boardsStore = useBoardsStore()
@@ -12,14 +14,16 @@ export const useFormsStore = defineStore('forms', () => {
   const boardColumns = computed(() =>
     boardsStore.boardColumns.map((boardColumn) => ({
       name: boardColumn.name,
-      id: boardColumn.columnID
+      id: boardColumn.columnID,
+      dotColor: boardColumn.dotColor || null
     }))
   )
 
   const subtasks = computed(() =>
     tasksStore.subtasksOfClickedTask.map((subtask) => ({
       name: subtask.title,
-      id: subtask.subtaskID
+      id: subtask.subtaskID,
+      dotColor: undefined
     }))
   )
 
@@ -28,7 +32,8 @@ export const useFormsStore = defineStore('forms', () => {
       add: ref({
         items: ['Todo', 'Doing'].map((item, index) => ({
           name: item,
-          id: index.toString()
+          id: index.toString(),
+          dotColor: returnCircleColor(index, undefined, false)
         })),
         placeholderItems: undefined,
         errors: [false, false]
@@ -43,7 +48,8 @@ export const useFormsStore = defineStore('forms', () => {
       add: ref({
         items: ['', ''].map((item, index) => ({
           name: item,
-          id: index.toString()
+          id: index.toString(),
+          dotColor: undefined
         })),
         placeholderItems: ['e.g. Make coffee', 'e.g. Drink coffee & smile'],
         errors: [false, false]
@@ -59,7 +65,7 @@ export const useFormsStore = defineStore('forms', () => {
   const isNewInputAdded = ref(false)
   const isFormValid = ref(false)
 
-  const addNewInput = (formData: FormData) => {
+  const addNewInput = (formData: FormData, buttonColors: string[]) => {
     const index = formData.items.length + 1
 
     formData.items.push({
@@ -67,6 +73,7 @@ export const useFormsStore = defineStore('forms', () => {
       id: index.toString()
     })
     formData.errors.push(false)
+    buttonColors.push('hsl(193 75% 59%)')
     isNewInputAdded.value = true
   }
 
@@ -84,31 +91,47 @@ export const useFormsStore = defineStore('forms', () => {
     formData.errors[index] = true
   }
 
-  const checkFormValidity = (
-    formName: Ref<string>,
-    formSubsetData: Ref<FormData>
-  ) => {
-    isFormValid.value =
-      formName.value !== '' &&
-      formSubsetData.value.items.every((item) => item.name !== '')
-  }
+  const checkFormValidity = () => {
+    const formInstance = new FormData(
+      document.querySelector('.form') as HTMLFormElement
+    )
+    const formData = Object.fromEntries(formInstance)
+    const formDataKeys = Object.keys(formData)
 
-  const handleFormValidation = (
-    formName: Ref<string>,
-    formNameError: Ref<boolean>,
-    formSubsetData: Ref<FormData>
-  ) => {
-    if (!isFormValid.value) {
-      if (formName.value === '') {
-        formNameError.value = true
+    const invalidInputs = formDataKeys.filter(
+      (key) => formData[key as keyof typeof formData] === ''
+    )
+
+    if (invalidInputs.length > 0) {
+      const firstInvalidInput = document.querySelector(
+        `[name="${invalidInputs[0]}"]`
+      ) as null | HTMLInputElement
+
+      if (firstInvalidInput != null) {
+        firstInvalidInput.focus()
       }
 
-      formSubsetData.value.items.forEach((column, index) => {
-        if (column.name !== '') return
-
-        formSubsetData.value.errors[index] = true
-      })
+      return false
     }
+
+    return true
+  }
+
+  const submitForm = async (
+    isPending: boolean,
+    callback: () => Promise<true | FirestoreErrorCode>,
+    emit: () => void
+  ) => {
+    const isFormValid = checkFormValidity()
+    if (!isFormValid) return
+
+    isPending = true
+
+    const response = await callback()
+    handleResponse(response)
+    emit()
+
+    isPending = false
   }
 
   return {
@@ -119,6 +142,6 @@ export const useFormsStore = defineStore('forms', () => {
     handleBlur,
     removeInput,
     checkFormValidity,
-    handleFormValidation
+    submitForm
   }
 })

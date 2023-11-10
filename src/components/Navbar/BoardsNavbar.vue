@@ -1,5 +1,22 @@
 <template>
   <transition
+    :name="
+      (noDesktopAnimation && width >= 640) || (noMobileAnimation && width < 640)
+        ? undefined
+        : 'nav'
+    "
+  >
+    <logo-icon
+      v-if="
+        isDashboardEmpty && !userStore.isLoading && width >= 640
+          ? isSidebarShown
+          : isNavOpen
+      "
+      :isSidebarShown="isSidebarShown"
+      class="bg-white dark:bg-gray-700"
+    />
+  </transition>
+  <transition
     @after-enter="afterEnter"
     @after-leave="afterLeave"
     :name="
@@ -9,7 +26,7 @@
     "
   >
     <nav
-      v-if="!userStore.isLoading && condition"
+      v-if="!userStore.isLoading && width >= 640 ? isSidebarShown : isNavOpen"
       class="boards max-h-[calc(100vh-82px)]"
     >
       <div class="board-labels-container">
@@ -49,7 +66,6 @@
           class="mt-4 w-[90%] bg-blue-200 dark:bg-gray-800 rounded-md"
         />
         <board-label
-          v-if="width > 640"
           @click="$emit('toggle-sidebar')"
           name="Hide Sidebar"
           class="hidden sm:flex my-2 text-gray-400 fill-gray-400"
@@ -71,6 +87,7 @@ import type { Board } from '../../api/boardsTypes'
 import ThemeToggle from '../shared/ThemeToggle.vue'
 import BoardLabel from './BoardLabel.vue'
 import BoardModal from '../Modals/BoardModal.vue'
+import LogoIcon from '../../components/Svgs/LogoIcon.vue'
 import { handleResponse } from '../../composables/responseHandler'
 import { useUserStore } from '../../stores/user'
 import { useBoardsStore } from '../../stores/boards'
@@ -79,10 +96,10 @@ import { ref } from 'vue'
 const props = defineProps<{
   boards: Board[]
   boardName: Board['name']
-  condition: boolean
   width: number
-  isSidebarOpen: boolean
+  isSidebarShown: boolean
   isNavOpen: boolean
+  isDashboardEmpty: boolean
 }>()
 const emits = defineEmits(['toggle-sidebar', 'close-boards-navbar'])
 
@@ -97,12 +114,12 @@ const afterEnter = () => {
     noMobileAnimation.value = false
   }
 
-  if (props.width < 640 && props.isSidebarOpen) {
+  if (props.width < 640 && props.isSidebarShown) {
     noDesktopAnimation.value = false
     return
   }
 
-  if (props.width < 640 && !props.isSidebarOpen) {
+  if (props.width < 640 && !props.isSidebarShown) {
     noDesktopAnimation.value = true
     return
   }
@@ -115,7 +132,7 @@ const afterEnter = () => {
   noDesktopAnimation.value = false
 }
 const afterLeave = () => {
-  if (props.width > 640 && !props.isSidebarOpen) {
+  if (props.width > 640 && !props.isSidebarShown) {
     noDesktopAnimation.value = false
   }
 
@@ -129,11 +146,11 @@ const afterLeave = () => {
     return
   }
 
-  if (props.isSidebarOpen) {
+  if (props.isSidebarShown) {
     noDesktopAnimation.value = true
   }
 
-  if (!props.isSidebarOpen) {
+  if (!props.isSidebarShown) {
     noDesktopAnimation.value = false
   }
 

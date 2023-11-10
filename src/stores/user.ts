@@ -76,6 +76,8 @@ export const useUserStore = defineStore('user', () => {
         return (err as FirestoreError).code
       }
     }
+
+    isLoading.value = false
   })
 
   const register = async (email: string, password: string) => {

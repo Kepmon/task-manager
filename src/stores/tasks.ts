@@ -67,13 +67,32 @@ export const useTasksStore = defineStore('tasks', () => {
                 db,
                 `${columnsColRef.path}/${column.columnID}/tasks`
               )
-              const tasksColRefOrdered = query(
+              const tasksColRefOrderedByIndex = query(
+                tasksColRef,
+                orderBy('taskIndex', 'asc')
+              )
+              const tasksColRefOrderedByDate = query(
                 tasksColRef,
                 orderBy('createdAt', 'asc')
               )
 
               try {
-                const tasksDocRefs = (await getDocs(tasksColRefOrdered)).docs
+                const tasksDocRefs = (await getDocs(tasksColRefOrderedByIndex))
+                  .docs
+
+                const tasksOrderedByDate = (
+                  await getDocs(tasksColRefOrderedByDate)
+                ).docs
+
+                tasksOrderedByDate.forEach((dateTask) => {
+                  const isTaskDocAlreadyInArr = tasksDocRefs.some(
+                    (taskDocRef) => taskDocRef.id === dateTask.id
+                  )
+
+                  if (!isTaskDocAlreadyInArr) {
+                    tasksDocRefs.push(dateTask)
+                  }
+                })
 
                 if (tasksDocRefs == null) throw new Error('wrong response')
 
@@ -212,11 +231,107 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
+  const setNewIndexesForTheSameColumn = (
+    indexOfNewColumn: number,
+    oldIndex: number,
+    newIndex: number
+  ) => {
+    if (oldIndex === newIndex) return
+
+    const subtasksForNewColumn = subtasks.value[indexOfNewColumn]
+
+    let subtasksBefore: Subtask[][] = []
+    let subtasksAfter: Subtask[][] = []
+
+    if (oldIndex > newIndex) {
+      subtasksBefore = subtasksForNewColumn.slice(0, newIndex)
+      subtasksAfter = [
+        ...subtasksForNewColumn.slice(0, oldIndex).slice(newIndex),
+        ...subtasksForNewColumn.slice(oldIndex + 1)
+      ]
+    }
+
+    if (oldIndex < newIndex) {
+      subtasksAfter = subtasksForNewColumn.slice(newIndex + 1)
+      subtasksBefore = [
+        ...subtasksForNewColumn.slice(0, oldIndex),
+        ...subtasksForNewColumn.slice(oldIndex + 1, newIndex + 1)
+      ]
+    }
+
+    const movedSubtasks = subtasksForNewColumn[oldIndex]
+
+    subtasks.value[indexOfNewColumn] = [
+      ...subtasksBefore,
+      movedSubtasks,
+      ...subtasksAfter
+    ]
+  }
+
+  const setNewIndexesForDifferentColumns = (
+    indexOfOldColumn: number,
+    indexOfNewColumn: number,
+    oldIndex: number,
+    newIndex: number
+  ) => {
+    const subtasksForOldColumn = [...subtasks.value[indexOfOldColumn]]
+    const subtasksForNewColumn = [...subtasks.value[indexOfNewColumn]]
+
+    const oldSubtasksBefore = subtasksForOldColumn.slice(0, oldIndex)
+    const oldSubtasksAfter = subtasksForOldColumn.slice(oldIndex + 1)
+    const newSubtasksBefore = subtasksForNewColumn.slice(0, newIndex)
+    const newSubtasksAfter = subtasksForNewColumn.slice(newIndex)
+    const movedSubtasks = subtasksForOldColumn[oldIndex]
+
+    subtasks.value[indexOfOldColumn] = [
+      ...oldSubtasksBefore,
+      ...oldSubtasksAfter
+    ]
+
+    subtasks.value[indexOfNewColumn] = [
+      ...newSubtasksBefore,
+      movedSubtasks,
+      ...newSubtasksAfter
+    ]
+  }
+
+  const addIndexesToTasks = async (
+    taskIndexes: { taskID: Task['taskID']; taskIndex: number }[],
+    columnID: BoardColumn['columnID']
+  ) => {
+    const nextTasksColRef = collection(
+      db,
+      `${columnsColRefPrefix.value}/${columnID}/tasks`
+    )
+
+    taskIndexes.forEach(async (task) => {
+      const taskDocRef = doc(nextTasksColRef, task.taskID)
+      const taskIndex = taskIndexes.find(
+        (task) => task.taskID === taskDocRef.id
+      )?.taskIndex
+
+      await updateDoc(taskDocRef, { taskIndex })
+    })
+  }
+
   const moveTaskBetweenColumns = async (
-    nextColumnID: BoardColumn['columnID']
+    nextColumnID: BoardColumn['columnID'],
+    previousColumnID?: BoardColumn['columnID'],
+    taskToBeDragged?: Task,
+    taskIndexes?: { taskID: Task['taskID']; taskIndex: number }[]
   ) => {
     const prevColumnID =
-      boardsStore.boardColumns[columnOfClickedTask.value as number].columnID
+      previousColumnID != null
+        ? previousColumnID
+        : boardsStore.boardColumns[columnOfClickedTask.value as number].columnID
+
+    if (nextColumnID === previousColumnID) {
+      if (taskIndexes != null) {
+        addIndexesToTasks(taskIndexes, nextColumnID)
+      }
+      return
+    }
+
     const prevTasksColRef = collection(
       db,
       `${columnsColRefPrefix.value}/${prevColumnID}/tasks`
@@ -225,15 +340,19 @@ export const useTasksStore = defineStore('tasks', () => {
       db,
       `${columnsColRefPrefix.value}/${nextColumnID}/tasks`
     )
+
     const prevTaskDocRef = doc(
       prevTasksColRef,
-      (clickedTask.value as Task).taskID
+      taskToBeDragged != null
+        ? taskToBeDragged.taskID
+        : (clickedTask.value as Task).taskID
     )
     const nextTaskDocRef = doc(
       nextTasksColRef,
-      (clickedTask.value as Task).taskID
+      taskToBeDragged != null
+        ? taskToBeDragged.taskID
+        : (clickedTask.value as Task).taskID
     )
-
     const prevSubtasksColRef = collection(db, `${prevTaskDocRef.path}/subtasks`)
     const nextSubtasksColRef = collection(db, `${nextTaskDocRef.path}/subtasks`)
 
@@ -249,12 +368,28 @@ export const useTasksStore = defineStore('tasks', () => {
 
       try {
         await setDoc(nextTaskDocRef, {
-          createdAt: (clickedTask.value as Task).createdAt,
-          title: (clickedTask.value as Task).title,
-          description: (clickedTask.value as Task).description
+          createdAt:
+            taskToBeDragged != null
+              ? taskToBeDragged.createdAt
+              : (clickedTask.value as Task).createdAt,
+          title:
+            taskToBeDragged != null
+              ? taskToBeDragged.title
+              : (clickedTask.value as Task).title,
+          description:
+            taskToBeDragged != null
+              ? taskToBeDragged.description
+              : (clickedTask.value as Task).description
         })
 
-        const deleteResponse = await deleteTask()
+        if (taskIndexes != null && taskIndexes.length > 0) {
+          addIndexesToTasks(taskIndexes, nextColumnID)
+        }
+
+        const deleteResponse =
+          taskToBeDragged != null
+            ? await deleteTask(taskToBeDragged.taskID, prevColumnID)
+            : await deleteTask()
         if (deleteResponse !== true) throw new Error(deleteResponse)
       } catch (err) {
         return (err as FirestoreError).code
@@ -271,8 +406,6 @@ export const useTasksStore = defineStore('tasks', () => {
           })
         })
       }
-
-      await getColumnsAgain()
 
       return true
     } catch (err) {
@@ -404,14 +537,21 @@ export const useTasksStore = defineStore('tasks', () => {
     return true
   }
 
-  const deleteTask = async () => {
+  const deleteTask = async (
+    taskID?: Task['taskID'],
+    columnID?: BoardColumn['columnID']
+  ) => {
+    const deletedTaskID = taskID != null ? taskID : clickedTask.value?.taskID
+    const columnOfDeletedTaskID =
+      columnID != null
+        ? columnID
+        : boardsStore.boardColumns[columnOfClickedTask.value as number].columnID
+
     const tasksColRef = collection(
       db,
-      `${columnsColRefPrefix.value}/${
-        boardsStore.boardColumns[columnOfClickedTask.value as number].columnID
-      }/tasks`
+      `${columnsColRefPrefix.value}/${columnOfDeletedTaskID}/tasks`
     )
-    const tasksDocRef = doc(tasksColRef, clickedTask.value?.taskID)
+    const tasksDocRef = doc(tasksColRef, deletedTaskID)
 
     const subtasksColRef = collection(db, `${tasksDocRef.path}/subtasks`)
 
@@ -430,7 +570,10 @@ export const useTasksStore = defineStore('tasks', () => {
 
       try {
         await deleteDoc(tasksDocRef)
-        await getColumnsAgain()
+
+        if (taskID == null) {
+          await getColumnsAgain()
+        }
         return true
       } catch (err) {
         return (err as FirestoreError).code
@@ -495,6 +638,9 @@ export const useTasksStore = defineStore('tasks', () => {
     subtasksOfClickedTask,
     getTasks,
     addNewTask,
+    setNewIndexesForTheSameColumn,
+    setNewIndexesForDifferentColumns,
+    addIndexesToTasks,
     moveTaskBetweenColumns,
     editTask,
     deleteTask,
