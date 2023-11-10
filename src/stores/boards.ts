@@ -121,11 +121,14 @@ export const useBoardsStore = defineStore('boards', () => {
   }
 
   const saveCurrentBoard = async (newBoard: Board) => {
+    if (currentBoard.value?.boardID === newBoard.boardID) return true
+
     currentBoard.value = newBoard
     localStorage.setItem(
       `TM-currentBoard-${userStore.userID}`,
       JSON.stringify(currentBoard.value)
     )
+
     const response = await getColumns()
 
     if (response !== true) return response
@@ -170,14 +173,27 @@ export const useBoardsStore = defineStore('boards', () => {
     action: 'add' | 'delete'
   ) => {
     const actionHandlers = {
-      add: () => (boardColumns.value = [...boardColumns.value, updatedColumn]),
-      delete: () =>
-        (boardColumns.value = boardColumns.value.filter(
+      add: () => {
+        tasksStore.subtasks = [...tasksStore.subtasks, []]
+        tasksStore.tasks = [...tasksStore.tasks, []]
+        boardColumns.value = [...boardColumns.value, updatedColumn]
+      },
+      delete: () => {
+        const indexOfDeletedColumn = boardColumns.value.indexOf(updatedColumn)
+
+        tasksStore.subtasks = tasksStore.subtasks.filter(
+          (_, index) => index !== indexOfDeletedColumn
+        )
+        tasksStore.tasks = tasksStore.tasks.filter(
+          (_, index) => index !== indexOfDeletedColumn
+        )
+        boardColumns.value = boardColumns.value.filter(
           ({ columnID }) => columnID !== updatedColumn.columnID
-        ))
+        )
+      }
     }
 
-    return actionHandlers[action]()
+    actionHandlers[action]()
   }
 
   const addNewColumn = async (name: string, dotColor: string) => {
@@ -192,7 +208,10 @@ export const useBoardsStore = defineStore('boards', () => {
 
       if (addedDocRef == null) throw new Error()
 
-      const newColumn = (await getDoc(addedDocRef)).data() as BoardColumn
+      const newColumn = {
+        ...((await getDoc(addedDocRef)).data() as BoardColumn),
+        columnID: addedDocRef.id
+      }
       updateColumns(newColumn, 'add')
 
       return true
