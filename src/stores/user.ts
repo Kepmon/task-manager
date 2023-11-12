@@ -47,7 +47,8 @@ export const useUserStore = defineStore('user', () => {
       `TM-currentBoard-${userID.value}`
     )
     if (savedBoardJSON != null) {
-      boardsStore.currentBoard = JSON.parse(savedBoardJSON as string)
+      boardsStore.currentBoard = JSON.parse(savedBoardJSON)
+
       try {
         const response = await boardsStore.getColumns()
 
@@ -96,7 +97,7 @@ export const useUserStore = defineStore('user', () => {
         await setDoc(doc(usersColRef, authResponse.user.uid), {})
         await logout()
       } catch (err) {
-        return (err as RegisterError).code
+        return (err as RegisterError | FirestoreError).code
       }
 
       return true
