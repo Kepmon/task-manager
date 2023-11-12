@@ -226,7 +226,7 @@ export const useBoardsStore = defineStore('boards', () => {
 
   const addNewBoard = async (
     boardName: Board['name'],
-    boardColumns: string[],
+    newBoardColumns: string[],
     dotColors: string[]
   ) => {
     try {
@@ -237,17 +237,33 @@ export const useBoardsStore = defineStore('boards', () => {
 
       if (addedDocRef == null) throw new Error('custom error')
 
-      if (addedDocRef) {
-        const columnsColRef = collection(db, `${addedDocRef.path}/columns`)
+      boards.value = [
+        {
+          name: boardName,
+          boardID: addedDocRef.id
+        },
+        ...boards.value
+      ]
 
-        boardColumns.forEach(async (column, index) => {
-          await addDocToFirestore(columnsColRef, column, dotColors[index])
+      const columnsColRef = collection(db, `${addedDocRef.path}/columns`)
+
+      const responses = await Promise.all(
+        newBoardColumns.map(async (column, index) => {
+          return await addDocToFirestore(
+            columnsColRef,
+            column,
+            dotColors[index]
+          )
         })
-      }
+      )
+      if (responses.every((response) => response != null)) {
+        const newColumns = responses.map(({ id }, index) => ({
+          name: newBoardColumns[index],
+          columnID: id,
+          dotColor: dotColors[index]
+        }))
+        boardColumns.value = [...newColumns]
 
-      const boardsResponse = await getBoards()
-
-      if (boardsResponse === true) {
         try {
           const saveBoardResponse = await saveCurrentBoard(boards.value[0])
 
