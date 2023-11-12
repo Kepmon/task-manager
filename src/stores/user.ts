@@ -47,7 +47,8 @@ export const useUserStore = defineStore('user', () => {
       `TM-currentBoard-${userID.value}`
     )
     if (savedBoardJSON != null) {
-      boardsStore.currentBoard = JSON.parse(savedBoardJSON as string)
+      boardsStore.currentBoard = JSON.parse(savedBoardJSON)
+
       try {
         const response = await boardsStore.getColumns()
 
@@ -96,7 +97,7 @@ export const useUserStore = defineStore('user', () => {
         await setDoc(doc(usersColRef, authResponse.user.uid), {})
         await logout()
       } catch (err) {
-        return (err as RegisterError).code
+        return (err as RegisterError | FirestoreError).code
       }
 
       return true
@@ -134,6 +135,17 @@ export const useUserStore = defineStore('user', () => {
   const deleteAccount = async () => {
     const user = auth.currentUser
 
+    const credential = EmailAuthProvider.credential(
+      (user as User).email as string,
+      inputedPassword.value as string
+    )
+
+    try {
+      await reauthenticateWithCredential(user as User, credential)
+    } catch (err) {
+      return (err as AuthError).code
+    }
+
     try {
       const boardsColRef = collection(db, `users/${(user as User).uid}/boards`)
       const boardsDocRefs = (await getDocs(boardsColRef)).docs
@@ -159,13 +171,7 @@ export const useUserStore = defineStore('user', () => {
         return (err as FirestoreError).code
       }
 
-      const credential = EmailAuthProvider.credential(
-        (user as User).email as string,
-        inputedPassword.value as string
-      )
-
       try {
-        await reauthenticateWithCredential(user as User, credential)
         await deleteUser(user as User)
       } catch (err) {
         return (err as AuthError).code

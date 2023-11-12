@@ -1,19 +1,19 @@
 export interface Board {
   boardID: string
-  createdAt: string
+  createdAt?: string
   name: string
 }
 
 export interface BoardColumn {
   columnID: string
-  createdAt: string
+  createdAt?: string
   name: string
   dotColor?: string
 }
 
 export interface Task {
   taskID: string
-  createdAt: string
+  createdAt?: string
   title: string
   description: string
 }
@@ -22,7 +22,7 @@ export interface Subtask {
   subtaskID: string
   title: string
   isCompleted: boolean
-  createdAt: string
+  createdAt?: string
 }
 
 export interface FormSubsetItem {

@@ -121,7 +121,11 @@ export const useBoardsStore = defineStore('boards', () => {
   }
 
   const saveCurrentBoard = async (newBoard: Board) => {
-    if (currentBoard.value?.boardID === newBoard.boardID) return true
+    if (
+      currentBoard.value != null &&
+      currentBoard.value.boardID === newBoard.boardID
+    )
+      return true
 
     currentBoard.value = newBoard
     localStorage.setItem(
@@ -222,7 +226,7 @@ export const useBoardsStore = defineStore('boards', () => {
 
   const addNewBoard = async (
     boardName: Board['name'],
-    boardColumns: string[],
+    newBoardColumns: string[],
     dotColors: string[]
   ) => {
     try {
@@ -233,17 +237,33 @@ export const useBoardsStore = defineStore('boards', () => {
 
       if (addedDocRef == null) throw new Error('custom error')
 
-      if (addedDocRef) {
-        const columnsColRef = collection(db, `${addedDocRef.path}/columns`)
+      boards.value = [
+        {
+          name: boardName,
+          boardID: addedDocRef.id
+        },
+        ...boards.value
+      ]
 
-        boardColumns.forEach(async (column, index) => {
-          await addDocToFirestore(columnsColRef, column, dotColors[index])
+      const columnsColRef = collection(db, `${addedDocRef.path}/columns`)
+
+      const responses = await Promise.all(
+        newBoardColumns.map(async (column, index) => {
+          return await addDocToFirestore(
+            columnsColRef,
+            column,
+            dotColors[index]
+          )
         })
-      }
+      )
+      if (responses.every((response) => response != null)) {
+        const newColumns = responses.map(({ id }, index) => ({
+          name: newBoardColumns[index],
+          columnID: id,
+          dotColor: dotColors[index]
+        }))
+        boardColumns.value = [...newColumns]
 
-      const boardsResponse = await getBoards()
-
-      if (boardsResponse === true) {
         try {
           const saveBoardResponse = await saveCurrentBoard(boards.value[0])
 
@@ -449,16 +469,19 @@ export const useBoardsStore = defineStore('boards', () => {
 
     try {
       await deleteDoc(boardDocRef)
-      const boardsResponse = await getBoards()
 
-      if (boardsResponse !== true) throw new Error(boardsResponse)
-
-      if (boards.value.length === 0) {
+      if (boards.value.length === 1) {
+        boards.value = []
         currentBoard.value = null
         localStorage.removeItem(`TM-currentBoard-${userStore.userID}`)
       }
 
-      if (boards.value.length > 0) {
+      if (boards.value.length > 1) {
+        const idOfDeletedBoard = boardDocRef.id
+        boards.value = boards.value.filter(
+          ({ boardID }) => boardID !== idOfDeletedBoard
+        )
+
         try {
           const saveBoardResponse = await saveCurrentBoard(boards.value[0])
           const columnsResponse = await getColumns()

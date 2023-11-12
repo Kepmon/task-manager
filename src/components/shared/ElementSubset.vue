@@ -3,11 +3,11 @@
     <p class="text-xs">
       {{ element === 'board' ? 'Columns' : 'Subtasks' }}
     </p>
-    <div v-if="formData.items.length > 0" class="grid gap-3">
+    <div v-if="formData.items.length > 0" class="grid gap-3 isolate">
       <div
         v-for="({ name, id, dotColor }, index) in formData.items"
         :key="id"
-        class="flex items-center isolate"
+        class="flex items-center"
       >
         <color-picker
           v-if="element === 'board'"
