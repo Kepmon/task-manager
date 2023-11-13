@@ -102,7 +102,7 @@ _Some of the following sections were divided into collapsible subsections, so yo
   * Create/edit/delete columns
     - that serve as categories for your tasks - for example, you may have "Todo"/"Doing"/"Done" columns to sort your tasks out
   * Create/edit/delete tasks
-  * Move tasks between columns
+  * Move tasks between columns by either making an appropriate change in the "edit board" form or by dragging them between columns
   * Create and delete subtasks for each task
   * Toggle the completed status of each subtask
 </details>
@@ -133,12 +133,12 @@ Again, @solracss pointed out to me that I shouldn't really do such a customizati
     - all your stored data will be removed from localStorage when you delete your account
 
 **_What about multiple users using the very same computer/browser for using the app?_**
-* if you don't log out qhen quitting the app, the next person will see your dashboard when opening the app (I believe that's obvious)
+* if you don't log out when quitting the app, the next person will see your dashboard when opening the app (I believe that's obvious)
 * however, I believe you would actually log out when using, for example, a public computer
 * the current board of each user is stored separately in localStorage (I assigned the user ID to its name), so if you do log out, the next user will see their current board, not yours
 
 **_What if I delete my localStorage data or just clear the browser cache?_**
-* if you only delete your current board value, it'll default it to the very first one (being actually the last added, since I decided to sort them from the oldest to newest one)
+* if you only delete your current board value, it'll default it to the first one (being actually the last added, since I decided to sort them from the newest to oldest ones)
 * if you only delete your user value, you'll be automatically logged out, **after closing the browser tab** (you'll still be able to use the app as long as you don't close the browser tab), so you'll have to log in again when coming back
 * if you delete all your localStorage data or clear your browser data, both abovementioned will apply
 
@@ -271,9 +271,7 @@ I have no intention to fix this, since I strongly believe the percent usage of t
   <summary>6. Possible future improvements</summary>
   I thought about certain features that could be added to the app to enhance the user experience. Those would be: 
 
-  * the possibility of **dragging tasks between colums** (in addition to the current option of changing the column inside the modal that shows up when clicking a task)
   * **some kind of Q&A/tour** on how to navigate through the app, since, at times, I found some of the functionalities to not be very intuitive ones
-  * the option of **choosing the color of the dot** that is displayed on the left side of the column name
   
   Apart from that, I'm also considering adding **dynamic imports** - not sure about this one though because it seems to me that: 
 
