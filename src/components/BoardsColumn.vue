@@ -136,13 +136,6 @@
       />
     </transition>
     <transition name="modal">
-      <board-modal
-        v-if="modals.isEditBoardModalShown"
-        @change-var-to-false="modals.isEditBoardModalShown = false"
-        action="edit"
-      />
-    </transition>
-    <transition name="modal">
       <new-column-modal
         v-if="modals.isNewColumnModalShown"
         @close-modal="modals.isNewColumnModalShown = false"
@@ -159,7 +152,6 @@ import TaskCard from './TaskCard.vue'
 import SeeTaskModal from './Modals/SeeTaskModal.vue'
 import ConfirmationModal from '../components/Modals/ConfirmationModal.vue'
 import TaskModal from '../components/Modals/TaskModal.vue'
-import BoardModal from '../components/Modals/BoardModal.vue'
 import NewColumnModal from './Modals/NewColumnModal.vue'
 import CloseIcon from './Svgs/CloseIcon.vue'
 import { handleResponse } from '../composables/responseHandler'
@@ -179,7 +171,6 @@ const modals = ref({
   isSeeTaskModalShown: false,
   isEditTaskModalShown: false,
   isDeleteTaskModalShown: false,
-  isEditBoardModalShown: false,
   isDeleteColumnModalShown: false,
   isNewColumnModalShown: false,
   columnToDelete: <null | BoardColumn>null,

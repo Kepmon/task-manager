@@ -121,23 +121,21 @@ export const useBoardsStore = defineStore('boards', () => {
   }
 
   const saveCurrentBoard = async (newBoard: Board) => {
-    if (
-      currentBoard.value != null &&
-      currentBoard.value.boardID === newBoard.boardID
-    )
-      return true
-
     currentBoard.value = newBoard
     localStorage.setItem(
       `TM-currentBoard-${userStore.userID}`,
       JSON.stringify(currentBoard.value)
     )
 
-    const response = await getColumns()
+    try {
+      const response = await getColumns()
 
-    if (response !== true) return response
+      if (response !== true) throw new Error(response)
 
-    return true
+      return response
+    } catch (err) {
+      return (err as FirestoreError).code
+    }
   }
 
   const addDocToFirestore = async (
@@ -336,10 +334,10 @@ export const useBoardsStore = defineStore('boards', () => {
             const saveBoardResponse = await saveCurrentBoard(newBoard)
 
             if (saveBoardResponse !== true) throw new Error(saveBoardResponse)
+            return true
           } catch (err) {
             return (err as FirestoreError).code
           }
-          return true
         }
       } catch (err) {
         return (err as FirestoreError).code || 'wrong response'
@@ -378,56 +376,64 @@ export const useBoardsStore = defineStore('boards', () => {
     }
 
     if (boardColumns.value != null) {
-      boardColumns.value.forEach(async ({ columnID, name, dotColor }) => {
-        const columnDocRef = doc(columnsColRef, columnID)
+      const errorCodes = await Promise.all(
+        boardColumns.value.map(async ({ columnID, name, dotColor }) => {
+          const columnDocRef = doc(columnsColRef, columnID)
 
-        const respectiveColumn = updatedColumns.find(
-          ({ id }) => id === columnID
-        )
-        const indexOfRespectiveColumn =
-          respectiveColumn != null
-            ? updatedColumns.indexOf(respectiveColumn)
-            : null
-        const isColumnNameSame = respectiveColumn?.name === name
-        const isDotColorSame =
-          indexOfRespectiveColumn != null
-            ? dotColors[indexOfRespectiveColumn] === dotColor
-            : false
+          const respectiveColumn = updatedColumns.find(
+            ({ id }) => id === columnID
+          )
+          const indexOfRespectiveColumn =
+            respectiveColumn != null
+              ? updatedColumns.indexOf(respectiveColumn)
+              : null
+          const isColumnNameSame = respectiveColumn?.name === name
+          const isDotColorSame =
+            indexOfRespectiveColumn != null
+              ? dotColors[indexOfRespectiveColumn] === dotColor
+              : false
+          if (respectiveColumn && isColumnNameSame && isDotColorSame) return
 
-        if (respectiveColumn && isColumnNameSame && isDotColorSame) return
-
-        if (respectiveColumn == null) {
-          try {
-            await deleteDoc(columnDocRef)
-          } catch (err) {
-            return (err as FirestoreError).code
+          if (respectiveColumn == null) {
+            try {
+              await deleteDoc(columnDocRef)
+            } catch (err) {
+              return (err as FirestoreError).code
+            }
+            return
           }
-          return
-        }
 
-        if (!isColumnNameSame) {
-          try {
-            await updateFirestoreDoc(columnDocRef, respectiveColumn.name)
-          } catch (err) {
-            return (err as FirestoreError).code
+          if (!isColumnNameSame) {
+            try {
+              await updateFirestoreDoc(columnDocRef, respectiveColumn.name)
+            } catch (err) {
+              return (err as FirestoreError).code
+            }
           }
-        }
 
-        if (!isDotColorSame) {
-          try {
-            await updateDoc(columnDocRef, {
-              dotColor: dotColors[indexOfRespectiveColumn as number]
-            })
-          } catch (err) {
-            return (err as FirestoreError).code
+          if (!isDotColorSame) {
+            try {
+              await updateDoc(columnDocRef, {
+                dotColor: dotColors[indexOfRespectiveColumn as number]
+              })
+            } catch (err) {
+              return (err as FirestoreError).code
+            }
           }
-        }
-      })
+        })
+      )
+
+      if (errorCodes.some((code) => code != null))
+        throw new Error('wrong response')
     }
 
     const newBoard =
       boards.value.find((board) => board.boardID === lastCurrentBoardID) ||
       boards.value[0]
+
+    if (newBoard.name !== boardName) {
+      newBoard.name = boardName
+    }
 
     try {
       const saveBoardResponse = await saveCurrentBoard(newBoard)

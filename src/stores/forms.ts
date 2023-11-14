@@ -1,4 +1,3 @@
-import type { FormData } from '../api/boardsTypes'
 import type { FirestoreErrorCode } from 'firebase/firestore'
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
@@ -15,7 +14,7 @@ export const useFormsStore = defineStore('forms', () => {
     boardsStore.boardColumns.map((boardColumn) => ({
       name: boardColumn.name,
       id: boardColumn.columnID,
-      dotColor: boardColumn.dotColor || null
+      dotColor: boardColumn.dotColor || ''
     }))
   )
 
@@ -27,73 +26,121 @@ export const useFormsStore = defineStore('forms', () => {
     }))
   )
 
-  const formsData = computed(() => ({
-    board: ref({
-      add: ref({
-        items: ['Todo', 'Doing'].map((item, index) => ({
-          name: item,
-          id: index.toString(),
-          dotColor: returnCircleColor(index, undefined, false)
-        })),
-        placeholderItems: undefined,
-        errors: [false, false]
-      }),
-      edit: ref({
-        items: boardColumns.value,
-        placeholderItems: undefined,
-        errors: boardsStore.boardColumns.map(() => false)
-      })
-    }),
-    task: ref({
-      add: ref({
-        items: ['', ''].map((item, index) => ({
-          name: item,
-          id: index.toString(),
-          dotColor: undefined
-        })),
-        placeholderItems: ['e.g. Make coffee', 'e.g. Drink coffee & smile'],
-        errors: [false, false]
-      }),
-      edit: ref({
-        items: subtasks.value,
-        placeholderItems: undefined,
-        errors: tasksStore.subtasks.map(() => false)
-      })
-    })
-  }))
+  const formData = ref({
+    board: {
+      add: {
+        data: {
+          name: '',
+          items: ['Todo', 'Doing'].map((item, index) => ({
+            name: item,
+            id: index.toString(),
+            dotColor: returnCircleColor(index, undefined, false)
+          })),
+          placeholderItems: undefined
+        },
+        errors: {
+          nameError: false,
+          itemsErrors: [false, false]
+        }
+      },
+      edit: {
+        data: {
+          name: boardsStore.currentBoard?.name || '',
+          items: boardColumns.value,
+          placeholderItems: undefined
+        },
+        errors: {
+          nameError: false,
+          itemsErrors: boardsStore.boardColumns.map(() => false)
+        }
+      }
+    },
+    task: {
+      add: {
+        data: {
+          name: '',
+          items: ['', ''].map((item, index) => ({
+            name: item,
+            id: index.toString(),
+            dotColor: undefined
+          })),
+          placeholderItems: ['e.g. Make coffee', 'e.g. Drink coffee & smile']
+        },
+        errors: {
+          nameError: false,
+          itemsErrors: [false, false]
+        }
+      },
+      edit: {
+        data: {
+          name: tasksStore.clickedTask?.title || '',
+          items: subtasks.value,
+          placeholderItems: undefined
+        },
+        errors: {
+          nameError: false,
+          itemsErrors: tasksStore.subtasks.map(() => false)
+        }
+      }
+    }
+  })
 
   const isNewInputAdded = ref(false)
   const isFormValid = ref(false)
 
-  const addNewInput = (formData: FormData, buttonColors: string[]) => {
-    const index = formData.items.length + 1
+  const addNewInput = (element: 'board' | 'task', action: 'add' | 'edit') => {
+    const index = formData.value[element][action].data.items.length + 1
 
-    formData.items.push({
+    formData.value[element][action].data.items.push({
       name: '',
-      id: index.toString()
+      id: index.toString(),
+      dotColor: element === 'board' ? 'hsl(193 75% 59%)' : undefined
     })
-    formData.errors.push(false)
-    buttonColors.push('hsl(193 75% 59%)')
+    formData.value[element][action].errors.itemsErrors.push(false)
     isNewInputAdded.value = true
   }
 
-  const removeInput = (formData: FormData, index: number) => {
-    formData.items.splice(index, 1)
-    formData.errors.splice(index, 1)
+  const removeInput = (
+    element: 'board' | 'task',
+    action: 'add' | 'edit',
+    index: number
+  ) => {
+    formData.value[element][action].data.items.splice(index, 1)
+    formData.value[element][action].errors.itemsErrors.splice(index, 1)
   }
 
-  const handleBlur = (formData: FormData, index: number) => {
-    if (formData.items[index].name !== '') {
-      formData.errors[index] = false
-      return
+  const handleBlur = (
+    element: 'board' | 'task',
+    action: 'add' | 'edit',
+    index?: number,
+    isFormName?: true
+  ) => {
+    if (isFormName && formData.value[element][action].data.name === '') {
+      formData.value[element][action].errors.nameError = true
     }
 
-    formData.errors[index] = true
+    if (isFormName && formData.value[element][action].data.name !== '') {
+      formData.value[element][action].errors.nameError = false
+    }
+
+    if (
+      index != null &&
+      formData.value[element][action].data.items[index].name !== ''
+    ) {
+      formData.value[element][action].errors.itemsErrors[index] = false
+    }
+
+    if (
+      index != null &&
+      formData.value[element][action].data.items[index].name === ''
+    ) {
+      formData.value[element][action].errors.itemsErrors[index] = true
+    }
   }
 
   const checkFormValidity = () => {
     const formInstance = new FormData(
-      document.querySelector('.form') as HTMLFormElement
+      document.querySelector('[data-form]') as HTMLFormElement
     )
     const formData = Object.fromEntries(formInstance)
     const formDataKeys = Object.keys(formData)
@@ -135,7 +182,7 @@ export const useFormsStore = defineStore('forms', () => {
   }
 
   return {
-    formsData,
+    formData,
     isNewInputAdded,
     isFormValid,
     addNewInput,
