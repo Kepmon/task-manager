@@ -59,6 +59,7 @@ export const useFormsStore = defineStore('forms', () => {
       add: {
         data: {
           name: '',
+          description: '',
           items: ['', ''].map((item, index) => ({
             name: item,
             id: index.toString(),
@@ -74,6 +75,7 @@ export const useFormsStore = defineStore('forms', () => {
       edit: {
         data: {
           name: tasksStore.clickedTask?.title || '',
+          description: tasksStore.clickedTask?.description || '',
           items: subtasks.value,
           placeholderItems: undefined
         },
@@ -91,11 +93,18 @@ export const useFormsStore = defineStore('forms', () => {
   const addNewInput = (element: 'board' | 'task', action: 'add' | 'edit') => {
     const index = formData.value[element][action].data.items.length + 1
 
-    formData.value[element][action].data.items.push({
-      name: '',
-      id: index.toString(),
-      dotColor: element === 'board' ? 'hsl(193 75% 59%)' : undefined
-    })
+    element === 'board'
+      ? formData.value['board'][action].data.items.push({
+          name: '',
+          id: index.toString(),
+          dotColor: 'hsl(193 75% 59%)'
+        })
+      : formData.value['task'][action].data.items.push({
+          name: '',
+          id: index.toString(),
+          dotColor: undefined
+        })
+
     formData.value[element][action].errors.itemsErrors.push(false)
     isNewInputAdded.value = true
   }

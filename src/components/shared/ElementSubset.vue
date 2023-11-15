@@ -15,7 +15,7 @@
           :startColor="
             formData.data.items[index].dotColor == null
               ? returnCircleColor(index, dotColor, action === 'add')
-              : formData.data.items[index].dotColor
+              : formData.data.items[index].dotColor as unknown as string
           "
           :noTranslate="true"
         />
@@ -82,11 +82,13 @@ const props = defineProps<{
 const emits = defineEmits(['handle-blur', 'set-new-color'])
 
 const formsStore = useFormsStore()
-const formData = ref(formsStore.formData.board[props.action])
+const formData = ref(formsStore.formData[props.element][props.action])
 const formatItemNumber = (number: number) => converter.toWordsOrdinal(number)
 
 const setNewColumn = (color: ColorChangeEvent, index: number) => {
-  formData.value.data.items[index].dotColor = color.cssColor
+  if (props.element !== 'board') return
+  ;(formData.value.data.items[index].dotColor as unknown as string) =
+    color.cssColor
 
   emits('set-new-color', color, index)
 }

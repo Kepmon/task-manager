@@ -97,7 +97,8 @@
           @show-edit-form="modals.showEditForm"
           @show-delete-form="modals.showDeleteForm"
           @handle-move-task="(value) => moveTask(value)"
-          v-bind="tasksProps"
+          :task="(tasksStore.clickedTask as Task)"
+          :columnIndex="(tasksStore.columnOfClickedTask as number)"
         />
       </transition>
     </Teleport>
@@ -132,7 +133,11 @@
         v-if="modals.isEditTaskModalShown && tasksConditions"
         @change-var-to-false="modals.isEditTaskModalShown = false"
         action="edit"
-        v-bind="tasksProps"
+        :columnIndex="
+          tasksStore.columnOfClickedTask != null
+            ? tasksStore.columnOfClickedTask
+            : undefined
+        "
       />
     </transition>
     <transition name="modal">
@@ -145,8 +150,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Ref } from 'vue'
-import type { BoardColumn, Task, Subtask } from '../api/boardsTypes'
+import type { BoardColumn, Task } from '../api/boardsTypes'
 import type { MoveDragEvent, DragEndEvent } from '../api/dragTypes'
 import TaskCard from './TaskCard.vue'
 import SeeTaskModal from './Modals/SeeTaskModal.vue'
@@ -206,16 +210,6 @@ const tasks = ref({
   }
 })
 
-interface TasksProps {
-  columnIndex: number
-  task: Task
-  subtasks: Subtask[]
-}
-const tasksProps = computed(() => ({
-  columnIndex: tasksStore.columnOfClickedTask,
-  task: tasksStore.clickedTask,
-  subtasks: tasksStore.subtasksOfClickedTask
-})) as Ref<TasksProps>
 const tasksConditions = computed(() =>
   [
     tasksStore.clickedTask != null,
