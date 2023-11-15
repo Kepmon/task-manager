@@ -99,6 +99,9 @@ const updateStatusItem = (newItem: BoardColumn['name']) => {
 const isPending = ref(false)
 
 const submit = async () => {
+  const isFormValid = formsStore.checkFormValidity('task', props.action)
+  if (!isFormValid) return
+
   const subtaskNames = formData.value.data.items.map(({ name }) => name.trim())
   const callback = {
     add: async () =>

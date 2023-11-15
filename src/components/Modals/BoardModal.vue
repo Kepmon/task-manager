@@ -18,7 +18,7 @@
         idAttr="board-title"
         :placeholder="action === 'add' ? 'e.g. Web Design' : ''"
         :whitePlaceholder="action === 'add' ? false : true"
-        nameAttr="boardName"
+        nameAttr="boardTitle"
       />
       <element-subset
         @set-new-color="(color: ColorChangeEvent, index: number) => (formData.data.items[index].dotColor = color.cssColor)"
@@ -56,6 +56,9 @@ const formData = ref(formsStore.formData.board[props.action])
 const isPending = ref(false)
 
 const submit = async () => {
+  const isFormValid = formsStore.checkFormValidity('board', props.action)
+  if (!isFormValid) return
+
   const callback = {
     add: async () =>
       await boardsStore.addNewBoard(

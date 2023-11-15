@@ -147,15 +147,18 @@ export const useFormsStore = defineStore('forms', () => {
     }
   }
 
-  const checkFormValidity = () => {
+  const checkFormValidity = (
+    element: 'board' | 'task',
+    action: 'add' | 'edit'
+  ) => {
     const formInstance = new FormData(
       document.querySelector('[data-form]') as HTMLFormElement
     )
-    const formData = Object.fromEntries(formInstance)
-    const formDataKeys = Object.keys(formData)
+    const formDataObj = Object.fromEntries(formInstance)
+    const formDataKeys = Object.keys(formDataObj)
 
     const invalidInputs = formDataKeys.filter(
-      (key) => formData[key as keyof typeof formData] === ''
+      (key) => formDataObj[key as keyof typeof formDataObj] === ''
     )
 
     if (invalidInputs.length > 0) {
@@ -166,6 +169,28 @@ export const useFormsStore = defineStore('forms', () => {
       if (firstInvalidInput != null) {
         firstInvalidInput.focus()
       }
+
+      if (invalidInputs.includes(`${element}Title`)) {
+        formData.value[element][action].errors.nameError = true
+      } else {
+        formData.value[element][action].errors.nameError = false
+      }
+
+      invalidInputs.forEach((input) => {
+        if (input === `${element}Title`) return
+
+        const indexOfInvalidInput = formDataKeys.indexOf(input) - 1
+
+        if (indexOfInvalidInput >= 0) {
+          formData.value[element][action].errors.itemsErrors[
+            indexOfInvalidInput
+          ] = true
+        } else {
+          formData.value[element][action].errors.itemsErrors[
+            indexOfInvalidInput
+          ] = true
+        }
+      })
 
       return false
     }
@@ -178,9 +203,6 @@ export const useFormsStore = defineStore('forms', () => {
     callback: () => Promise<true | FirestoreErrorCode>,
     emit: () => void
   ) => {
-    const isFormValid = checkFormValidity()
-    if (!isFormValid) return
-
     isPending = true
 
     const response = await callback()
