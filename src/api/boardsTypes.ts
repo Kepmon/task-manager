@@ -24,8 +24,3 @@ export interface Subtask {
   isCompleted: boolean
   createdAt?: string
 }
-
-export interface FormSubsetItem {
-  name: string
-  id: string
-}

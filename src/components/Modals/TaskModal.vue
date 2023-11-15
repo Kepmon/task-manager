@@ -102,22 +102,15 @@ const submit = async () => {
   const isFormValid = formsStore.checkFormValidity('task', props.action)
   if (!isFormValid) return
 
-  const subtaskNames = formData.value.data.items.map(({ name }) => name.trim())
   const callback = {
     add: async () =>
       await tasksStore.addNewTask(
         selectedStatusItem.value.columnID as BoardColumn['columnID'],
-        {
-          title: formData.value.data.name.trim(),
-          description: formData.value.data.description.trim()
-        },
-        subtaskNames
+        props.action
       ),
     edit: async () =>
       await tasksStore.editTask(
-        formData.value.data.name,
-        formData.value.data.description,
-        formData.value.data.items,
+        props.action,
         selectedStatusItem.value.columnID,
         isStatusUpdated.value
       )

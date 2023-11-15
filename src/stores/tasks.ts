@@ -1,9 +1,4 @@
-import type {
-  BoardColumn,
-  Task,
-  Subtask,
-  FormSubsetItem
-} from '../api/boardsTypes'
+import type { BoardColumn, Task, Subtask } from '../api/boardsTypes'
 import type {
   CollectionReference,
   QueryDocumentSnapshot,
@@ -27,6 +22,7 @@ import {
 import { db } from '../firebase'
 import { useUserStore } from './user'
 import { useBoardsStore } from './boards'
+import { useFormsStore } from './forms'
 
 export const useTasksStore = defineStore('tasks', () => {
   const userStore = useUserStore()
@@ -187,9 +183,11 @@ export const useTasksStore = defineStore('tasks', () => {
 
   const addNewTask = async (
     columnID: BoardColumn['columnID'],
-    task: Omit<Task, 'createdAt' | 'taskID'> | Omit<Task, 'taskID'>,
-    subtasks: Subtask['title'][]
+    action: 'add' | 'edit'
   ) => {
+    const formsStore = useFormsStore()
+    const formData = formsStore.formData.task[action].data
+
     const tasksColRef = collection(
       db,
       `${columnsColRefPrefix.value}/${columnID}/tasks`
@@ -198,21 +196,22 @@ export const useTasksStore = defineStore('tasks', () => {
     try {
       const addedDocRef = await addDoc(tasksColRef, {
         createdAt: serverTimestamp(),
-        ...task
+        title: formData.name,
+        description: formData.description
       })
       if (addedDocRef == null) throw new Error('wrong response')
 
       const subtasksColRef = collection(db, `${addedDocRef.path}/subtasks`)
 
-      if (subtasks.length === 0) {
+      if (formData.items.length === 0) {
         await getColumnsAgain()
         return true
       }
 
-      subtasks.forEach(async (subtask) => {
+      formData.items.forEach(async ({ name }) => {
         try {
           const response = await addDoc(subtasksColRef, {
-            title: subtask,
+            title: name,
             isCompleted: false,
             createdAt: serverTimestamp()
           })
@@ -414,12 +413,13 @@ export const useTasksStore = defineStore('tasks', () => {
   }
 
   const editTask = async (
-    taskName: string,
-    taskDescription: string,
-    updatedSubtasks: FormSubsetItem[],
+    action: 'add' | 'edit',
     nextColumnID: BoardColumn['columnID'],
     isStatusChanged: boolean
   ) => {
+    const formsStore = useFormsStore()
+    const formData = formsStore.formData.task[action].data
+
     const columnsColRef = collection(db, columnsColRefPrefix.value as string)
 
     const clickedColumnID =
@@ -431,14 +431,14 @@ export const useTasksStore = defineStore('tasks', () => {
     const taskDocRef = doc(tasksColRef, (clickedTask.value as Task).taskID)
     const subtasksColRef = collection(db, `${taskDocRef.path}/subtasks`)
 
-    const isTaskNameSame = taskName === (clickedTask.value as Task).title
+    const isTaskNameSame = formData.name === (clickedTask.value as Task).title
     const isDescriptionSame =
-      taskDescription === (clickedTask.value as Task).description
+      formData.description === (clickedTask.value as Task).description
     const isNumberOfSubtaskSame =
-      subtasksOfClickedTask.value.length === updatedSubtasks.length
+      subtasksOfClickedTask.value.length === formData.items.length
     const areSubtasksTitlesSame = subtasksOfClickedTask.value.every(
       ({ subtaskID, title }) =>
-        updatedSubtasks.find(
+        formData.items.find(
           ({ name, id }) => title === name && subtaskID === id
         )
     )
@@ -455,13 +455,13 @@ export const useTasksStore = defineStore('tasks', () => {
     try {
       if (!isTaskNameSame) {
         await updateDoc(taskDocRef, {
-          title: taskName
+          title: formData.name
         })
       }
 
       if (!isDescriptionSame) {
         await updateDoc(taskDocRef, {
-          description: taskDescription
+          description: formData.description
         })
       }
 
@@ -474,7 +474,7 @@ export const useTasksStore = defineStore('tasks', () => {
       return (err as FirestoreError).code
     }
 
-    const newSubtasksNames = updatedSubtasks.filter(({ name, id }) => {
+    const newSubtasksNames = formData.items.filter(({ name, id }) => {
       if (
         subtasksOfClickedTask.value.length > 0 &&
         subtasksOfClickedTask.value.some(({ subtaskID }) => subtaskID === id)
@@ -505,7 +505,7 @@ export const useTasksStore = defineStore('tasks', () => {
         async ({ subtaskID, title }, index) => {
           const subtaskDocRef = doc(subtasksColRef, subtaskID)
 
-          const respectiveSubtask = updatedSubtasks.find(
+          const respectiveSubtask = formData.items.find(
             ({ id }) => id === subtaskID
           )
           const isSubtaskNameSame = respectiveSubtask?.name === title
@@ -523,7 +523,7 @@ export const useTasksStore = defineStore('tasks', () => {
 
           try {
             await updateDoc(subtaskDocRef, {
-              title: updatedSubtasks[index].name
+              title: formData.items[index].name
             })
           } catch (err) {
             return (err as FirestoreError).code
