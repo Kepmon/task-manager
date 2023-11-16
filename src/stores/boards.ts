@@ -122,6 +122,8 @@ export const useBoardsStore = defineStore('boards', () => {
   }
 
   const saveCurrentBoard = async (newBoard: Board) => {
+    const formsStore = useFormsStore()
+
     currentBoard.value = newBoard
     localStorage.setItem(
       `TM-currentBoard-${userStore.userID}`,
@@ -130,6 +132,7 @@ export const useBoardsStore = defineStore('boards', () => {
 
     try {
       const response = await getColumns()
+      formsStore.resetFormData('board', 'edit')
 
       if (response !== true) throw new Error(response)
 
@@ -198,7 +201,6 @@ export const useBoardsStore = defineStore('boards', () => {
 
     actionHandlers[action]()
   }
-
   const addNewColumn = async (name: string, dotColor: string) => {
     const { columnsColRef } = returnColumnsColRef()
 

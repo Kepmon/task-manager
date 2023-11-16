@@ -73,7 +73,7 @@ const tasksStore = useTasksStore()
 const boardsStore = useBoardsStore()
 const formsStore = useFormsStore()
 
-const formData = ref(formsStore.formData.task[props.action])
+const formData = formsStore.formData.task[props.action]
 
 const selectedStatusItem = ref(
   props.columnIndex != null
@@ -121,5 +121,7 @@ const submit = async () => {
     callback[props.action as keyof typeof callback],
     () => emits('change-var-to-false')
   )
+
+  formsStore.resetFormData('task', props.action)
 }
 </script>

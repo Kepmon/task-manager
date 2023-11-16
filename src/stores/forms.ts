@@ -124,24 +124,24 @@ export const useFormsStore = defineStore('forms', () => {
     index?: number,
     isFormName?: true
   ) => {
-    if (isFormName && formData.value[element][action].data.name === '') {
+    if (isFormName && formData.value[element][action].data.name.trim() === '') {
       formData.value[element][action].errors.nameError = true
     }
 
-    if (isFormName && formData.value[element][action].data.name !== '') {
+    if (isFormName && formData.value[element][action].data.name.trim() !== '') {
       formData.value[element][action].errors.nameError = false
     }
 
     if (
       index != null &&
-      formData.value[element][action].data.items[index].name !== ''
+      formData.value[element][action].data.items[index].name.trim() !== ''
     ) {
       formData.value[element][action].errors.itemsErrors[index] = false
     }
 
     if (
       index != null &&
-      formData.value[element][action].data.items[index].name === ''
+      formData.value[element][action].data.items[index].name.trim() === ''
     ) {
       formData.value[element][action].errors.itemsErrors[index] = true
     }
@@ -158,7 +158,8 @@ export const useFormsStore = defineStore('forms', () => {
     const formDataKeys = Object.keys(formDataObj)
 
     const invalidInputs = formDataKeys.filter(
-      (key) => formDataObj[key as keyof typeof formDataObj] === ''
+      (key) =>
+        (formDataObj[key as keyof typeof formDataObj] as string).trim() === ''
     )
 
     if (invalidInputs.length > 0) {
@@ -188,7 +189,7 @@ export const useFormsStore = defineStore('forms', () => {
         } else {
           formData.value[element][action].errors.itemsErrors[
             indexOfInvalidInput
-          ] = true
+          ] = false
         }
       })
 
@@ -212,6 +213,74 @@ export const useFormsStore = defineStore('forms', () => {
     isPending = false
   }
 
+  const resetFormData = (element: 'board' | 'task', action: 'add' | 'edit') => {
+    if (element === 'board' && action === 'add') {
+      formData.value.board.add = {
+        data: {
+          name: '',
+          items: ['Todo', 'Doing'].map((item, index) => ({
+            name: item,
+            id: index.toString(),
+            dotColor: returnCircleColor(index, undefined, false)
+          })),
+          placeholderItems: undefined
+        },
+        errors: {
+          nameError: false,
+          itemsErrors: [false, false]
+        }
+      }
+    }
+
+    if (element === 'board' && action === 'edit') {
+      formData.value.board.edit = {
+        data: {
+          name: boardsStore.currentBoard?.name || '',
+          items: boardColumns.value,
+          placeholderItems: undefined
+        },
+        errors: {
+          nameError: false,
+          itemsErrors: boardsStore.boardColumns.map(() => false)
+        }
+      }
+    }
+
+    if (element === 'task' && action === 'add') {
+      formData.value.task.add = {
+        data: {
+          name: '',
+          description: '',
+          items: ['', ''].map((item, index) => ({
+            name: item,
+            id: index.toString(),
+            dotColor: undefined
+          })),
+          placeholderItems: ['e.g. Make coffee', 'e.g. Drink coffee & smile']
+        },
+        errors: {
+          nameError: false,
+          itemsErrors: [false, false]
+        }
+      }
+    }
+
+    if (element === 'task' && action === 'edit') {
+      formData.value.task.edit = {
+        data: {
+          name: tasksStore.clickedTask?.title || '',
+          description: tasksStore.clickedTask?.description || '',
+          items: subtasks.value,
+          placeholderItems: undefined
+        },
+        errors: {
+          nameError: false,
+          itemsErrors: tasksStore.subtasks.map(() => false)
+        }
+      }
+    }
+  }
+
   return {
     formData,
     isNewInputAdded,
@@ -220,6 +289,7 @@ export const useFormsStore = defineStore('forms', () => {
     handleBlur,
     removeInput,
     checkFormValidity,
-    submitForm
+    submitForm,
+    resetFormData
   }
 })

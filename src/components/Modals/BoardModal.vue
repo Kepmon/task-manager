@@ -52,7 +52,7 @@ const emits = defineEmits(['update:modelValue', 'change-var-to-false'])
 const boardsStore = useBoardsStore()
 const formsStore = useFormsStore()
 
-const formData = ref(formsStore.formData.board[props.action])
+const formData = formsStore.formData.board[props.action]
 const isPending = ref(false)
 
 const submit = async () => {
@@ -69,5 +69,7 @@ const submit = async () => {
     callback[props.action as keyof typeof callback],
     () => emits('change-var-to-false')
   )
+
+  formsStore.resetFormData('board', props.action)
 }
 </script>

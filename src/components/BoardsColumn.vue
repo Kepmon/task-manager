@@ -163,11 +163,13 @@ import { returnCircleColor } from '../composables/circleColor'
 import { computed, ref } from 'vue'
 import { useBoardsStore } from '../stores/boards'
 import { useTasksStore } from '../stores/tasks'
+import { useFormsStore } from '../stores/forms'
 import converter from 'number-to-words'
 import draggable from 'vuedraggable'
 
 const boardsStore = useBoardsStore()
 const tasksStore = useTasksStore()
+const formsStore = useFormsStore()
 
 const formatColumnNumber = (number: number) => converter.toWordsOrdinal(number)
 
@@ -203,6 +205,8 @@ const tasks = ref({
     tasksStore.clickedTask = tasksStore.tasks[columnIndex][taskIndex]
 
     tasks.value.saveSubtasksOfClickedTask(columnIndex, taskIndex)
+
+    formsStore.resetFormData('task', 'edit')
   },
   saveSubtasksOfClickedTask: (columnIndex: number, taskIndex: number) => {
     tasksStore.subtasksOfClickedTask =
