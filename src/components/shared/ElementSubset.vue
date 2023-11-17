@@ -39,7 +39,7 @@
           "
         ></text-input>
         <close-icon
-          @handle-close="formsStore.removeInput(element, action, index)"
+          @handle-close="() => removeInput(index)"
           :listItem="true"
           :isError="formData.errors.itemsErrors[index]"
         />
@@ -50,7 +50,6 @@
     </p>
     <button
       @click="() => formsStore.addNewInput(element, action)"
-      ref="addNewInput"
       aria-labelledby="add-new-element"
       class="mt-4 regular-button white-button"
       type="button"
@@ -91,5 +90,39 @@ const setNewColumn = (color: ColorChangeEvent, index: number) => {
     color.cssColor
 
   emits('set-new-color', color, index)
+}
+
+const moveFocusFromRemovedInput = (index: number) => {
+  const nameAttr = `${props.element === 'board' ? 'board' : 'task'}Title`
+  const nameAttrOfSubsetEl = props.element === 'board' ? 'column' : 'subtask'
+  const prevSubsetInput = document.querySelector(
+    `[name="${nameAttrOfSubsetEl}${index}"]`
+  ) as null | HTMLInputElement
+  const nextSubsetInput = document.querySelector(
+    `[name="${nameAttrOfSubsetEl}${index + 2}"]`
+  ) as null | HTMLInputElement
+
+  if (prevSubsetInput != null) {
+    prevSubsetInput.focus()
+    return
+  }
+
+  if (nextSubsetInput != null) {
+    nextSubsetInput.focus()
+    return
+  }
+
+  const titleInput = document.querySelector(
+    `[name="${nameAttr}"]`
+  ) as null | HTMLInputElement
+
+  if (titleInput != null) {
+    titleInput.focus()
+  }
+}
+
+const removeInput = (index: number) => {
+  formsStore.removeInput(props.element, props.action, index)
+  moveFocusFromRemovedInput(index)
 }
 </script>

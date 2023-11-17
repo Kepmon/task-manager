@@ -34,8 +34,8 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useFormsStore } from '../../../stores/forms'
 
 const props = defineProps<{
-  label?: string
   fieldDescription: string
+  label?: string
   idAttr?: string
   isError?: boolean
   placeholder?: string
@@ -55,7 +55,7 @@ const handleInput = (e: Event) => {
 }
 
 onMounted(() => {
-  if (props.condition && newInput.value) {
+  if (props.condition && newInput.value != null) {
     newInput.value.focus()
   }
 })
