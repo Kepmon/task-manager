@@ -10,115 +10,81 @@ export const useFormsStore = defineStore('forms', () => {
   const boardsStore = useBoardsStore()
   const tasksStore = useTasksStore()
 
-  const boardColumns = computed(() =>
-    boardsStore.boardColumns.map((boardColumn) => ({
-      name: boardColumn.name,
-      id: boardColumn.columnID,
-      dotColor: boardColumn.dotColor || ''
-    }))
+  const elementEditName = computed(() => ({
+    board: boardsStore.currentBoard?.name || '',
+    task: tasksStore.clickedTask?.title || ''
+  }))
+  const subsetItems = computed(() => ({
+    board: {
+      add: ['Todo', 'Doing'],
+      edit: boardsStore.boardColumns.map(({ name }) => name)
+    },
+    task: {
+      add: ['', ''],
+      edit: tasksStore.subtasksOfClickedTask.map(({ title }) => title)
+    }
+  }))
+  const existingDotColors = computed(() =>
+    boardsStore.boardColumns.map(({ dotColor }) => dotColor)
   )
 
-  const subtasks = computed(() =>
-    tasksStore.subtasksOfClickedTask.map((subtask) => ({
-      name: subtask.title,
-      id: subtask.subtaskID,
-      dotColor: undefined
-    }))
-  )
+  const returnFormDataObj = (
+    items: string[],
+    element: 'board' | 'task',
+    action: 'add' | 'edit'
+  ) => {
+    return {
+      data: {
+        name: action === 'add' ? '' : elementEditName.value[element],
+        description:
+          element === 'board'
+            ? undefined
+            : action === 'add'
+            ? ''
+            : tasksStore.clickedTask?.description || '',
+        items: items.map((item, index) => ({
+          name: item,
+          id: index.toString(),
+          dotColor:
+            element === 'board'
+              ? existingDotColors.value[index] != null && action === 'edit'
+                ? existingDotColors.value[index]
+                : returnCircleColor(index, undefined, false)
+              : undefined
+        })),
+        placeholderItems:
+          element === 'board'
+            ? undefined
+            : ['e.g. Make coffee', 'e.g. Drink coffee & smile']
+      },
+      errors: {
+        nameError: {
+          emptyError: false,
+          tooLongError: false
+        },
+        itemsErrors: items.map(() => ({
+          emptyError: false,
+          tooLongError: false
+        }))
+      }
+    }
+  }
 
   const formData = ref({
     board: {
       add: {
-        data: {
-          name: '',
-          items: ['Todo', 'Doing'].map((item, index) => ({
-            name: item,
-            id: index.toString(),
-            dotColor: returnCircleColor(index, undefined, false)
-          })),
-          placeholderItems: undefined
-        },
-        errors: {
-          nameError: {
-            emptyError: false,
-            tooLongError: false
-          },
-          itemsErrors: [
-            {
-              emptyError: false,
-              tooLongError: false
-            },
-            {
-              emptyError: false,
-              tooLongError: false
-            }
-          ]
-        }
+        ...returnFormDataObj(['Todo', 'Doing'], 'board', 'add')
       },
       edit: {
-        data: {
-          name: boardsStore.currentBoard?.name || '',
-          items: boardColumns.value,
-          placeholderItems: undefined
-        },
-        errors: {
-          nameError: {
-            emptyError: false,
-            tooLongError: false
-          },
-          itemsErrors: boardsStore.boardColumns.map(() => ({
-            emptyError: false,
-            tooLongError: false
-          }))
-        }
+        ...returnFormDataObj(subsetItems.value.board.edit, 'board', 'edit')
       }
     },
     task: {
       add: {
-        data: {
-          name: '',
-          description: '',
-          items: ['', ''].map((item, index) => ({
-            name: item,
-            id: index.toString(),
-            dotColor: undefined
-          })),
-          placeholderItems: ['e.g. Make coffee', 'e.g. Drink coffee & smile']
-        },
-        errors: {
-          nameError: {
-            emptyError: false,
-            tooLongError: false
-          },
-          itemsErrors: [
-            {
-              emptyError: false,
-              tooLongError: false
-            },
-            {
-              emptyError: false,
-              tooLongError: false
-            }
-          ]
-        }
+        ...returnFormDataObj(['', ''], 'task', 'add')
       },
       edit: {
-        data: {
-          name: tasksStore.clickedTask?.title || '',
-          description: tasksStore.clickedTask?.description || '',
-          items: subtasks.value,
-          placeholderItems: undefined
-        },
-        errors: {
-          nameError: {
-            emptyError: false,
-            tooLongError: false
-          },
-          itemsErrors: tasksStore.subtasks.map(() => ({
-            emptyError: false,
-            tooLongError: false
-          }))
-        }
+        ...returnFormDataObj(subsetItems.value.task.edit, 'board', 'edit')
       }
     }
   })
@@ -178,10 +144,10 @@ export const useFormsStore = defineStore('forms', () => {
     const inputErrorsKeys = Object.keys(inputErrors)
 
     inputErrorsKeys.forEach((key) => {
-      if (inputErrors[key]) {
-        errorToEdit[key] = true
+      if (inputErrors[key as keyof typeof inputErrors]) {
+        errorToEdit[key as keyof typeof inputErrors] = true
       } else {
-        errorToEdit[key] = false
+        errorToEdit[key as keyof typeof inputErrors] = false
       }
     })
   }
@@ -291,107 +257,11 @@ export const useFormsStore = defineStore('forms', () => {
   }
 
   const resetFormData = (element: 'board' | 'task', action: 'add' | 'edit') => {
-    if (element === 'board' && action === 'add') {
-      formData.value.board.add = {
-        data: {
-          name: '',
-          items: ['Todo', 'Doing'].map((item, index) => ({
-            name: item,
-            id: index.toString(),
-            dotColor: returnCircleColor(index, undefined, false)
-          })),
-          placeholderItems: undefined
-        },
-        errors: {
-          nameError: {
-            emptyError: false,
-            tooLongError: false
-          },
-          itemsErrors: [
-            {
-              emptyError: false,
-              tooLongError: false
-            },
-            {
-              emptyError: false,
-              tooLongError: false
-            }
-          ]
-        }
-      }
-    }
-
-    if (element === 'board' && action === 'edit') {
-      formData.value.board.edit = {
-        data: {
-          name: boardsStore.currentBoard?.name || '',
-          items: boardColumns.value,
-          placeholderItems: undefined
-        },
-        errors: {
-          nameError: {
-            emptyError: false,
-            tooLongError: false
-          },
-          itemsErrors: boardsStore.boardColumns.map(() => ({
-            emptyError: false,
-            tooLongError: false
-          }))
-        }
-      }
-    }
-
-    if (element === 'task' && action === 'add') {
-      formData.value.task.add = {
-        data: {
-          name: '',
-          description: '',
-          items: ['', ''].map((item, index) => ({
-            name: item,
-            id: index.toString(),
-            dotColor: undefined
-          })),
-          placeholderItems: ['e.g. Make coffee', 'e.g. Drink coffee & smile']
-        },
-        errors: {
-          nameError: {
-            emptyError: false,
-            tooLongError: false
-          },
-          itemsErrors: [
-            {
-              emptyError: false,
-              tooLongError: false
-            },
-            {
-              emptyError: false,
-              tooLongError: false
-            }
-          ]
-        }
-      }
-    }
-
-    if (element === 'task' && action === 'edit') {
-      formData.value.task.edit = {
-        data: {
-          name: tasksStore.clickedTask?.title || '',
-          description: tasksStore.clickedTask?.description || '',
-          items: subtasks.value,
-          placeholderItems: undefined
-        },
-        errors: {
-          nameError: {
-            emptyError: false,
-            tooLongError: false
-          },
-          itemsErrors: tasksStore.subtasks.map(() => ({
-            emptyError: false,
-            tooLongError: false
-          }))
-        }
-      }
-    }
+    formData.value[element][action] = returnFormDataObj(
+      subsetItems.value[element][action],
+      element,
+      action
+    )
   }
 
   return {

@@ -5,7 +5,7 @@
       <input-error
         v-if="emptyError || tooLongError"
         :message="
-          emptyError ? 'Can\'t be empty' : 'Can\'t be longer than 100 chars'
+          emptyError ? 'Can\'t be empty' : 'Can\'t be longer than 80 chars'
         "
       />
       <input
