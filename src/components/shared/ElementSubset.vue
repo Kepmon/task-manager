@@ -28,8 +28,9 @@
               ? formData.data.placeholderItems[index]
               : undefined
           "
-          :isError="formData.errors.itemsErrors[index]"
           :condition="formsStore.isNewInputAdded"
+          :emptyError="formData.errors.itemsErrors[index].emptyError"
+          :tooLongError="formData.errors.itemsErrors[index].tooLongError"
           :fieldDescription="`${formatItemNumber(index + 1)} ${
             element === 'board' ? 'column name' : 'subtask name'
           }`"
@@ -41,7 +42,8 @@
         <close-icon
           @handle-close="() => removeInput(index)"
           :listItem="true"
-          :isError="formData.errors.itemsErrors[index]"
+          :emptyError="formData.errors.itemsErrors[index].emptyError"
+          :tooLongError="formData.errors.itemsErrors[index].tooLongError"
         />
       </div>
     </div>

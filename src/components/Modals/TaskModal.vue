@@ -11,9 +11,10 @@
 
     <template #main-content>
       <text-input
-        @handle-blur="formsStore.handleBlur('task', action, undefined, true)"
+        @handle-blur="formsStore.handleBlur('task', action)"
         v-model="formData.data.name"
-        :isError="formData.errors.nameError"
+        :emptyError="formData.errors.nameError.emptyError"
+        :tooLongError="formData.errors.nameError.tooLongError"
         idAttr="task-title"
         label="Title"
         fieldDescription="task title"

@@ -39,8 +39,20 @@ export const useFormsStore = defineStore('forms', () => {
           placeholderItems: undefined
         },
         errors: {
-          nameError: false,
-          itemsErrors: [false, false]
+          nameError: {
+            emptyError: false,
+            tooLongError: false
+          },
+          itemsErrors: [
+            {
+              emptyError: false,
+              tooLongError: false
+            },
+            {
+              emptyError: false,
+              tooLongError: false
+            }
+          ]
         }
       },
       edit: {
@@ -50,8 +62,14 @@ export const useFormsStore = defineStore('forms', () => {
           placeholderItems: undefined
         },
         errors: {
-          nameError: false,
-          itemsErrors: boardsStore.boardColumns.map(() => false)
+          nameError: {
+            emptyError: false,
+            tooLongError: false
+          },
+          itemsErrors: boardsStore.boardColumns.map(() => ({
+            emptyError: false,
+            tooLongError: false
+          }))
         }
       }
     },
@@ -68,8 +86,20 @@ export const useFormsStore = defineStore('forms', () => {
           placeholderItems: ['e.g. Make coffee', 'e.g. Drink coffee & smile']
         },
         errors: {
-          nameError: false,
-          itemsErrors: [false, false]
+          nameError: {
+            emptyError: false,
+            tooLongError: false
+          },
+          itemsErrors: [
+            {
+              emptyError: false,
+              tooLongError: false
+            },
+            {
+              emptyError: false,
+              tooLongError: false
+            }
+          ]
         }
       },
       edit: {
@@ -80,8 +110,14 @@ export const useFormsStore = defineStore('forms', () => {
           placeholderItems: undefined
         },
         errors: {
-          nameError: false,
-          itemsErrors: tasksStore.subtasks.map(() => false)
+          nameError: {
+            emptyError: false,
+            tooLongError: false
+          },
+          itemsErrors: tasksStore.subtasks.map(() => ({
+            emptyError: false,
+            tooLongError: false
+          }))
         }
       }
     }
@@ -105,7 +141,10 @@ export const useFormsStore = defineStore('forms', () => {
           dotColor: undefined
         })
 
-    formData.value[element][action].errors.itemsErrors.push(false)
+    formData.value[element][action].errors.itemsErrors.push({
+      emptyError: false,
+      tooLongError: false
+    })
     isNewInputAdded.value = true
   }
 
@@ -121,30 +160,30 @@ export const useFormsStore = defineStore('forms', () => {
   const handleBlur = (
     element: 'board' | 'task',
     action: 'add' | 'edit',
-    index?: number,
-    isFormName?: true
+    index?: number
   ) => {
-    if (isFormName && formData.value[element][action].data.name.trim() === '') {
-      formData.value[element][action].errors.nameError = true
-    }
+    const dataToCheck =
+      index == null
+        ? formData.value[element][action].data.name
+        : formData.value[element][action].data.items[index].name
+    const errorToEdit =
+      index == null
+        ? formData.value[element][action].errors.nameError
+        : formData.value[element][action].errors.itemsErrors[index]
 
-    if (isFormName && formData.value[element][action].data.name.trim() !== '') {
-      formData.value[element][action].errors.nameError = false
+    const inputErrors = {
+      emptyError: dataToCheck.trim() === '',
+      tooLongError: dataToCheck.trim().length > 80
     }
+    const inputErrorsKeys = Object.keys(inputErrors)
 
-    if (
-      index != null &&
-      formData.value[element][action].data.items[index].name.trim() !== ''
-    ) {
-      formData.value[element][action].errors.itemsErrors[index] = false
-    }
-
-    if (
-      index != null &&
-      formData.value[element][action].data.items[index].name.trim() === ''
-    ) {
-      formData.value[element][action].errors.itemsErrors[index] = true
-    }
+    inputErrorsKeys.forEach((key) => {
+      if (inputErrors[key]) {
+        errorToEdit[key] = true
+      } else {
+        errorToEdit[key] = false
+      }
+    })
   }
 
   const checkFormValidity = (
@@ -157,41 +196,79 @@ export const useFormsStore = defineStore('forms', () => {
     const formDataObj = Object.fromEntries(formInstance)
     const formDataKeys = Object.keys(formDataObj)
 
-    const invalidInputs = formDataKeys.filter(
+    const allInvalidInputs = formDataKeys.filter(
+      (key) =>
+        (formDataObj[key as keyof typeof formDataObj] as string).trim() ===
+          '' ||
+        (formDataObj[key as keyof typeof formDataObj] as string).trim().length >
+          80
+    )
+    const emptyInputs = formDataKeys.filter(
       (key) =>
         (formDataObj[key as keyof typeof formDataObj] as string).trim() === ''
     )
+    const tooLongInputs = formDataKeys.filter(
+      (key) =>
+        (formDataObj[key as keyof typeof formDataObj] as string).trim().length >
+        80
+    )
 
-    if (invalidInputs.length > 0) {
+    if (allInvalidInputs.length > 0) {
       const firstInvalidInput = document.querySelector(
-        `[name="${invalidInputs[0]}"]`
+        `[name="${allInvalidInputs[0]}"]`
       ) as null | HTMLInputElement
 
       if (firstInvalidInput != null) {
-        firstInvalidInput.focus()
+        firstInvalidInput.select()
       }
 
-      if (invalidInputs.includes(`${element}Title`)) {
-        formData.value[element][action].errors.nameError = true
-      } else {
-        formData.value[element][action].errors.nameError = false
-      }
-
-      invalidInputs.forEach((input) => {
-        if (input === `${element}Title`) return
-
-        const indexOfInvalidInput = formDataKeys.indexOf(input) - 1
-
-        if (indexOfInvalidInput >= 0) {
-          formData.value[element][action].errors.itemsErrors[
-            indexOfInvalidInput
-          ] = true
+      if (emptyInputs.length > 0) {
+        if (emptyInputs.includes(`${element}Title`)) {
+          formData.value[element][action].errors.nameError.emptyError = true
         } else {
-          formData.value[element][action].errors.itemsErrors[
-            indexOfInvalidInput
-          ] = false
+          formData.value[element][action].errors.nameError.emptyError = false
         }
-      })
+
+        emptyInputs.forEach((input) => {
+          if (input === `${element}Title`) return
+
+          const indexOfInvalidInput = formDataKeys.indexOf(input) - 1
+
+          if (indexOfInvalidInput >= 0) {
+            formData.value[element][action].errors.itemsErrors[
+              indexOfInvalidInput
+            ].emptyError = true
+          } else {
+            formData.value[element][action].errors.itemsErrors[
+              indexOfInvalidInput
+            ].emptyError = false
+          }
+        })
+
+        if (tooLongInputs.includes(`${element}Title`)) {
+          formData.value[element][action].errors.nameError.tooLongError = true
+        } else {
+          formData.value[element][action].errors.nameError.tooLongError = false
+        }
+
+        tooLongInputs.forEach((input) => {
+          if (input === `${element}Title`) return
+
+          const indexOfInvalidInput = formDataKeys.indexOf(input) - 1
+
+          if (indexOfInvalidInput >= 0) {
+            formData.value[element][action].errors.itemsErrors[
+              indexOfInvalidInput
+            ].tooLongError = true
+          } else {
+            formData.value[element][action].errors.itemsErrors[
+              indexOfInvalidInput
+            ].tooLongError = false
+          }
+        })
+
+        return false
+      }
 
       return false
     }
@@ -226,8 +303,20 @@ export const useFormsStore = defineStore('forms', () => {
           placeholderItems: undefined
         },
         errors: {
-          nameError: false,
-          itemsErrors: [false, false]
+          nameError: {
+            emptyError: false,
+            tooLongError: false
+          },
+          itemsErrors: [
+            {
+              emptyError: false,
+              tooLongError: false
+            },
+            {
+              emptyError: false,
+              tooLongError: false
+            }
+          ]
         }
       }
     }
@@ -240,8 +329,14 @@ export const useFormsStore = defineStore('forms', () => {
           placeholderItems: undefined
         },
         errors: {
-          nameError: false,
-          itemsErrors: boardsStore.boardColumns.map(() => false)
+          nameError: {
+            emptyError: false,
+            tooLongError: false
+          },
+          itemsErrors: boardsStore.boardColumns.map(() => ({
+            emptyError: false,
+            tooLongError: false
+          }))
         }
       }
     }
@@ -259,8 +354,20 @@ export const useFormsStore = defineStore('forms', () => {
           placeholderItems: ['e.g. Make coffee', 'e.g. Drink coffee & smile']
         },
         errors: {
-          nameError: false,
-          itemsErrors: [false, false]
+          nameError: {
+            emptyError: false,
+            tooLongError: false
+          },
+          itemsErrors: [
+            {
+              emptyError: false,
+              tooLongError: false
+            },
+            {
+              emptyError: false,
+              tooLongError: false
+            }
+          ]
         }
       }
     }
@@ -274,8 +381,14 @@ export const useFormsStore = defineStore('forms', () => {
           placeholderItems: undefined
         },
         errors: {
-          nameError: false,
-          itemsErrors: tasksStore.subtasks.map(() => false)
+          nameError: {
+            emptyError: false,
+            tooLongError: false
+          },
+          itemsErrors: tasksStore.subtasks.map(() => ({
+            emptyError: false,
+            tooLongError: false
+          }))
         }
       }
     }
