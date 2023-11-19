@@ -95,18 +95,13 @@ export const useFormsStore = defineStore('forms', () => {
   const addNewInput = (element: 'board' | 'task', action: 'add' | 'edit') => {
     const index = formData.value[element][action].data.items.length + 1
 
-    element === 'board'
-      ? formData.value['board'][action].data.items.push({
-          name: '',
-          id: index.toString(),
-          dotColor: 'hsl(193 75% 59%)'
-        })
-      : formData.value['task'][action].data.items.push({
-          name: '',
-          id: index.toString(),
-          dotColor: undefined
-        })
+    const newItem = {
+      name: '',
+      id: index.toString(),
+      dotColor: element === 'board' ? 'hsl(193 75% 59%)' : undefined
+    }
 
+    formData.value[element][action].data.items.push(newItem)
     formData.value[element][action].errors.itemsErrors.push({
       emptyError: false,
       tooLongError: false
