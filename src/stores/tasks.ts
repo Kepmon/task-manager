@@ -514,6 +514,7 @@ export const useTasksStore = defineStore('tasks', () => {
 
           if (respectiveSubtask == null) {
             try {
+              clickedTask.value = null
               await deleteDoc(subtaskDocRef)
               return
             } catch (err) {
@@ -532,6 +533,7 @@ export const useTasksStore = defineStore('tasks', () => {
       )
     }
 
+    clickedTask.value = null
     await getColumnsAgain()
 
     return true

@@ -24,6 +24,7 @@
       />
 
       <description-field
+        v-if="formData.data.description != null"
         v-model="formData.data.description"
         label="Description"
         idAttr="task-description"

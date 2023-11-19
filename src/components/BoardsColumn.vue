@@ -130,7 +130,7 @@
     </transition>
     <transition name="modal">
       <task-modal
-        v-if="modals.isEditTaskModalShown && tasksConditions"
+        v-if="modals.isEditTaskModalShown"
         @change-var-to-false="modals.isEditTaskModalShown = false"
         action="edit"
         :columnIndex="
@@ -201,6 +201,11 @@ const tasks = ref({
     modals.value.isSeeTaskModalShown = true
   },
   saveClickedTask: (columnIndex: number, taskIndex: number) => {
+    const idOfCurrentClickedTask = tasksStore.clickedTask?.taskID
+    const idOfNewClickedTask = tasksStore.tasks[columnIndex][taskIndex].taskID
+
+    if (idOfCurrentClickedTask === idOfNewClickedTask) return
+
     tasksStore.columnOfClickedTask = columnIndex
     tasksStore.clickedTask = tasksStore.tasks[columnIndex][taskIndex]
 
