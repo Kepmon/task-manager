@@ -307,90 +307,100 @@ export const useTasksStore = defineStore('tasks', () => {
         ? previousColumnID
         : boardsStore.boardColumns[columnOfClickedTask.value as number].columnID
 
+    const prevColumnIndex = boardsStore.boardColumns.findIndex(
+      ({ columnID }) => columnID === prevColumnID
+    )
+    const nextColumnIndex = boardsStore.boardColumns.findIndex(
+      ({ columnID }) => columnID === nextColumnID
+    )
+    const indexOfTaskColumn =
+      taskToBeDragged != null ? nextColumnIndex : prevColumnIndex
+    const taskIndex = tasks.value[indexOfTaskColumn].findIndex(({ taskID }) =>
+      taskToBeDragged != null
+        ? taskID === taskToBeDragged.taskID
+        : taskID === clickedTask.value?.taskID || 0
+    )
+
+    const movedTask = tasks.value[indexOfTaskColumn][taskIndex]
+    const subtasksOfMovedTask = subtasks.value[indexOfTaskColumn][taskIndex]
+
     if (nextColumnID === previousColumnID && taskIndexes != null) {
       addIndexesToTasks(taskIndexes, nextColumnID)
       return
     }
 
-    const prevTasksColRef = collection(
-      db,
-      `${columnsColRefPrefix.value}/${prevColumnID}/tasks`
-    )
     const nextTasksColRef = collection(
       db,
       `${columnsColRefPrefix.value}/${nextColumnID}/tasks`
     )
 
-    const prevTaskDocRef = doc(
-      prevTasksColRef,
-      taskToBeDragged != null
-        ? taskToBeDragged.taskID
-        : (clickedTask.value as Task).taskID
-    )
     const nextTaskDocRef = doc(
       nextTasksColRef,
-      taskToBeDragged != null
-        ? taskToBeDragged.taskID
-        : (clickedTask.value as Task).taskID
+      tasks.value[indexOfTaskColumn][taskIndex].taskID
     )
-    const prevSubtasksColRef = collection(db, `${prevTaskDocRef.path}/subtasks`)
     const nextSubtasksColRef = collection(db, `${nextTaskDocRef.path}/subtasks`)
 
     try {
-      const prevSubtaskDocRefs = (await getDocs(prevSubtasksColRef)).docs
+      await setDoc(nextTaskDocRef, {
+        createdAt: movedTask.createdAt,
+        title: movedTask.title,
+        description: movedTask.description
+      })
 
-      if (prevSubtaskDocRefs == null) throw new Error('wrong response')
-
-      const subtasksToBeMoved = prevSubtaskDocRefs.map((subtask, index) => ({
-        ...(subtask.data() as Omit<Subtask, 'subtaskID'>),
-        subtaskID: prevSubtaskDocRefs[index].id
-      }))
-
-      try {
-        await setDoc(nextTaskDocRef, {
-          createdAt:
-            taskToBeDragged != null
-              ? taskToBeDragged.createdAt
-              : (clickedTask.value as Task).createdAt,
-          title:
-            taskToBeDragged != null
-              ? taskToBeDragged.title
-              : (clickedTask.value as Task).title,
-          description:
-            taskToBeDragged != null
-              ? taskToBeDragged.description
-              : (clickedTask.value as Task).description
-        })
-
-        if (taskIndexes != null && taskIndexes.length > 0) {
-          addIndexesToTasks(taskIndexes, nextColumnID)
-        }
-
-        const deleteResponse =
-          taskToBeDragged != null
-            ? await deleteTask(taskToBeDragged.taskID, prevColumnID)
-            : await deleteTask()
-        if (deleteResponse !== true) throw new Error(deleteResponse)
-      } catch (err) {
-        return (err as FirestoreError).code
+      if (taskIndexes != null && taskIndexes.length > 0) {
+        addIndexesToTasks(taskIndexes, nextColumnID)
       }
 
-      if (subtasksToBeMoved.length > 0) {
-        subtasksToBeMoved.forEach(async (subtask) => {
-          const subtaskDocRef = doc(nextSubtasksColRef, subtask.subtaskID)
+      const deleteResponse =
+        taskToBeDragged != null
+          ? await deleteTask(taskToBeDragged.taskID, prevColumnID)
+          : await deleteTask()
+      if (deleteResponse !== true) throw new Error(deleteResponse)
+
+      if (taskToBeDragged == null) {
+        tasks.value[prevColumnIndex] = tasks.value[prevColumnIndex].filter(
+          ({ taskID }) => movedTask.taskID !== taskID
+        )
+        tasks.value[nextColumnIndex] = [
+          ...tasks.value[nextColumnIndex],
+          movedTask
+        ]
+      }
+    } catch (err) {
+      return (err as FirestoreError).code
+    }
+
+    if (subtasksOfMovedTask.length > 0) {
+      subtasksOfMovedTask.forEach(async (subtask) => {
+        const subtaskDocRef = doc(nextSubtasksColRef, subtask.subtaskID)
+
+        try {
+          await deleteDoc(subtaskDocRef)
 
           await setDoc(subtaskDocRef, {
             title: subtask.title,
             isCompleted: subtask.isCompleted,
             createdAt: subtask.createdAt
           })
-        })
-      }
+        } catch (err) {
+          return (err as FirestoreError).code
+        }
 
-      return true
-    } catch (err) {
-      return (err as FirestoreError).code
+        if (taskToBeDragged == null) {
+          subtasks.value[prevColumnIndex] = subtasks.value[
+            prevColumnIndex
+          ].filter((_, index) => taskIndex != index)
+
+          subtasks.value[nextColumnIndex] = [
+            ...subtasks.value[nextColumnIndex],
+            subtasksOfMovedTask
+          ]
+        }
+      })
     }
+
+    columnOfClickedTask.value = nextColumnIndex
+    return true
   }
 
   const editTask = async (
@@ -517,7 +527,6 @@ export const useTasksStore = defineStore('tasks', () => {
     }
 
     clickedTask.value = null
-    await getColumnsAgain()
 
     return true
   }
@@ -555,10 +564,6 @@ export const useTasksStore = defineStore('tasks', () => {
 
       try {
         await deleteDoc(tasksDocRef)
-
-        if (taskID == null) {
-          await getColumnsAgain()
-        }
         return true
       } catch (err) {
         return (err as FirestoreError).code
