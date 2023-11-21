@@ -44,6 +44,7 @@ import { computed } from 'vue'
 import { useUserStore } from '../../stores/user'
 import { useBoardsStore } from '../../stores/boards'
 import { useTasksStore } from '../../stores/tasks'
+import { useFormsStore } from '../../stores/forms'
 import { ref } from 'vue'
 import { handleResponse } from '../../composables/responseHandler'
 import { useRoute } from 'vue-router'
@@ -99,6 +100,8 @@ const route = useRoute()
 const userStore = useUserStore()
 const boardsStore = useBoardsStore()
 const tasksStore = useTasksStore()
+const formsStore = useFormsStore()
+
 const submitFns = {
   board: () => boardsStore.deleteBoard(props.elementID as ElementID),
   column: () => boardsStore.deleteColumn(props.elementID as ElementID),
@@ -116,6 +119,10 @@ const submit = async () => {
 
   if (props.elementToDelete === 'user' && typeof response === 'string') {
     errorMessage.value = response
+  }
+
+  if (props.elementToDelete === 'column') {
+    formsStore.resetFormData('board', 'edit')
   }
 
   isPending.value = false

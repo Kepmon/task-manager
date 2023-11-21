@@ -97,7 +97,8 @@
           @show-edit-form="modals.showEditForm"
           @show-delete-form="modals.showDeleteForm"
           @handle-move-task="(value) => moveTask(value)"
-          v-bind="tasksProps"
+          :task="(tasksStore.clickedTask as Task)"
+          :columnIndex="(tasksStore.columnOfClickedTask as number)"
         />
       </transition>
     </Teleport>
@@ -129,17 +130,14 @@
     </transition>
     <transition name="modal">
       <task-modal
-        v-if="modals.isEditTaskModalShown && tasksConditions"
+        v-if="modals.isEditTaskModalShown"
         @change-var-to-false="modals.isEditTaskModalShown = false"
         action="edit"
-        v-bind="tasksProps"
-      />
-    </transition>
-    <transition name="modal">
-      <board-modal
-        v-if="modals.isEditBoardModalShown"
-        @change-var-to-false="modals.isEditBoardModalShown = false"
-        action="edit"
+        :columnIndex="
+          tasksStore.columnOfClickedTask != null
+            ? tasksStore.columnOfClickedTask
+            : undefined
+        "
       />
     </transition>
     <transition name="modal">
@@ -152,14 +150,12 @@
 </template>
 
 <script setup lang="ts">
-import type { Ref } from 'vue'
-import type { BoardColumn, Task, Subtask } from '../api/boardsTypes'
+import type { BoardColumn, Task } from '../api/boardsTypes'
 import type { MoveDragEvent, DragEndEvent } from '../api/dragTypes'
 import TaskCard from './TaskCard.vue'
 import SeeTaskModal from './Modals/SeeTaskModal.vue'
 import ConfirmationModal from '../components/Modals/ConfirmationModal.vue'
 import TaskModal from '../components/Modals/TaskModal.vue'
-import BoardModal from '../components/Modals/BoardModal.vue'
 import NewColumnModal from './Modals/NewColumnModal.vue'
 import CloseIcon from './Svgs/CloseIcon.vue'
 import { handleResponse } from '../composables/responseHandler'
@@ -167,11 +163,13 @@ import { returnCircleColor } from '../composables/circleColor'
 import { computed, ref } from 'vue'
 import { useBoardsStore } from '../stores/boards'
 import { useTasksStore } from '../stores/tasks'
+import { useFormsStore } from '../stores/forms'
 import converter from 'number-to-words'
 import draggable from 'vuedraggable'
 
 const boardsStore = useBoardsStore()
 const tasksStore = useTasksStore()
+const formsStore = useFormsStore()
 
 const formatColumnNumber = (number: number) => converter.toWordsOrdinal(number)
 
@@ -179,7 +177,6 @@ const modals = ref({
   isSeeTaskModalShown: false,
   isEditTaskModalShown: false,
   isDeleteTaskModalShown: false,
-  isEditBoardModalShown: false,
   isDeleteColumnModalShown: false,
   isNewColumnModalShown: false,
   columnToDelete: <null | BoardColumn>null,
@@ -204,10 +201,17 @@ const tasks = ref({
     modals.value.isSeeTaskModalShown = true
   },
   saveClickedTask: (columnIndex: number, taskIndex: number) => {
+    const idOfCurrentClickedTask = tasksStore.clickedTask?.taskID
+    const idOfNewClickedTask = tasksStore.tasks[columnIndex][taskIndex].taskID
+
+    if (idOfCurrentClickedTask === idOfNewClickedTask) return
+
     tasksStore.columnOfClickedTask = columnIndex
     tasksStore.clickedTask = tasksStore.tasks[columnIndex][taskIndex]
 
     tasks.value.saveSubtasksOfClickedTask(columnIndex, taskIndex)
+
+    formsStore.resetFormData('task', 'edit')
   },
   saveSubtasksOfClickedTask: (columnIndex: number, taskIndex: number) => {
     tasksStore.subtasksOfClickedTask =
@@ -215,16 +219,6 @@ const tasks = ref({
   }
 })
 
-interface TasksProps {
-  columnIndex: number
-  task: Task
-  subtasks: Subtask[]
-}
-const tasksProps = computed(() => ({
-  columnIndex: tasksStore.columnOfClickedTask,
-  task: tasksStore.clickedTask,
-  subtasks: tasksStore.subtasksOfClickedTask
-})) as Ref<TasksProps>
 const tasksConditions = computed(() =>
   [
     tasksStore.clickedTask != null,

@@ -4,7 +4,7 @@
     class="p-2 box-content rounded-[4px] translate-x-1"
     :class="{
       'ml-auto group': isColumn,
-      'focus-visible:outline-red-400': isError
+      'focus-visible:outline-red-400': emptyError || tooLongError
     }"
     :aria-label="
       listItem || isPolicy
@@ -16,8 +16,9 @@
     <svg width="15" height="15" :class="{ 'scale-150': isPolicy }">
       <g
         :class="{
-          'fill-red-400': isError,
-          'fill-gray-400': !isError || isColumn || isPolicy,
+          'fill-red-400': emptyError || tooLongError,
+          'fill-gray-400':
+            (!emptyError && !tooLongError) || isColumn || isPolicy,
           'fill-gray-400 group-hover:fill-purple-600 group-focus-visible:fill-purple-600 transition-colors duration-300':
             isColumn
         }"
@@ -34,7 +35,8 @@ defineProps<{
   listItem?: true
   isColumn?: true
   isPolicy?: true
-  isError?: boolean
+  emptyError?: boolean
+  tooLongError?: boolean
 }>()
 defineEmits(['handle-close'])
 </script>

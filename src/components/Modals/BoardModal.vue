@@ -10,18 +10,19 @@
     </template>
     <template #main-content>
       <text-input
-        @handle-blur="handleNameInputBlur"
-        v-model="formName"
-        :isError="formNameError"
+        @handle-blur="formsStore.handleBlur('board', action)"
+        v-model="formData.data.name"
+        :emptyError="formData.errors.nameError.emptyError"
+        :tooLongError="formData.errors.nameError.tooLongError"
         label="Board Name"
         fieldDescription="board name"
         idAttr="board-title"
         :placeholder="action === 'add' ? 'e.g. Web Design' : ''"
         :whitePlaceholder="action === 'add' ? false : true"
-        nameAttr="boardName"
+        nameAttr="boardTitle"
       />
       <element-subset
-        @set-new-color="(color: ColorChangeEvent, index: number) => (columnDotColors[index] = color.cssColor)"
+        @set-new-color="(color: ColorChangeEvent, index: number) => (formData.data.items[index].dotColor = color.cssColor)"
         :action="action"
         element="board"
       />
@@ -37,13 +38,12 @@
 
 <script setup lang="ts">
 import type { ColorChangeEvent } from 'vue-accessible-color-picker'
-import type { Board } from '../../api/boardsTypes'
 import ModalsTemplate from './ModalsTemplate.vue'
 import TextInput from '../shared/Inputs/TextInput.vue'
 import ElementSubset from '../shared/ElementSubset.vue'
 import { useBoardsStore } from '../../stores/boards'
 import { useFormsStore } from '../../stores/forms'
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 
 const props = defineProps<{
   action: 'add' | 'edit'
@@ -53,45 +53,24 @@ const emits = defineEmits(['update:modelValue', 'change-var-to-false'])
 const boardsStore = useBoardsStore()
 const formsStore = useFormsStore()
 
-const formName = ref(
-  props.action === 'add' ? '' : (boardsStore.currentBoard as Board).name
-)
-const formNameError = ref(false)
-const formSubsetData = computed(
-  () => formsStore.formsData.board.value[props.action]
-)
-const columnDotColors = ref(formSubsetData.value.items.map(() => ''))
-
+const formData = formsStore.formData.board[props.action]
 const isPending = ref(false)
-const handleNameInputBlur = () => {
-  formName.value === ''
-    ? (formNameError.value = true)
-    : (formNameError.value = false)
-}
 
 const submit = async () => {
-  const columnNames = formSubsetData.value.items.map(({ name }) => name.trim())
-  const callback = {
-    add: async () =>
-      await boardsStore.addNewBoard(
-        formName.value.trim(),
-        columnNames,
-        columnDotColors.value
-      ),
-    edit: async () =>
-      await boardsStore.editBoard(
-        formName.value.trim(),
-        formSubsetData.value.items,
-        columnDotColors.value
-      )
-  }
+  const isFormValid = formsStore.checkFormValidity('board', props.action)
+  if (!isFormValid) return
 
-  handleNameInputBlur()
+  const callback = {
+    add: async () => await boardsStore.addNewBoard(props.action),
+    edit: async () => await boardsStore.editBoard(props.action)
+  }
 
   await formsStore.submitForm(
     isPending.value,
     callback[props.action as keyof typeof callback],
     () => emits('change-var-to-false')
   )
+
+  formsStore.resetFormData('board', props.action)
 }
 </script>

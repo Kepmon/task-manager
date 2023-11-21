@@ -3,9 +3,9 @@
     <p class="text-xs">
       {{ element === 'board' ? 'Columns' : 'Subtasks' }}
     </p>
-    <div v-if="formData.items.length > 0" class="grid gap-3 isolate">
+    <div v-if="formData.data.items.length > 0" class="grid gap-3 isolate">
       <div
-        v-for="({ name, id, dotColor }, index) in formData.items"
+        v-for="({ name, id, dotColor }, index) in formData.data.items"
         :key="id"
         class="flex items-center"
       >
@@ -13,26 +13,24 @@
           v-if="element === 'board'"
           @set-new-color="(color: ColorChangeEvent) => setNewColumn(color, index)"
           :startColor="
-            buttonColors.length === 0
+            formData.data.items[index].dotColor == null
               ? returnCircleColor(index, dotColor, action === 'add')
-              : buttonColors[index]
+              : formData.data.items[index].dotColor as unknown as string
           "
           :noTranslate="true"
         />
         <text-input
-          @handle-blur="
-            () =>
-              handleFormDataAction({ callback: formsStore.handleBlur, index })
-          "
-          @update:model-value="(newValue: string) => formData.items[index].name = newValue"
+          @handle-blur="formsStore.handleBlur(element, action, index)"
+          @update:model-value="(newValue: string) => formData.data.items[index].name = newValue"
           :modelValue="name"
           :placeholder="
-            formData.placeholderItems
-              ? formData.placeholderItems[index]
+            formData.data.placeholderItems
+              ? formData.data.placeholderItems[index]
               : undefined
           "
-          :isError="formData.errors[index]"
           :condition="formsStore.isNewInputAdded"
+          :emptyError="formData.errors.itemsErrors[index].emptyError"
+          :tooLongError="formData.errors.itemsErrors[index].tooLongError"
           :fieldDescription="`${formatItemNumber(index + 1)} ${
             element === 'board' ? 'column name' : 'subtask name'
           }`"
@@ -42,15 +40,10 @@
           "
         ></text-input>
         <close-icon
-          @handle-close="
-            () =>
-              handleFormDataAction(
-                { callback: formsStore.removeInput, index },
-                true
-              )
-          "
+          @handle-close="() => removeInput(index)"
           :listItem="true"
-          :isError="formData.errors[index]"
+          :emptyError="formData.errors.itemsErrors[index].emptyError"
+          :tooLongError="formData.errors.itemsErrors[index].tooLongError"
         />
       </div>
     </div>
@@ -58,8 +51,7 @@
       There are no {{ element === 'board' ? 'columns' : 'subtasks' }} to display
     </p>
     <button
-      @click="() => handleFormDataAction({ callback: formsStore.addNewInput })"
-      ref="addNewInput"
+      @click="() => formsStore.addNewInput(element, action)"
       aria-labelledby="add-new-element"
       class="mt-4 regular-button white-button"
       type="button"
@@ -76,7 +68,6 @@
 
 <script setup lang="ts">
 import type { ColorChangeEvent } from 'vue-accessible-color-picker'
-import type { FormData } from '../../api/boardsTypes'
 import TextInput from './Inputs/TextInput.vue'
 import CloseIcon from '../Svgs/CloseIcon.vue'
 import ColorPicker from '../shared/ColorPicker.vue'
@@ -92,47 +83,48 @@ const props = defineProps<{
 const emits = defineEmits(['handle-blur', 'set-new-color'])
 
 const formsStore = useFormsStore()
-const formData = formsStore.formsData[props.element].value[props.action]
+const formData = ref(formsStore.formData[props.element][props.action])
 const formatItemNumber = (number: number) => converter.toWordsOrdinal(number)
 
-const buttonColors = ref(
-  formData.items.map(({ dotColor }) => {
-    if (dotColor == null) return 'hsl(193 75% 59%)'
-
-    return dotColor
-  })
-)
 const setNewColumn = (color: ColorChangeEvent, index: number) => {
-  buttonColors.value[index] = color.cssColor
+  if (props.element !== 'board') return
+  ;(formData.value.data.items[index].dotColor as unknown as string) =
+    color.cssColor
 
   emits('set-new-color', color, index)
 }
 
-interface WithIndexArgs {
-  callback: (FormData: FormData, index: number) => void
-  index: number
+const moveFocusFromRemovedInput = (index: number) => {
+  const nameAttr = `${props.element === 'board' ? 'board' : 'task'}Title`
+  const nameAttrOfSubsetEl = props.element === 'board' ? 'column' : 'subtask'
+  const prevSubsetInput = document.querySelector(
+    `[name="${nameAttrOfSubsetEl}${index}"]`
+  ) as null | HTMLInputElement
+  const nextSubsetInput = document.querySelector(
+    `[name="${nameAttrOfSubsetEl}${index + 2}"]`
+  ) as null | HTMLInputElement
+
+  if (prevSubsetInput != null) {
+    prevSubsetInput.focus()
+    return
+  }
+
+  if (nextSubsetInput != null) {
+    nextSubsetInput.focus()
+    return
+  }
+
+  const titleInput = document.querySelector(
+    `[name="${nameAttr}"]`
+  ) as null | HTMLInputElement
+
+  if (titleInput != null) {
+    titleInput.focus()
+  }
 }
-interface NoIndexArgs {
-  callback: (FormData: FormData, buttonColors: string[]) => void
-}
 
-const addNewInput = ref<null | HTMLButtonElement>(null)
-const handleFormDataAction = <T extends NoIndexArgs | WithIndexArgs>(
-  args: T,
-  moveFocus?: true
-) => {
-  if ('index' in args) {
-    args.callback(formData, args.index)
-  }
-
-  if (!('index' in args)) {
-    args.callback(formData, buttonColors.value)
-  }
-
-  if (moveFocus && addNewInput.value != null) {
-    addNewInput.value.focus()
-  }
-
-  emits('handle-blur')
+const removeInput = (index: number) => {
+  formsStore.removeInput(props.element, props.action, index)
+  moveFocusFromRemovedInput(index)
 }
 </script>

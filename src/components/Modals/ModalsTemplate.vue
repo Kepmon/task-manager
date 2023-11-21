@@ -5,6 +5,7 @@
         @submit.prevent="$emit('submit-form')"
         class="form"
         :class="allowOverflow ? '' : 'overflow-auto'"
+        data-form
       >
         <div class="flex items-center justify-between gap-2 xs:gap-4">
           <header class="xs:text-lg">

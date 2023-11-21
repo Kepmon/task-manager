@@ -11,10 +11,11 @@
 
     <template #main-content>
       <text-input
-        @handle-blur="handleNameInputBlur"
-        v-model="formName"
+        @handle-blur="formsStore.handleBlur('task', action)"
+        v-model="formData.data.name"
+        :emptyError="formData.errors.nameError.emptyError"
+        :tooLongError="formData.errors.nameError.tooLongError"
         idAttr="task-title"
-        :isError="formNameError"
         label="Title"
         fieldDescription="task title"
         :placeholder="action === 'add' ? 'e.g. Take coffee break' : ''"
@@ -23,7 +24,8 @@
       />
 
       <description-field
-        v-model="taskDescription"
+        v-if="formData.data.description != null"
+        v-model="formData.data.description"
         label="Description"
         idAttr="task-description"
         :whitePlaceholder="action === 'add' ? false : true"
@@ -52,7 +54,7 @@
 </template>
 
 <script setup lang="ts">
-import type { BoardColumn, Task, Subtask } from '../../api/boardsTypes'
+import type { BoardColumn, Task } from '../../api/boardsTypes'
 import ModalsTemplate from './ModalsTemplate.vue'
 import TextInput from '../shared/Inputs/TextInput.vue'
 import DescriptionField from '../shared/Inputs/DescriptionField.vue'
@@ -60,13 +62,12 @@ import ElementSubset from '../shared/ElementSubset.vue'
 import { useBoardsStore } from '../../stores/boards'
 import { useTasksStore } from '../../stores/tasks'
 import { useFormsStore } from '../../stores/forms'
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 
 const props = defineProps<{
   action: 'add' | 'edit'
   columnIndex?: number
   task?: Task
-  subtasks?: Subtask[]
 }>()
 const emits = defineEmits(['change-var-to-false'])
 
@@ -74,12 +75,7 @@ const tasksStore = useTasksStore()
 const boardsStore = useBoardsStore()
 const formsStore = useFormsStore()
 
-const formName = ref(props.task != null ? props.task.title : '')
-const formNameError = ref(false)
-const taskDescription = ref(props.task != null ? props.task.description : '')
-const formSubsetData = computed(
-  () => formsStore.formsData.task.value[props.action]
-)
+const formData = formsStore.formData.task[props.action]
 
 const selectedStatusItem = ref(
   props.columnIndex != null
@@ -103,39 +99,31 @@ const updateStatusItem = (newItem: BoardColumn['name']) => {
 }
 
 const isPending = ref(false)
-const handleNameInputBlur = () => {
-  formName.value === ''
-    ? (formNameError.value = true)
-    : (formNameError.value = false)
-}
 
 const submit = async () => {
-  const subtaskNames = formSubsetData.value.items.map(({ name }) => name.trim())
+  const isFormValid = formsStore.checkFormValidity('task', props.action)
+  if (!isFormValid) return
+
   const callback = {
     add: async () =>
       await tasksStore.addNewTask(
         selectedStatusItem.value.columnID as BoardColumn['columnID'],
-        {
-          title: formName.value.trim(),
-          description: taskDescription.value.trim()
-        },
-        subtaskNames
+        props.action
       ),
     edit: async () =>
       await tasksStore.editTask(
-        formName.value,
-        taskDescription.value,
-        formSubsetData.value.items,
+        props.action,
         selectedStatusItem.value.columnID,
         isStatusUpdated.value
       )
   }
 
-  handleNameInputBlur()
   await formsStore.submitForm(
     isPending.value,
     callback[props.action as keyof typeof callback],
     () => emits('change-var-to-false')
   )
+
+  formsStore.resetFormData('task', props.action)
 }
 </script>

@@ -1,7 +1,13 @@
 <template>
   <div class="grid gap-2" role="dialog" aria-modal="true">
     <label v-if="label" :for="idAttr" class="text-xs">{{ label }}</label>
-    <div :class="{ 'input-error': isError }">
+    <div class="relative">
+      <input-error
+        v-if="emptyError || tooLongError"
+        :message="
+          emptyError ? 'Can\'t be empty' : 'Can\'t be longer than 80 chars'
+        "
+      />
       <input
         @input="(e: Event) => handleInput(e)"
         @blur="$emit('handle-blur')"
@@ -12,32 +18,31 @@
         :placeholder="placeholder"
         class="input"
         :class="{
-          'border-red-400': isError,
-          'border-blue-40 focus-visible:border-purple-400': !isError,
+          'border-red-400': emptyError || tooLongError,
+          'border-blue-40 focus-visible:border-purple-400':
+            !emptyError && !tooLongError,
           'placeholder:text-inherit': whitePlaceholder
         }"
         aria-required="true"
-        :aria-invalid="isError ? true : undefined"
-        :aria-label="
-          isError
-            ? `Error: Please fill in this ${fieldDescription} field`
-            : undefined
-        "
+        :aria-invalid="emptyError || tooLongError ? true : undefined"
         :name="nameAttr || undefined"
+        :aria-label="ariaLabel"
       />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import InputError from './InputError.vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useFormsStore } from '../../../stores/forms'
 
 const props = defineProps<{
-  label?: string
   fieldDescription: string
+  label?: string
   idAttr?: string
-  isError?: boolean
+  emptyError?: boolean
+  tooLongError?: boolean
   placeholder?: string
   whitePlaceholder?: boolean
   modelValue?: string
@@ -54,8 +59,17 @@ const handleInput = (e: Event) => {
   emits('handle-blur')
 }
 
+const ariaLabel = computed(() => {
+  if (!props.emptyError && !props.tooLongError) return undefined
+
+  if (props.emptyError)
+    return `Error: Please fill in this ${props.fieldDescription} field`
+
+  return `Error: Maximum number of characters for the ${props.fieldDescription} field is 80`
+})
+
 onMounted(() => {
-  if (props.condition && newInput.value) {
+  if (props.condition && newInput.value != null) {
     newInput.value.focus()
   }
 })

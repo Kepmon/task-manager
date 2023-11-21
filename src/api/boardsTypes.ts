@@ -19,19 +19,8 @@ export interface Task {
 }
 
 export interface Subtask {
-  subtaskID: string
+  subtaskID?: string
   title: string
   isCompleted: boolean
   createdAt?: string
-}
-
-export interface FormSubsetItem {
-  name: string
-  id: string
-}
-
-export interface FormData {
-  items: FormSubsetItem[]
-  placeholderItems: string[] | undefined
-  errors: boolean[]
 }

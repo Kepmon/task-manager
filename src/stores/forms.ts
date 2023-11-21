@@ -1,4 +1,3 @@
-import type { FormData } from '../api/boardsTypes'
 import type { FirestoreErrorCode } from 'firebase/firestore'
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
@@ -11,104 +10,232 @@ export const useFormsStore = defineStore('forms', () => {
   const boardsStore = useBoardsStore()
   const tasksStore = useTasksStore()
 
-  const boardColumns = computed(() =>
-    boardsStore.boardColumns.map((boardColumn) => ({
-      name: boardColumn.name,
-      id: boardColumn.columnID,
-      dotColor: boardColumn.dotColor || null
-    }))
-  )
-
-  const subtasks = computed(() =>
-    tasksStore.subtasksOfClickedTask.map((subtask) => ({
-      name: subtask.title,
-      id: subtask.subtaskID,
-      dotColor: undefined
-    }))
-  )
-
-  const formsData = computed(() => ({
-    board: ref({
-      add: ref({
-        items: ['Todo', 'Doing'].map((item, index) => ({
-          name: item,
-          id: index.toString(),
-          dotColor: returnCircleColor(index, undefined, false)
-        })),
-        placeholderItems: undefined,
-        errors: [false, false]
-      }),
-      edit: ref({
-        items: boardColumns.value,
-        placeholderItems: undefined,
-        errors: boardsStore.boardColumns.map(() => false)
-      })
-    }),
-    task: ref({
-      add: ref({
-        items: ['', ''].map((item, index) => ({
-          name: item,
-          id: index.toString(),
-          dotColor: undefined
-        })),
-        placeholderItems: ['e.g. Make coffee', 'e.g. Drink coffee & smile'],
-        errors: [false, false]
-      }),
-      edit: ref({
-        items: subtasks.value,
-        placeholderItems: undefined,
-        errors: tasksStore.subtasks.map(() => false)
-      })
-    })
+  const elementEditName = computed(() => ({
+    board: boardsStore.currentBoard?.name || '',
+    task: tasksStore.clickedTask?.title || ''
   }))
+  const subsetItems = computed(() => ({
+    board: {
+      add: ['Todo', 'Doing'].map((item, index) => ({
+        name: item,
+        id: index.toString(),
+        dotColor: returnCircleColor(index, undefined, true)
+      })),
+      edit: boardsStore.boardColumns.map(
+        ({ name, columnID, dotColor }, index) => ({
+          name,
+          id: columnID,
+          dotColor:
+            dotColor != null
+              ? dotColor
+              : returnCircleColor(index, undefined, false)
+        })
+      )
+    },
+    task: {
+      add: ['', ''].map((item, index) => ({
+        name: item,
+        id: index.toString(),
+        dotColor: returnCircleColor(index, undefined, true)
+      })),
+      edit: tasksStore.subtasksOfClickedTask.map(({ title, subtaskID }) => ({
+        name: title,
+        id: subtaskID,
+        dotColor: undefined
+      }))
+    }
+  }))
+
+  const returnFormDataObj = (
+    element: 'board' | 'task',
+    action: 'add' | 'edit'
+  ) => {
+    return {
+      data: {
+        name: action === 'add' ? '' : elementEditName.value[element],
+        description:
+          element === 'board'
+            ? undefined
+            : action === 'add'
+            ? ''
+            : tasksStore.clickedTask?.description || '',
+        items: [...subsetItems.value[element][action]],
+        placeholderItems:
+          element === 'board'
+            ? undefined
+            : ['e.g. Make coffee', 'e.g. Drink coffee & smile']
+      },
+      errors: {
+        nameError: {
+          emptyError: false,
+          tooLongError: false
+        },
+        itemsErrors: subsetItems.value[element][action].map(() => ({
+          emptyError: false,
+          tooLongError: false
+        }))
+      }
+    }
+  }
+  const formData = ref({
+    board: {
+      add: {
+        ...returnFormDataObj('board', 'add')
+      },
+      edit: {
+        ...returnFormDataObj('board', 'edit')
+      }
+    },
+    task: {
+      add: {
+        ...returnFormDataObj('task', 'add')
+      },
+      edit: {
+        ...returnFormDataObj('board', 'edit')
+      }
+    }
+  })
 
   const isNewInputAdded = ref(false)
   const isFormValid = ref(false)
 
-  const addNewInput = (formData: FormData, buttonColors: string[]) => {
-    const index = formData.items.length + 1
+  const addNewInput = (element: 'board' | 'task', action: 'add' | 'edit') => {
+    const index = formData.value[element][action].data.items.length + 1
 
-    formData.items.push({
+    const newItem = {
       name: '',
-      id: index.toString()
+      id: index.toString(),
+      dotColor: element === 'board' ? 'hsl(193 75% 59%)' : undefined
+    }
+
+    formData.value[element][action].data.items.push(newItem)
+    formData.value[element][action].errors.itemsErrors.push({
+      emptyError: false,
+      tooLongError: false
     })
-    formData.errors.push(false)
-    buttonColors.push('hsl(193 75% 59%)')
     isNewInputAdded.value = true
   }
 
-  const removeInput = (formData: FormData, index: number) => {
-    formData.items.splice(index, 1)
-    formData.errors.splice(index, 1)
+  const removeInput = (
+    element: 'board' | 'task',
+    action: 'add' | 'edit',
+    index: number
+  ) => {
+    formData.value[element][action].data.items.splice(index, 1)
+    formData.value[element][action].errors.itemsErrors.splice(index, 1)
   }
 
-  const handleBlur = (formData: FormData, index: number) => {
-    if (formData.items[index].name !== '') {
-      formData.errors[index] = false
-      return
+  const handleBlur = (
+    element: 'board' | 'task',
+    action: 'add' | 'edit',
+    index?: number
+  ) => {
+    const dataToCheck =
+      index == null
+        ? formData.value[element][action].data.name
+        : formData.value[element][action].data.items[index].name
+    const errorToEdit =
+      index == null
+        ? formData.value[element][action].errors.nameError
+        : formData.value[element][action].errors.itemsErrors[index]
+
+    const inputErrors = {
+      emptyError: dataToCheck.trim() === '',
+      tooLongError: dataToCheck.trim().length > 80
     }
+    const inputErrorsKeys = Object.keys(inputErrors)
 
-    formData.errors[index] = true
+    inputErrorsKeys.forEach((key) => {
+      if (inputErrors[key as keyof typeof inputErrors]) {
+        errorToEdit[key as keyof typeof inputErrors] = true
+      } else {
+        errorToEdit[key as keyof typeof inputErrors] = false
+      }
+    })
   }
 
-  const checkFormValidity = () => {
+  const checkFormValidity = (
+    element: 'board' | 'task',
+    action: 'add' | 'edit'
+  ) => {
     const formInstance = new FormData(
-      document.querySelector('.form') as HTMLFormElement
+      document.querySelector('[data-form]') as HTMLFormElement
     )
-    const formData = Object.fromEntries(formInstance)
-    const formDataKeys = Object.keys(formData)
+    const formDataObj = Object.fromEntries(formInstance)
+    const formDataKeys = Object.keys(formDataObj)
 
-    const invalidInputs = formDataKeys.filter(
-      (key) => formData[key as keyof typeof formData] === ''
+    const allInvalidInputs = formDataKeys.filter(
+      (key) =>
+        (formDataObj[key as keyof typeof formDataObj] as string).trim() ===
+          '' ||
+        (formDataObj[key as keyof typeof formDataObj] as string).trim().length >
+          80
+    )
+    const emptyInputs = formDataKeys.filter(
+      (key) =>
+        (formDataObj[key as keyof typeof formDataObj] as string).trim() === ''
+    )
+    const tooLongInputs = formDataKeys.filter(
+      (key) =>
+        (formDataObj[key as keyof typeof formDataObj] as string).trim().length >
+        80
     )
 
-    if (invalidInputs.length > 0) {
+    if (allInvalidInputs.length > 0) {
       const firstInvalidInput = document.querySelector(
-        `[name="${invalidInputs[0]}"]`
+        `[name="${allInvalidInputs[0]}"]`
       ) as null | HTMLInputElement
 
       if (firstInvalidInput != null) {
-        firstInvalidInput.focus()
+        firstInvalidInput.select()
+      }
+
+      if (emptyInputs.length > 0) {
+        if (emptyInputs.includes(`${element}Title`)) {
+          formData.value[element][action].errors.nameError.emptyError = true
+        } else {
+          formData.value[element][action].errors.nameError.emptyError = false
+        }
+
+        emptyInputs.forEach((input) => {
+          if (input === `${element}Title`) return
+
+          const indexOfInvalidInput = formDataKeys.indexOf(input) - 1
+
+          if (indexOfInvalidInput >= 0) {
+            formData.value[element][action].errors.itemsErrors[
+              indexOfInvalidInput
+            ].emptyError = true
+          } else {
+            formData.value[element][action].errors.itemsErrors[
+              indexOfInvalidInput
+            ].emptyError = false
+          }
+        })
+
+        if (tooLongInputs.includes(`${element}Title`)) {
+          formData.value[element][action].errors.nameError.tooLongError = true
+        } else {
+          formData.value[element][action].errors.nameError.tooLongError = false
+        }
+
+        tooLongInputs.forEach((input) => {
+          if (input === `${element}Title`) return
+
+          const indexOfInvalidInput = formDataKeys.indexOf(input) - 1
+
+          if (indexOfInvalidInput >= 0) {
+            formData.value[element][action].errors.itemsErrors[
+              indexOfInvalidInput
+            ].tooLongError = true
+          } else {
+            formData.value[element][action].errors.itemsErrors[
+              indexOfInvalidInput
+            ].tooLongError = false
+          }
+        })
+
+        return false
       }
 
       return false
@@ -122,9 +249,6 @@ export const useFormsStore = defineStore('forms', () => {
     callback: () => Promise<true | FirestoreErrorCode>,
     emit: () => void
   ) => {
-    const isFormValid = checkFormValidity()
-    if (!isFormValid) return
-
     isPending = true
 
     const response = await callback()
@@ -134,14 +258,19 @@ export const useFormsStore = defineStore('forms', () => {
     isPending = false
   }
 
+  const resetFormData = (element: 'board' | 'task', action: 'add' | 'edit') => {
+    formData.value[element][action] = returnFormDataObj(element, action)
+  }
+
   return {
-    formsData,
+    formData,
     isNewInputAdded,
     isFormValid,
     addNewInput,
     handleBlur,
     removeInput,
     checkFormValidity,
-    submitForm
+    submitForm,
+    resetFormData
   }
 })
