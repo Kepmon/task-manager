@@ -45,11 +45,13 @@ import TextInput from '../shared/Inputs/TextInput.vue'
 import ColorPicker from '../shared/ColorPicker.vue'
 import { ref } from 'vue'
 import { useBoardsStore } from '../../stores/boards'
+import { useFormsStore } from '../../stores/forms'
 import { handleResponse } from '../../composables/responseHandler'
 
 const emits = defineEmits(['close-modal'])
 
 const boardsStore = useBoardsStore()
+const formsStore = useFormsStore()
 
 const columnName = ref('')
 const isColumnNameError = ref(false)
@@ -84,6 +86,7 @@ const submitForm = async () => {
     startColor.value
   )
 
+  formsStore.resetFormData('board', 'edit')
   shouldModalBeClosed.value = true
 
   handleResponse(response)

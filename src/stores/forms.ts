@@ -16,20 +16,37 @@ export const useFormsStore = defineStore('forms', () => {
   }))
   const subsetItems = computed(() => ({
     board: {
-      add: ['Todo', 'Doing'],
-      edit: boardsStore.boardColumns.map(({ name }) => name)
+      add: ['Todo', 'Doing'].map((item, index) => ({
+        name: item,
+        id: index.toString(),
+        dotColor: returnCircleColor(index, undefined, true)
+      })),
+      edit: boardsStore.boardColumns.map(
+        ({ name, columnID, dotColor }, index) => ({
+          name,
+          id: columnID,
+          dotColor:
+            dotColor != null
+              ? dotColor
+              : returnCircleColor(index, undefined, false)
+        })
+      )
     },
     task: {
-      add: ['', ''],
-      edit: tasksStore.subtasksOfClickedTask.map(({ title }) => title)
+      add: ['', ''].map((item, index) => ({
+        name: item,
+        id: index.toString(),
+        dotColor: returnCircleColor(index, undefined, true)
+      })),
+      edit: tasksStore.subtasksOfClickedTask.map(({ title, subtaskID }) => ({
+        name: title,
+        id: subtaskID,
+        dotColor: undefined
+      }))
     }
   }))
-  const existingDotColors = computed(() =>
-    boardsStore.boardColumns.map(({ dotColor }) => dotColor)
-  )
 
   const returnFormDataObj = (
-    items: string[],
     element: 'board' | 'task',
     action: 'add' | 'edit'
   ) => {
@@ -42,16 +59,7 @@ export const useFormsStore = defineStore('forms', () => {
             : action === 'add'
             ? ''
             : tasksStore.clickedTask?.description || '',
-        items: items.map((item, index) => ({
-          name: item,
-          id: index.toString(),
-          dotColor:
-            element === 'board'
-              ? existingDotColors.value[index] != null && action === 'edit'
-                ? existingDotColors.value[index]
-                : returnCircleColor(index, undefined, false)
-              : undefined
-        })),
+        items: [...subsetItems.value[element][action]],
         placeholderItems:
           element === 'board'
             ? undefined
@@ -62,29 +70,28 @@ export const useFormsStore = defineStore('forms', () => {
           emptyError: false,
           tooLongError: false
         },
-        itemsErrors: items.map(() => ({
+        itemsErrors: subsetItems.value[element][action].map(() => ({
           emptyError: false,
           tooLongError: false
         }))
       }
     }
   }
-
   const formData = ref({
     board: {
       add: {
-        ...returnFormDataObj(['Todo', 'Doing'], 'board', 'add')
+        ...returnFormDataObj('board', 'add')
       },
       edit: {
-        ...returnFormDataObj(subsetItems.value.board.edit, 'board', 'edit')
+        ...returnFormDataObj('board', 'edit')
       }
     },
     task: {
       add: {
-        ...returnFormDataObj(['', ''], 'task', 'add')
+        ...returnFormDataObj('task', 'add')
       },
       edit: {
-        ...returnFormDataObj(subsetItems.value.task.edit, 'board', 'edit')
+        ...returnFormDataObj('board', 'edit')
       }
     }
   })
@@ -252,11 +259,7 @@ export const useFormsStore = defineStore('forms', () => {
   }
 
   const resetFormData = (element: 'board' | 'task', action: 'add' | 'edit') => {
-    formData.value[element][action] = returnFormDataObj(
-      subsetItems.value[element][action],
-      element,
-      action
-    )
+    formData.value[element][action] = returnFormDataObj(element, action)
   }
 
   return {

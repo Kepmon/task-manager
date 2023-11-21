@@ -85,7 +85,7 @@ onUnmounted(() => {
   @apply before:animate-ping-once;
 }
 .color-picker {
-  @apply absolute p-3 text-black dark:text-white z-10;
+  @apply absolute p-3 text-black dark:text-white z-50;
   @apply bg-gray-200 dark:bg-gray-900 rounded-lg;
   @apply w-[300px];
 }
