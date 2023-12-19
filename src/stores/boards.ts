@@ -130,9 +130,10 @@ export const useBoardsStore = defineStore('boards', () => {
       JSON.stringify(currentBoard.value)
     )
 
+    formsStore.resetFormData('board', 'edit')
+
     try {
       const response = await getColumns()
-      formsStore.resetFormData('board', 'edit')
 
       if (response !== true) throw new Error(response)
 
@@ -201,6 +202,7 @@ export const useBoardsStore = defineStore('boards', () => {
 
     actionHandlers[action]()
   }
+
   const addNewColumn = async (name: string, dotColor: string) => {
     const { columnsColRef } = returnColumnsColRef()
 
@@ -225,49 +227,60 @@ export const useBoardsStore = defineStore('boards', () => {
     }
   }
 
-  const addNewBoard = async (action: 'add' | 'edit') => {
-    const formsStore = useFormsStore()
-    const formData = formsStore.formData.board[action].data
+  const returnFormDataObj = () => {
+    const form = document.querySelector('[data-form]') as HTMLFormElement
+
+    const formDataInstance = new FormData(form)
+    const formDataObj = Object.fromEntries(formDataInstance) as Record<
+      string,
+      string
+    >
+    const formDataKeys = Object.keys(formDataObj)
+
+    return {
+      data: formDataObj,
+      keys: formDataKeys
+    }
+  }
+
+  const addNewBoard = async (dotColors: string[]) => {
+    const formData = returnFormDataObj()
 
     try {
       const addedDocRef = await addDocToFirestore(
         boardsColRefGlobal.value as CollectionReference<DocumentData>,
-        formData.name
+        formData.data.boardTitle
       )
 
       if (addedDocRef == null) throw new Error('custom error')
 
       boards.value = [
         {
-          name: formData.name,
+          name: formData.data.boardTitle,
           boardID: addedDocRef.id
         },
         ...boards.value
       ]
 
       const columnsColRef = collection(db, `${addedDocRef.path}/columns`)
+      boardColumns.value = []
 
-      const responses = await Promise.all(
-        formData.items.map(async ({ name, dotColor }) => {
-          return await addDocToFirestore(columnsColRef, name, dotColor)
-        })
-      )
-
-      if (responses.every((response) => response != null)) {
-        const newColumns = responses.map(({ id }, index) => ({
-          name: formData.items[index].name,
-          columnID: id,
-          dotColor: formData.items[index].dotColor
-        }))
-        boardColumns.value = [...newColumns]
-
-        try {
-          const saveBoardResponse = await saveCurrentBoard(boards.value[0])
-
-          if (saveBoardResponse !== true) throw new Error(saveBoardResponse)
-        } catch (err) {
-          return (err as FirestoreError).code
+      formData.keys.forEach(async (key, index) => {
+        if (key.includes('column')) {
+          await addDocToFirestore(
+            columnsColRef,
+            formData.data[key],
+            dotColors[index - 1]
+          )
         }
+      })
+
+      try {
+        const saveBoardResponse = await saveCurrentBoard(boards.value[0])
+
+        if (saveBoardResponse !== true) throw new Error(saveBoardResponse)
+      } catch (err) {
+        return (err as FirestoreError).code
       }
 
       return true

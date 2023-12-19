@@ -60,8 +60,10 @@ const submit = async () => {
   const isFormValid = formsStore.checkFormValidity('board', props.action)
   if (!isFormValid) return
 
+  const dotColors = formData.data.items.map(({ dotColor }) => dotColor)
+
   const callback = {
-    add: async () => await boardsStore.addNewBoard(props.action),
+    add: async () => await boardsStore.addNewBoard(dotColors as string[]),
     edit: async () => await boardsStore.editBoard(props.action)
   }
 
