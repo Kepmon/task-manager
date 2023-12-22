@@ -1,3 +1,4 @@
+import type { UserData } from '../api/boardsTypes'
 import type { AuthError, User } from 'firebase/auth'
 import type { FirestoreError } from 'firebase/firestore'
 import { defineStore } from 'pinia'
@@ -22,6 +23,8 @@ export const useUserStore = defineStore('user', () => {
   )
   const inputedPassword = ref<null | string>(null)
 
+  const userData = ref<UserData[]>([])
+
   const boardsStore = useBoardsStore()
   const isLoading = ref(true)
 
@@ -36,9 +39,11 @@ export const useUserStore = defineStore('user', () => {
     localStorage.setItem('TM-user', JSON.stringify(user))
 
     try {
-      const response = await boardsStore.getBoards()
+      const response = await boardsStore.getBoards(user.uid)
 
-      if (response !== true) throw new Error(response)
+      if (typeof response === 'string') throw new Error(response)
+
+      userData.value = [...userData.value, response]
     } catch (err) {
       return (err as FirestoreError).code
     }
@@ -47,35 +52,8 @@ export const useUserStore = defineStore('user', () => {
       `TM-currentBoard-${userID.value}`
     )
     if (savedBoardJSON != null) {
-      boardsStore.currentBoard = JSON.parse(savedBoardJSON)
-
-      try {
-        const response = await boardsStore.getColumns()
-
-        if (response !== true) throw new Error(response)
-      } catch (err) {
-        return (err as FirestoreError).code
-      }
       isLoading.value = false
       return
-    }
-
-    if (boardsStore.boards.length > 0) {
-      try {
-        const boardResponse = await boardsStore.saveCurrentBoard(
-          boardsStore.boards[0]
-        )
-        const columnsResponse = await boardsStore.getColumns()
-
-        if (boardResponse !== true) throw new Error(boardResponse)
-        if (columnsResponse !== true) throw new Error(columnsResponse)
-
-        isLoading.value = false
-      } catch (err) {
-        isLoading.value = false
-
-        return (err as FirestoreError).code
-      }
     }
 
     isLoading.value = false
@@ -186,6 +164,7 @@ export const useUserStore = defineStore('user', () => {
   return {
     isLoading,
     userID,
+    userData,
     inputedPassword,
     register,
     logIn,

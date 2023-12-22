@@ -3,11 +3,11 @@
     <div
       class="flex gap-6 py-4 sm:py-6 col-start-2 col-span-1"
       :class="{
-        'place-content-center h-full': boardsStore.boardColumns.length === 0
+        'place-content-center h-full': boardColumns.length === 0
       }"
     >
       <div
-        v-for="(column, columnIndex) in boardsStore.boardColumns"
+        v-for="(column, columnIndex) in boardColumns"
         :key="column.columnID"
         class="w-[280px] shrink-0"
       >
@@ -38,14 +38,14 @@
         </div>
         <draggable
           @end="dragTasks"
-          v-model="tasksStore.tasks[columnIndex]"
+          v-model="boardTasks[columnIndex]"
           :move="findElementsIDs"
           itemKey="taskID"
           tag="ul"
           group="tasksCards"
           :animation="200"
           class="grid gap-[20px]"
-          :data-columnID="boardsStore.boardColumns[columnIndex].columnID"
+          :data-columnID="boardColumns[columnIndex].columnID"
         >
           <template #item="{ element: columnTask }">
             <li>
@@ -54,7 +54,7 @@
                   () =>
                     tasks.handleTaskCardClick(
                       columnIndex,
-                      tasksStore.tasks[columnIndex].indexOf(columnTask)
+                      boardTasks[columnIndex].indexOf(columnTask)
                     )
                 "
                 :key="columnTask.taskID"
@@ -62,14 +62,14 @@
                 :howManyCompleted="
                   returnNumberOfElements(
                     columnIndex,
-                    tasksStore.tasks[columnIndex].indexOf(columnTask),
+                    boardTasks[columnIndex].indexOf(columnTask),
                     'subtasksCompleted'
                   )
                 "
                 :howManySubtasks="
                   returnNumberOfElements(
                     columnIndex,
-                    tasksStore.tasks[columnIndex].indexOf(columnTask),
+                    boardTasks[columnIndex].indexOf(columnTask),
                     'subtasks'
                   )
                 "
@@ -80,7 +80,7 @@
         </draggable>
       </div>
       <button
-        v-if="boardsStore.boardColumns.length > 0"
+        v-if="boardColumns.length > 0"
         @click="modals.isNewColumnModalShown = true"
         aria-label="click here to add a new column"
         class="new-column group"
@@ -161,15 +161,19 @@ import CloseIcon from './Svgs/CloseIcon.vue'
 import { handleResponse } from '../composables/responseHandler'
 import { returnCircleColor } from '../composables/circleColor'
 import { computed, ref } from 'vue'
-import { useBoardsStore } from '../stores/boards'
+import { useUserStore } from '../stores/user'
 import { useTasksStore } from '../stores/tasks'
 import { useFormsStore } from '../stores/forms'
 import converter from 'number-to-words'
 import draggable from 'vuedraggable'
 
-const boardsStore = useBoardsStore()
+const userStore = useUserStore()
 const tasksStore = useTasksStore()
 const formsStore = useFormsStore()
+
+const boardColumns = userStore.userData[0].currentBoard.boardColumns
+const boardTasks = userStore.userData[0].currentBoard.boardTasks
+const boardSubtasks = userStore.userData[0].currentBoard.boardSubtasks
 
 const formatColumnNumber = (number: number) => converter.toWordsOrdinal(number)
 
@@ -232,17 +236,11 @@ const returnNumberOfElements = (
   taskIndex: number,
   element: Element
 ) => {
-  if (
-    tasksStore.subtasks[columnIndex] == null ||
-    tasksStore.subtasks[columnIndex][taskIndex] == null
-  )
-    return 0
-
   const elementFns = {
-    tasks: () => tasksStore.tasks[columnIndex].length,
-    subtasks: () => tasksStore.subtasks[columnIndex][taskIndex].length,
+    tasks: () => boardTasks[columnIndex].length,
+    subtasks: () => boardSubtasks[columnIndex][taskIndex].length,
     subtasksCompleted: () =>
-      tasksStore.subtasks[columnIndex][taskIndex].filter(
+      boardSubtasks[columnIndex][taskIndex].filter(
         (subtask) => subtask.isCompleted
       ).length
   }
@@ -252,7 +250,7 @@ const returnNumberOfElements = (
 
 const moveTask = async (value: BoardColumn['name']) => {
   const nextColumnID = (
-    boardsStore.boardColumns.find(
+    boardColumns.find(
       (boardColumn) => boardColumn.name === value
     ) as BoardColumn
   ).columnID
@@ -272,17 +270,17 @@ const indexOfOldColumn = ref<null | number>(null)
 const indexOfNewColumn = ref<null | number>(null)
 
 const setIndexesOfTasksInNewColumn = () => {
-  const oldColumn = boardsStore.boardColumns.find(
+  const oldColumn = boardColumns.find(
     (column) => column.columnID === prevColumnID.value
   )
-  const newColumn = boardsStore.boardColumns.find(
+  const newColumn = boardColumns.find(
     (column) => column.columnID === nextColumnID.value
   )
 
   indexOfOldColumn.value =
-    oldColumn != null ? boardsStore.boardColumns.indexOf(oldColumn) : null
+    oldColumn != null ? boardColumns.indexOf(oldColumn) : null
   indexOfNewColumn.value =
-    newColumn != null ? boardsStore.boardColumns.indexOf(newColumn) : null
+    newColumn != null ? boardColumns.indexOf(newColumn) : null
 
   const newColumnTasks =
     indexOfNewColumn.value != null

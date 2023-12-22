@@ -32,21 +32,26 @@
       <div class="board-labels-container">
         <p class="all-boards">all boards ({{ boards.length }})</p>
         <ul
-          v-if="boards.length !== 0"
+          v-if="userStore.userData[0].allBoards.length > 0"
           class="overflow-auto scrollbar-invisible hover:scrollbar-visibleLight dark:hover:scrollbar-visibleDark"
         >
-          <li v-for="board in boards" :key="board.boardID">
+          <li
+            v-for="board in userStore.userData[0].allBoards"
+            :key="board.boardID"
+          >
             <board-label
               @click="() => saveCurrentBoard(board)"
               :name="board.name"
               :aria-current="
-                board.boardID === boardsStore.currentBoard?.boardID
+                board.boardID === userStore.userData[0].currentBoard?.boardID
                   ? 'true'
                   : undefined
               "
               :class="{
-                'bg-purple-400 fill-white text-white': board.name === boardName,
-                'text-gray-400 fill-gray-400': board.name !== boardName
+                'bg-purple-400 fill-white text-white':
+                  board.boardID === userStore.userData[0].currentBoard?.boardID,
+                'text-gray-400 fill-gray-400':
+                  board.boardID !== userStore.userData[0].currentBoard.boardID
               }"
             />
           </li>
@@ -159,7 +164,6 @@ const afterLeave = () => {
 
 const saveCurrentBoard = async (board: Board) => {
   emits('close-boards-navbar')
-
   const response = await boardsStore.saveCurrentBoard(board)
   handleResponse(response)
 }
