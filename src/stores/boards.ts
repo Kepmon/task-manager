@@ -1,4 +1,4 @@
-import type { Board, BoardColumn } from '../api/boardsTypes'
+import type { Board, BoardColumn, Task } from '../api/boardsTypes'
 import type {
   CollectionReference,
   DocumentReference,
@@ -10,6 +10,7 @@ import { ref, computed } from 'vue'
 import {
   query,
   orderBy,
+  limit,
   collection,
   doc,
   getDoc,
@@ -35,30 +36,68 @@ export const useBoardsStore = defineStore('boards', () => {
   const boardColumns = ref<BoardColumn[]>([])
   const boardsColRefGlobal = ref<null | CollectionReference<DocumentData>>(null)
 
-  const getBoards = async (userID: string) => {
-    const boardsColRef = collection(db, `users/${userID}/boards`)
+  const getBoards = async () => {
+    const boardsColRef = collection(db, `users/${userStore.userID}/boards`)
     const boardsColRefOrdered = query(
       boardsColRef,
       orderBy('createdAt', 'desc')
     )
-    const boardDocs = await getDocs(boardsColRefOrdered)
+    try {
+      const boardDocs = await getDocs(boardsColRefOrdered)
 
-    if (boardDocs == null) throw new Error()
+      if (boardDocs == null) throw new Error()
 
-    let allBoards: Board[]
-    if (boardDocs.docs.length !== 0) {
-      allBoards = boardDocs.docs.map((boardDoc) => ({
+      if (boardDocs.docs.length === 0) return [] as Board[]
+
+      return boardDocs.docs.map((boardDoc) => ({
         ...(boardDoc.data() as Omit<Board, 'boardID'>),
         boardID: boardDoc.id
       }))
+    } catch (err) {
+      return [] as Board[]
+    }
+  }
+
+  const getFirstBoard = async () => {
+    const boardsColRef = collection(db, `users/${userStore.userID}/boards`)
+    const boardsColRefOrdered = query(
+      boardsColRef,
+      orderBy('createdAt', 'desc'),
+      limit(1)
+    )
+    const firstBoardRef = await getDocs(boardsColRefOrdered)
+    const firstBoard = {
+      ...(firstBoardRef.docs[0].data() as Omit<Board, 'boardID'>),
+      boardID: firstBoardRef.docs[0].id
     }
 
+    return firstBoard.boardID
+  }
+
+  const getCurrentBoard = async (allBoards: Board[]) => {
     const currentBoard = JSON.parse(
-      localStorage.getItem(`TM-currentBoard-${userID}`) || '{}'
+      localStorage.getItem(`TM-currentBoard-${userStore.userID}`) || '{}'
     )
+    let currentBoardID: string
+
+    if (Object.keys(currentBoard).length === 0) {
+      currentBoardID = await getFirstBoard()
+    } else {
+      currentBoardID = currentBoard.boardID as Board['boardID']
+    }
+
+    return (
+      allBoards.find(({ boardID }) => boardID === currentBoardID) || {
+        boardID: '',
+        name: ''
+      }
+    )
+  }
+
+  const getColumns = async (currentBoard: Board) => {
     const columnsColRef = collection(
       db,
-      `${boardsColRef.path}/${currentBoard.boardID}/columns`
+      `users/${userStore.userID}/boards/${currentBoard.boardID}/columns`
     )
     const columnsColRefOrdered = query(
       columnsColRef,
@@ -66,69 +105,27 @@ export const useBoardsStore = defineStore('boards', () => {
     )
 
     try {
-      let board
       const columnDocs = await getDocs(columnsColRefOrdered)
 
       if (columnDocs == null) throw new Error()
 
-      if (columnDocs.docs.length !== 0) {
-        const boardColumns = columnDocs.docs.map((columnDoc) => ({
-          ...columnDoc.data(),
-          columnID: columnDoc.id
-        }))
-
-        if (boardColumns.length > 0) {
-          const tasksData = await Promise.all(
-            boardColumns.map(async ({ columnID }) => {
-              const tasksColRef = collection(
-                db,
-                `${columnsColRef.path}/${columnID}/tasks`
-              )
-
-              const taskDocs = await getDocs(tasksColRef)
-
-              if (taskDocs == null) throw new Error()
-
-              const tasks = taskDocs.docs.map((taskDoc) => ({
-                ...taskDoc.data(),
-                taskID: taskDoc.id
-              }))
-
-              const subtasks = await Promise.all(
-                tasks.map(async ({ taskID }) => {
-                  const subtasksColRef = collection(
-                    db,
-                    `${tasksColRef.path}/${taskID}/subtasks`
-                  )
-
-                  const subtaskDocs = await getDocs(subtasksColRef)
-
-                  if (subtaskDocs == null) throw new Error()
-
-                  return subtaskDocs.docs.map((subtaskDoc) => ({
-                    ...subtaskDoc.data(),
-                    subtaskID: subtaskDoc.id
-                  }))
-                })
-              )
-              return { tasks, subtasks }
-            })
-          )
-          board = {
-            boardName: currentBoard.name,
-            boardID: currentBoard.boardID,
-            boardColumns,
-            boardTasks: tasksData.map((item) => item.tasks),
-            boardSubtasks: tasksData.map((item) => item.subtasks)
-          }
+      if (columnDocs.docs.length === 0)
+        return {
+          boardColumns: [] as BoardColumn[],
+          columnsColRef
         }
-      }
-      return {
-        allBoards,
-        currentBoard: board
-      }
+
+      const boardColumns = columnDocs.docs.map((columnDoc) => ({
+        ...(columnDoc.data() as Omit<BoardColumn, 'columnID'>),
+        columnID: columnDoc.id
+      }))
+
+      return { boardColumns, columnsColRef }
     } catch (err) {
-      return (err as FirestoreError).code
+      return {
+        boardColumns: [] as BoardColumn[],
+        columnsColRef
+      }
     }
   }
 
@@ -146,89 +143,59 @@ export const useBoardsStore = defineStore('boards', () => {
     return { columnsColRef, columnsColRefOrdered }
   }
 
-  const getColumns = async () => {
-    if (boardsColRefGlobal.value != null) {
-      const columnRefs = returnColumnsColRef()
+  const saveCurrentBoard = async (newBoard: Board) => {
+    const alreadyFetchedBoard = userStore.userData.fullBoards.find(
+      ({ boardID }) => boardID === newBoard.boardID
+    )
 
+    if (alreadyFetchedBoard == null) {
       try {
-        const columnDocs =
-          columnRefs.columnsColRefOrdered != null
-            ? (await getDocs(columnRefs.columnsColRefOrdered)).docs
-            : (await getDocs(columnRefs.columnsColRef)).docs
+        const columnsData = await getColumns(newBoard)
+        const tasksData = await tasksStore.getTasks(
+          columnsData.columnsColRef,
+          columnsData.boardColumns
+        )
+        const boardSubtasks = await tasksStore.getSubtasks(
+          tasksData.map(({ tasksColRef }) => tasksColRef),
+          tasksData.map(({ tasks }) => tasks)
+        )
 
-        if (columnDocs == null) throw new Error()
+        if (
+          [columnsData, tasksData, boardSubtasks].some((item) => item == null)
+        )
+          throw new Error()
 
-        const currentColumns =
-          columnDocs.length !== 0
-            ? await Promise.all(
-                columnDocs.map(async (columnDoc) => {
-                  return {
-                    ...(columnDoc.data() as Omit<BoardColumn, 'columnID'>),
-                    columnID: columnDoc.id
-                  }
-                })
-              )
-            : []
-        boardColumns.value = currentColumns
-
-        if (columnDocs.length !== 0) {
-          const response = await tasksStore.getTasks(
-            columnRefs.columnsColRef,
-            boardColumns.value
+        userStore.userData.currentBoard = {
+          boardID: newBoard.boardID,
+          boardName: newBoard.name,
+          boardColumns: columnsData.boardColumns,
+          boardTasks: tasksData.map((item) =>
+            item.tasks.every((task) => typeof task !== 'string')
           )
-
-          if (response !== true) throw new Error('wrong response')
+            ? tasksData.map((item) => item.tasks)
+            : ([[]] as Task[][]),
+          boardSubtasks
         }
-        return true
+        userStore.userData.fullBoards = [
+          ...userStore.userData.fullBoards,
+          userStore.userData.currentBoard
+        ]
       } catch (err) {
-        return (err as FirestoreError).code
+        return false
       }
     }
-    return 'wrong response'
-  }
 
-  const saveCurrentBoard = async (newBoard: Board) => {
-    currentBoard.value = newBoard
+    if (alreadyFetchedBoard != null) {
+      userStore.userData.currentBoard = alreadyFetchedBoard
+    }
 
     localStorage.setItem(
       `TM-currentBoard-${userStore.userID}`,
-      JSON.stringify(currentBoard.value)
+      JSON.stringify(userStore.userData.currentBoard)
     )
 
     const formsStore = useFormsStore()
     formsStore.resetFormData('board', 'edit')
-
-    try {
-      const columnsColRef = collection(
-        db,
-        `users/${userStore.userID}/boards/${newBoard.boardID}/columns`
-      )
-      const columnsColRefOrdered = query(
-        columnsColRef,
-        orderBy('createdAt', 'asc')
-      )
-
-      const columnDocs = await getDocs(columnsColRefOrdered)
-
-      if (columnDocs == null) throw new Error()
-
-      if (columnDocs.docs.length !== 0) {
-        const boardColumns = columnDocs.docs.map((columnDoc) => ({
-          ...(columnDoc.data() as Omit<BoardColumn, 'columnID'>),
-          columnID: columnDoc.id
-        }))
-
-        userStore.userData[0].currentBoard = {
-          boardID: newBoard.boardID,
-          boardName: newBoard.name,
-          boardColumns,
-          boardTasks: [],
-          boardSubtasks: []
-        }
-      }
-    } catch (err) {
-      return (err as FirestoreError).code
-    }
   }
 
   const addDocToFirestore = async (
@@ -650,6 +617,7 @@ export const useBoardsStore = defineStore('boards', () => {
     currentBoard,
     boardColumns,
     getBoards,
+    getCurrentBoard,
     getColumns,
     saveCurrentBoard,
     addNewColumn,

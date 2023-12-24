@@ -1,15 +1,12 @@
 import type { BoardColumn, Task, Subtask } from '../api/boardsTypes'
 import type {
   CollectionReference,
-  QueryDocumentSnapshot,
   DocumentData,
   FirestoreError
 } from 'firebase/firestore'
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import {
-  query,
-  orderBy,
   getDocs,
   collection,
   doc,
@@ -41,125 +38,87 @@ export const useTasksStore = defineStore('tasks', () => {
   const clickedTask = ref<null | Task>(null)
   const subtasksOfClickedTask = ref<Subtask[]>([])
 
-  const getColumnsAgain = async () => {
-    try {
-      const response = await boardsStore.getColumns()
-
-      if (response !== true) throw new Error(response)
-    } catch (err) {
-      return (err as FirestoreError).code
-    }
-  }
-
   const getTasks = async (
-    columnsColRef: CollectionReference<DocumentData>,
-    columns: BoardColumn[]
+    columnsColRef: null | CollectionReference<DocumentData>,
+    boardColumns: BoardColumn[]
   ) => {
-    const returnedData =
-      columns.length !== 0
-        ? await Promise.all(
-            columns.map(async (column) => {
-              const tasksColRef = collection(
-                db,
-                `${columnsColRef.path}/${column.columnID}/tasks`
-              )
-              const tasksColRefOrderedByIndex = query(
-                tasksColRef,
-                orderBy('taskIndex', 'asc')
-              )
-              const tasksColRefOrderedByDate = query(
-                tasksColRef,
-                orderBy('createdAt', 'asc')
-              )
+    if (columnsColRef == null || boardColumns.length === 0)
+      return [
+        {
+          tasksColRef: null,
+          tasks: [] as Task[]
+        }
+      ]
 
-              try {
-                const tasksDocRefs = (await getDocs(tasksColRefOrderedByIndex))
-                  .docs
-
-                const tasksOrderedByDate = (
-                  await getDocs(tasksColRefOrderedByDate)
-                ).docs
-
-                tasksOrderedByDate.forEach((dateTask) => {
-                  const isTaskDocAlreadyInArr = tasksDocRefs.some(
-                    (taskDocRef) => taskDocRef.id === dateTask.id
-                  )
-
-                  if (!isTaskDocAlreadyInArr) {
-                    tasksDocRefs.push(dateTask)
-                  }
-                })
-
-                if (tasksDocRefs == null) throw new Error('wrong response')
-
-                return {
-                  tasks: tasksDocRefs.map((tasksDocRef) => ({
-                    ...(tasksDocRef.data() as Omit<Task, 'taskID'>),
-                    taskID: tasksDocRef.id
-                  })),
-                  tasksDocRefs
-                }
-              } catch (err) {
-                return (err as FirestoreError).code
-              }
-            })
-          )
-        : null
-
-    const isReturnedDataOk = returnedData?.every(
-      (item) => typeof item !== 'string'
-    )
-    if (returnedData != null && isReturnedDataOk) {
-      interface ReturnedData {
-        tasks: Task[]
-        tasksDocRefs: QueryDocumentSnapshot<DocumentData>[]
-      }
-      tasks.value = (returnedData as ReturnedData[]).map((item) => item.tasks)
-
-      const tasksDocRefsArr = (returnedData as ReturnedData[]).map(
-        (item) => item.tasksDocRefs
-      )
-
-      const response = await Promise.all(
-        tasksDocRefsArr.map(
-          async (tasksDocRefsArr) => await getSubtasks(tasksDocRefsArr)
-        )
-      )
-
-      if (typeof response !== 'string') {
-        subtasks.value = response as Subtask[][][]
-      }
-
-      return true
-    }
-  }
-
-  const getSubtasks = async (
-    tasksDocRefs: QueryDocumentSnapshot<DocumentData>[]
-  ) => {
     return await Promise.all(
-      tasksDocRefs.map(async (tasksDocRef) => {
-        const subtasksColRef = collection(
+      boardColumns.map(async ({ columnID }) => {
+        const tasksColRef = collection(
           db,
-          `${tasksDocRef.ref.path}/subtasks`
-        )
-        const subtasksColRefOrdered = query(
-          subtasksColRef,
-          orderBy('createdAt', 'asc')
+          `${columnsColRef.path}/${columnID}/tasks`
         )
 
         try {
-          const subtasksDocRefs = (await getDocs(subtasksColRefOrdered)).docs
+          const taskDocs = await getDocs(tasksColRef)
 
-          if (subtasksDocRefs.length === 0) return []
+          if (taskDocs == null) throw new Error()
 
-          return subtasksDocRefs.map((subtasksDocRef) => ({
-            ...(subtasksDocRef.data() as Omit<Subtask, 'subtaskID'>),
-            subtaskID: subtasksDocRef.id
+          if (taskDocs.docs.length === 0)
+            return {
+              tasksColRef,
+              tasks: [] as Task[]
+            }
+
+          const tasks = taskDocs.docs.map((taskDoc) => ({
+            ...(taskDoc.data() as Omit<Task, 'taskID'>),
+            taskID: taskDoc.id
           }))
+
+          return { tasksColRef, tasks }
         } catch (err) {
-          return (err as FirestoreError).code
+          return {
+            tasksColRef,
+            tasks: [] as Task[]
+          }
         }
+      })
+    )
+  }
+
+  const getSubtasks = async (
+    tasksColRefs: (null | CollectionReference<DocumentData>)[],
+    tasks: Task[][]
+  ) => {
+    return await Promise.all(
+      tasks.map(async (taskArr, index) => {
+        const taskColRef = tasksColRefs[index]
+
+        if (taskColRef == null) {
+          return [[]] as Subtask[][]
+        }
+
+        return await Promise.all(
+          taskArr.map(async ({ taskID }) => {
+            const subtasksColRef = collection(
+              db,
+              `${taskColRef.path}/${taskID}/subtasks`
+            )
+
+            try {
+              const subtaskDocs = await getDocs(subtasksColRef)
+
+              if (subtaskDocs == null) throw new Error()
+
+              if (subtaskDocs.docs.length === 0) return [] as Subtask[]
+
+              return subtaskDocs.docs.map((subtaskDoc) => ({
+                ...(subtaskDoc.data() as Omit<Subtask, 'subtaskID'>),
+                subtaskID: subtaskDoc.id
+              }))
+            } catch (err) {
+              return [] as Subtask[]
+            }
+          })
+        )
       })
     )
   }
@@ -186,11 +145,6 @@ export const useTasksStore = defineStore('tasks', () => {
 
       const subtasksColRef = collection(db, `${addedDocRef.path}/subtasks`)
 
-      if (formData.items.length === 0) {
-        await getColumnsAgain()
-        return true
-      }
-
       formData.items.forEach(async ({ name }) => {
         try {
           const response = await addDoc(subtasksColRef, {
@@ -204,8 +158,6 @@ export const useTasksStore = defineStore('tasks', () => {
           return (err as FirestoreError).code
         }
       })
-
-      await getColumnsAgain()
 
       return true
     } catch (err) {
@@ -678,6 +630,7 @@ export const useTasksStore = defineStore('tasks', () => {
     columnOfClickedTask,
     subtasksOfClickedTask,
     getTasks,
+    getSubtasks,
     addNewTask,
     setNewIndexesForTheSameColumn,
     setNewIndexesForDifferentColumns,

@@ -1,12 +1,15 @@
 export interface UserData {
   allBoards: Board[]
-  currentBoard: {
-    boardID: Board['boardID']
-    boardName: Board['name']
-    boardColumns: BoardColumn[]
-    boardTasks: Task[][]
-    boardSubtasks: Subtask[][][]
-  }
+  fullBoards: CurrentBoard[]
+  currentBoard: CurrentBoard
+}
+
+interface CurrentBoard {
+  boardID: Board['boardID']
+  boardName: Board['name']
+  boardColumns: BoardColumn[]
+  boardTasks: Task[][]
+  boardSubtasks: Subtask[][][]
 }
 
 export interface Board {

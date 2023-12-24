@@ -171,9 +171,13 @@ const userStore = useUserStore()
 const tasksStore = useTasksStore()
 const formsStore = useFormsStore()
 
-const boardColumns = userStore.userData[0].currentBoard.boardColumns
-const boardTasks = userStore.userData[0].currentBoard.boardTasks
-const boardSubtasks = userStore.userData[0].currentBoard.boardSubtasks
+const boardColumns = computed(
+  () => userStore.userData.currentBoard.boardColumns
+)
+const boardTasks = computed(() => userStore.userData.currentBoard.boardTasks)
+const boardSubtasks = computed(
+  () => userStore.userData.currentBoard.boardSubtasks
+)
 
 const formatColumnNumber = (number: number) => converter.toWordsOrdinal(number)
 
@@ -237,10 +241,10 @@ const returnNumberOfElements = (
   element: Element
 ) => {
   const elementFns = {
-    tasks: () => boardTasks[columnIndex].length,
-    subtasks: () => boardSubtasks[columnIndex][taskIndex].length,
+    tasks: () => boardTasks.value[columnIndex].length,
+    subtasks: () => boardSubtasks.value[columnIndex][taskIndex].length,
     subtasksCompleted: () =>
-      boardSubtasks[columnIndex][taskIndex].filter(
+      boardSubtasks.value[columnIndex][taskIndex].filter(
         (subtask) => subtask.isCompleted
       ).length
   }
@@ -250,7 +254,7 @@ const returnNumberOfElements = (
 
 const moveTask = async (value: BoardColumn['name']) => {
   const nextColumnID = (
-    boardColumns.find(
+    boardColumns.value.find(
       (boardColumn) => boardColumn.name === value
     ) as BoardColumn
   ).columnID
@@ -270,17 +274,17 @@ const indexOfOldColumn = ref<null | number>(null)
 const indexOfNewColumn = ref<null | number>(null)
 
 const setIndexesOfTasksInNewColumn = () => {
-  const oldColumn = boardColumns.find(
+  const oldColumn = boardColumns.value.find(
     (column) => column.columnID === prevColumnID.value
   )
-  const newColumn = boardColumns.find(
+  const newColumn = boardColumns.value.find(
     (column) => column.columnID === nextColumnID.value
   )
 
   indexOfOldColumn.value =
-    oldColumn != null ? boardColumns.indexOf(oldColumn) : null
+    oldColumn != null ? boardColumns.value.indexOf(oldColumn) : null
   indexOfNewColumn.value =
-    newColumn != null ? boardColumns.indexOf(newColumn) : null
+    newColumn != null ? boardColumns.value.indexOf(newColumn) : null
 
   const newColumnTasks =
     indexOfNewColumn.value != null

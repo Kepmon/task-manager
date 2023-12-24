@@ -98,9 +98,11 @@ import { useWindowSize } from '@vueuse/core'
 const userStore = useUserStore()
 const boardsStore = useBoardsStore()
 
-const isDashboardEmpty = computed(() => userStore.userData.length === 0)
+const isDashboardEmpty = computed(
+  () => userStore.userData.currentBoard.boardName === ''
+)
 const isBoardEmpty = computed(
-  () => userStore.userData[0].currentBoard.boardColumns.length === 0
+  () => userStore.userData.currentBoard.boardColumns.length === 0
 )
 
 const isSidebarShown = ref(true)

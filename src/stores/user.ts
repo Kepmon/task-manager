@@ -1,4 +1,4 @@
-import type { UserData } from '../api/boardsTypes'
+import type { UserData, BoardColumn, Task, Subtask } from '../api/boardsTypes'
 import type { AuthError, User } from 'firebase/auth'
 import type { FirestoreError } from 'firebase/firestore'
 import { defineStore } from 'pinia'
@@ -15,6 +15,7 @@ import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore'
 import { auth, usersColRef, db } from '../firebase'
 import { computed, ref } from 'vue'
 import { useBoardsStore } from './boards'
+import { useTasksStore } from './tasks'
 
 export const useUserStore = defineStore('user', () => {
   const currentUser = ref<null | User>(null)
@@ -23,9 +24,20 @@ export const useUserStore = defineStore('user', () => {
   )
   const inputedPassword = ref<null | string>(null)
 
-  const userData = ref<UserData[]>([])
+  const userData = ref<UserData>({
+    allBoards: [],
+    fullBoards: [],
+    currentBoard: {
+      boardID: '',
+      boardName: '',
+      boardColumns: [] as BoardColumn[],
+      boardTasks: [[]] as Task[][],
+      boardSubtasks: [[[]]] as Subtask[][][]
+    }
+  })
 
   const boardsStore = useBoardsStore()
+  const tasksStore = useTasksStore()
   const isLoading = ref(true)
 
   onAuthStateChanged(auth, async (user) => {
@@ -39,11 +51,11 @@ export const useUserStore = defineStore('user', () => {
     localStorage.setItem('TM-user', JSON.stringify(user))
 
     try {
-      const response = await boardsStore.getBoards(user.uid)
+      const response = await getUserData()
 
       if (typeof response === 'string') throw new Error(response)
 
-      userData.value = [...userData.value, response]
+      userData.value = response
     } catch (err) {
       return (err as FirestoreError).code
     }
@@ -58,6 +70,38 @@ export const useUserStore = defineStore('user', () => {
 
     isLoading.value = false
   })
+
+  const getUserData = async () => {
+    const boards = await boardsStore.getBoards()
+    const currentBoard = await boardsStore.getCurrentBoard(boards)
+    const columnsData = await boardsStore.getColumns(currentBoard)
+    const tasksData = await tasksStore.getTasks(
+      columnsData.columnsColRef,
+      columnsData.boardColumns
+    )
+    const boardSubtasks = await tasksStore.getSubtasks(
+      tasksData.map(({ tasksColRef }) => tasksColRef),
+      tasksData.map(({ tasks }) => tasks)
+    )
+
+    const currentFullBoard = {
+      boardID: currentBoard?.boardID,
+      boardName: currentBoard?.name,
+      boardColumns: columnsData.boardColumns,
+      boardTasks: tasksData.map((item) =>
+        item.tasks.every((task) => typeof task !== 'string')
+      )
+        ? tasksData.map((item) => item.tasks)
+        : ([[]] as Task[][]),
+      boardSubtasks
+    }
+
+    return {
+      allBoards: boards,
+      fullBoards: [currentFullBoard],
+      currentBoard: currentFullBoard
+    }
+  }
 
   const register = async (email: string, password: string) => {
     type RegisterError = FirestoreError | AuthError
@@ -166,6 +210,7 @@ export const useUserStore = defineStore('user', () => {
     userID,
     userData,
     inputedPassword,
+    getUserData,
     register,
     logIn,
     logout,

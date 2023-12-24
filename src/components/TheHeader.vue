@@ -19,7 +19,7 @@
     >
       <h1 class="inline font-bold text-lgFluid">
         <span class="sr-only">Currently active board: </span>
-        {{ currentBoard?.boardName }}
+        {{ currentBoard.boardName }}
       </h1>
       <svg
         width="10"
@@ -105,7 +105,7 @@ import UserOptions from './UserOptions.vue'
 import toggleMoreOptions from '../composables/toggleMoreOptions'
 import { useUserStore } from '../stores/user'
 import type { Ref } from 'vue'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps<{
   isBoardEmpty: boolean
@@ -115,7 +115,7 @@ const props = defineProps<{
 defineEmits(['toggle-boards-nav'])
 
 const userStore = useUserStore()
-const currentBoard = userStore.userData[0].currentBoard
+const currentBoard = computed(() => userStore.userData.currentBoard)
 
 const isMobileMode = props.width < 640
 const areBoardOptionsShown = ref(false)
