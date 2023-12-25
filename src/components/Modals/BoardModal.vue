@@ -61,8 +61,8 @@ const submit = async () => {
   if (!isFormValid) return
 
   const callback = {
-    add: async () => await boardsStore.addNewBoard(props.action),
-    edit: async () => await boardsStore.editBoard(props.action)
+    add: async () => await boardsStore.addNewBoard(),
+    edit: async () => await boardsStore.editBoard()
   }
 
   await formsStore.submitForm(

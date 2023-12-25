@@ -1,4 +1,4 @@
-import type { UserData, BoardColumn, Task, Subtask } from '../api/boardsTypes'
+import type { UserData, Task, Subtask } from '../api/boardsTypes'
 import type { AuthError, User } from 'firebase/auth'
 import type { FirestoreError } from 'firebase/firestore'
 import { defineStore } from 'pinia'
@@ -24,24 +24,11 @@ export const useUserStore = defineStore('user', () => {
   )
   const inputedPassword = ref<null | string>(null)
 
-  const userData = ref<UserData>({
-    allBoards: [],
-    fullBoards: [],
-    currentBoard: {
-      boardID: '',
-      boardName: '',
-      boardColumns: [] as BoardColumn[],
-      columnOfClickedTask: null,
-      boardTasks: [[]] as Task[][],
-      clickedTask: null,
-      boardSubtasks: [[[]]] as Subtask[][][],
-      subtasksOfClickedTask: [] as Subtask[]
-    }
-  })
-
   const boardsStore = useBoardsStore()
   const tasksStore = useTasksStore()
+
   const isLoading = ref(true)
+  const userData = ref<UserData>(boardsStore.returnEmptyUserData())
 
   onAuthStateChanged(auth, async (user) => {
     if (user == null) {
