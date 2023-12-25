@@ -8,8 +8,11 @@ interface CurrentBoard {
   boardID: Board['boardID']
   boardName: Board['name']
   boardColumns: BoardColumn[]
+  columnOfClickedTask: null | number
   boardTasks: Task[][]
+  clickedTask: null | Task
   boardSubtasks: Subtask[][][]
+  subtasksOfClickedTask: Subtask[]
 }
 
 export interface Board {

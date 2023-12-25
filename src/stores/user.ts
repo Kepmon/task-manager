@@ -31,8 +31,11 @@ export const useUserStore = defineStore('user', () => {
       boardID: '',
       boardName: '',
       boardColumns: [] as BoardColumn[],
+      columnOfClickedTask: null,
       boardTasks: [[]] as Task[][],
-      boardSubtasks: [[[]]] as Subtask[][][]
+      clickedTask: null,
+      boardSubtasks: [[[]]] as Subtask[][][],
+      subtasksOfClickedTask: [] as Subtask[]
     }
   })
 
@@ -50,15 +53,8 @@ export const useUserStore = defineStore('user', () => {
     currentUser.value = user
     localStorage.setItem('TM-user', JSON.stringify(user))
 
-    try {
-      const response = await getUserData()
-
-      if (typeof response === 'string') throw new Error(response)
-
-      userData.value = response
-    } catch (err) {
-      return (err as FirestoreError).code
-    }
+    const response = await getUserData()
+    userData.value = response
 
     const savedBoardJSON = localStorage.getItem(
       `TM-currentBoard-${userID.value}`
@@ -88,12 +84,15 @@ export const useUserStore = defineStore('user', () => {
       boardID: currentBoard?.boardID,
       boardName: currentBoard?.name,
       boardColumns: columnsData.boardColumns,
+      columnOfClickedTask: null,
       boardTasks: tasksData.map((item) =>
         item.tasks.every((task) => typeof task !== 'string')
       )
         ? tasksData.map((item) => item.tasks)
         : ([[]] as Task[][]),
-      boardSubtasks
+      clickedTask: null,
+      boardSubtasks,
+      subtasksOfClickedTask: [] as Subtask[]
     }
 
     return {
@@ -179,9 +178,9 @@ export const useUserStore = defineStore('user', () => {
           try {
             const response = await boardsStore.deleteBoard(boardDoc)
 
-            if (response !== true) throw new Error(response)
+            if (response === false) throw new Error()
           } catch (err) {
-            return (err as FirestoreError).code
+            return false
           }
         })
       }
@@ -190,18 +189,18 @@ export const useUserStore = defineStore('user', () => {
       try {
         await deleteDoc(userDocRef)
       } catch (err) {
-        return (err as FirestoreError).code
+        return false
       }
 
       try {
         await deleteUser(user as User)
       } catch (err) {
-        return (err as AuthError).code
+        return false
       }
 
       return true
     } catch (err) {
-      return (err as AuthError | FirestoreError).code
+      return false
     }
   }
 

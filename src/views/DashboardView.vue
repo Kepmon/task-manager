@@ -39,8 +39,6 @@
     <boards-navbar
       @toggle-sidebar="toggleSidebar"
       @close-boards-navbar="isNavOpen = false"
-      :boards="boardsStore.boards"
-      :boardName="boardsStore.currentBoard?.name || ''"
       :width="windowWidth"
       :isSidebarShown="isSidebarShown"
       :isNavOpen="isNavOpen"
@@ -90,13 +88,11 @@ import Spinner from '../components/Spinner.vue'
 import SkipToContent from '../components/SkipToContent.vue'
 import ConfirmationPopup from '../components/shared/ConfirmationPopup.vue'
 import { useUserStore } from '../stores/user'
-import { useBoardsStore } from '../stores/boards'
 import { isPopupShown, isResponseError } from '../composables/responseHandler'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useWindowSize } from '@vueuse/core'
 
 const userStore = useUserStore()
-const boardsStore = useBoardsStore()
 
 const isDashboardEmpty = computed(
   () => userStore.userData.currentBoard.boardName === ''

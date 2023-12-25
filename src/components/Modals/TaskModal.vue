@@ -59,7 +59,7 @@ import ModalsTemplate from './ModalsTemplate.vue'
 import TextInput from '../shared/Inputs/TextInput.vue'
 import DescriptionField from '../shared/Inputs/DescriptionField.vue'
 import ElementSubset from '../shared/ElementSubset.vue'
-import { useBoardsStore } from '../../stores/boards'
+import { useUserStore } from '../../stores/user'
 import { useTasksStore } from '../../stores/tasks'
 import { useFormsStore } from '../../stores/forms'
 import { ref } from 'vue'
@@ -71,29 +71,28 @@ const props = defineProps<{
 }>()
 const emits = defineEmits(['change-var-to-false'])
 
+const userStore = useUserStore()
 const tasksStore = useTasksStore()
-const boardsStore = useBoardsStore()
 const formsStore = useFormsStore()
 
 const formData = formsStore.formData.task[props.action]
+const boardColumns = userStore.userData.currentBoard.boardColumns
 
 const selectedStatusItem = ref(
-  props.columnIndex != null
-    ? boardsStore.boardColumns[props.columnIndex]
-    : boardsStore.boardColumns[0]
+  props.columnIndex != null ? boardColumns[props.columnIndex] : boardColumns[0]
 )
-const statusItemsNames = boardsStore.boardColumns?.map((column) => column.name)
+const statusItemsNames = boardColumns?.map((column) => column.name)
 const prevStatusItem = ref<null | BoardColumn>(null)
 
 const isStatusUpdated = ref(false)
 const updateStatusItem = (newItem: BoardColumn['name']) => {
   isStatusUpdated.value = true
 
-  prevStatusItem.value = boardsStore.boardColumns.find(
+  prevStatusItem.value = boardColumns.find(
     (item) => item.name === selectedStatusItem.value.name
   ) as BoardColumn
 
-  selectedStatusItem.value = boardsStore.boardColumns.find(
+  selectedStatusItem.value = boardColumns.find(
     (item) => item.name === newItem
   ) as BoardColumn
 }
@@ -107,12 +106,10 @@ const submit = async () => {
   const callback = {
     add: async () =>
       await tasksStore.addNewTask(
-        selectedStatusItem.value.columnID as BoardColumn['columnID'],
-        props.action
+        selectedStatusItem.value.columnID as BoardColumn['columnID']
       ),
     edit: async () =>
       await tasksStore.editTask(
-        props.action,
         selectedStatusItem.value.columnID,
         isStatusUpdated.value
       )

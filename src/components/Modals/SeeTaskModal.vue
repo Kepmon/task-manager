@@ -32,30 +32,26 @@
         <div>
           <p class="mb-4 text-xs text-gray-400 dark:text-white">
             Subtasks
-            <span v-if="tasksStore.subtasksOfClickedTask.length > 0">
+            <span v-if="subtasksOfClickedTask.length > 0">
               ({{
-                tasksStore.subtasksOfClickedTask.filter(
-                  (subtask) => subtask.isCompleted
-                ).length
+                subtasksOfClickedTask.filter((subtask) => subtask.isCompleted)
+                  .length
               }}
-              of {{ tasksStore.subtasksOfClickedTask.length }})
+              of {{ subtasksOfClickedTask.length }})
             </span>
           </p>
           <p
-            v-if="tasksStore.subtasksOfClickedTask.length === 0"
+            v-if="subtasksOfClickedTask.length === 0"
             class="text-xs text-gray-400"
           >
             There are no subtasks to display
           </p>
-          <div
-            v-if="tasksStore.subtasksOfClickedTask.length > 0"
-            class="grid gap-2"
-          >
+          <div v-if="subtasksOfClickedTask.length > 0" class="grid gap-2">
             <div
               @click="() => toggleSubtask(index)"
               v-for="(
                 { title, isCompleted, subtaskID }, index
-              ) in tasksStore.subtasksOfClickedTask"
+              ) in subtasksOfClickedTask"
               :key="subtaskID"
               class="subtask"
             >
@@ -83,7 +79,7 @@
             @update:model-value="(newColumnName: BoardColumn['name']) => handleChangeColumn(newColumnName)"
             :options="taskStatuses"
             :searchable="false"
-            :placeholder="taskStatuses[columnIndex]"
+            :placeholder="taskStatuses[columnIndex || 0]"
           ></v-select>
           <p v-if="isPending" class="mt-4 text-purple-400 text-center">
             Loading...
@@ -102,12 +98,12 @@ import MoreOptions from '../shared/MoreOptions.vue'
 import MoreOptionsIcon from '../Svgs/MoreOptionsIcon.vue'
 import toggleMoreOptions from '../../composables/toggleMoreOptions'
 import { handleResponse } from '../../composables/responseHandler'
+import { useUserStore } from '../../stores/user'
 import { useTasksStore } from '../../stores/tasks'
-import { useBoardsStore } from '../../stores/boards'
-import { ref, onUnmounted } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 
 defineProps<{
-  columnIndex: number
+  columnIndex: null | number
   task: Task
 }>()
 const emits = defineEmits([
@@ -117,10 +113,15 @@ const emits = defineEmits([
   'handle-move-task'
 ])
 
+const userStore = useUserStore()
 const tasksStore = useTasksStore()
-const boardsStore = useBoardsStore()
 
-const taskStatuses = ref(boardsStore.boardColumns.map((column) => column.name))
+const subtasksOfClickedTask = computed(
+  () => userStore.userData.currentBoard.subtasksOfClickedTask
+)
+const taskStatuses = computed(() =>
+  userStore.userData.currentBoard.boardColumns.map((column) => column.name)
+)
 const areTaskOptionsShown = ref(false)
 
 const { toggleOptions, closeOptions } = toggleMoreOptions
@@ -136,7 +137,7 @@ const handleMoreOptionsFn = (
 }
 
 const toggleSubtask = async (index: number) => {
-  const clickedSubtask = tasksStore.subtasksOfClickedTask[index]
+  const clickedSubtask = subtasksOfClickedTask.value[index]
 
   const response = await tasksStore.toggleSubtask(clickedSubtask)
 

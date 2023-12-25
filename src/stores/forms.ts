@@ -1,18 +1,15 @@
-import type { FirestoreErrorCode } from 'firebase/firestore'
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { useBoardsStore } from './boards'
-import { useTasksStore } from './tasks'
+import { useUserStore } from './user'
 import { handleResponse } from '../composables/responseHandler'
 import { returnCircleColor } from '../composables/circleColor'
 
 export const useFormsStore = defineStore('forms', () => {
-  const boardsStore = useBoardsStore()
-  const tasksStore = useTasksStore()
+  const userStore = useUserStore()
 
   const elementEditName = computed(() => ({
-    board: boardsStore.currentBoard?.name || '',
-    task: tasksStore.clickedTask?.title || ''
+    board: userStore.userData.currentBoard.boardName,
+    task: userStore.userData.currentBoard.clickedTask?.title || ''
   }))
   const subsetItems = computed(() => ({
     board: {
@@ -21,7 +18,7 @@ export const useFormsStore = defineStore('forms', () => {
         id: index.toString(),
         dotColor: returnCircleColor(index, undefined, true)
       })),
-      edit: boardsStore.boardColumns.map(
+      edit: userStore.userData.currentBoard.boardColumns.map(
         ({ name, columnID, dotColor }, index) => ({
           name,
           id: columnID,
@@ -38,11 +35,13 @@ export const useFormsStore = defineStore('forms', () => {
         id: index.toString(),
         dotColor: returnCircleColor(index, undefined, true)
       })),
-      edit: tasksStore.subtasksOfClickedTask.map(({ title, subtaskID }) => ({
-        name: title,
-        id: subtaskID,
-        dotColor: undefined
-      }))
+      edit: userStore.userData.currentBoard.subtasksOfClickedTask.map(
+        ({ title, subtaskID }) => ({
+          name: title,
+          id: subtaskID,
+          dotColor: undefined
+        })
+      )
     }
   }))
 
@@ -58,7 +57,7 @@ export const useFormsStore = defineStore('forms', () => {
             ? undefined
             : action === 'add'
             ? ''
-            : tasksStore.clickedTask?.description || '',
+            : userStore.userData.currentBoard.clickedTask?.description || '',
         items: [...subsetItems.value[element][action]],
         placeholderItems:
           element === 'board'
@@ -246,7 +245,7 @@ export const useFormsStore = defineStore('forms', () => {
 
   const submitForm = async (
     isPending: boolean,
-    callback: () => Promise<true | FirestoreErrorCode>,
+    callback: () => Promise<boolean>,
     emit: () => void
   ) => {
     isPending = true

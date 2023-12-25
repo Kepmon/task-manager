@@ -94,8 +94,6 @@ import { useBoardsStore } from '../../stores/boards'
 import { ref, computed } from 'vue'
 
 const props = defineProps<{
-  boards: Board[]
-  boardName: Board['name']
   width: number
   isSidebarShown: boolean
   isNavOpen: boolean

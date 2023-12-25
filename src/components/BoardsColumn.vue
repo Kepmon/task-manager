@@ -92,13 +92,17 @@
     <Teleport to="body">
       <transition name="modal">
         <see-task-modal
-          v-if="modals.isSeeTaskModalShown && tasksConditions"
+          v-if="
+            modals.isSeeTaskModalShown &&
+            clickedTask != null &&
+            columnOfClickedTask != null
+          "
           @close-modal="modals.isSeeTaskModalShown = false"
           @show-edit-form="modals.showEditForm"
           @show-delete-form="modals.showDeleteForm"
           @handle-move-task="(value) => moveTask(value)"
-          :task="(tasksStore.clickedTask as Task)"
-          :columnIndex="(tasksStore.columnOfClickedTask as number)"
+          :task="clickedTask"
+          :columnIndex="indexOfColumn"
         />
       </transition>
     </Teleport>
@@ -113,18 +117,16 @@
         :elementToDelete="modals.isDeleteTaskModalShown ? 'task' : 'column'"
         :elementName="
           modals.isDeleteTaskModalShown
-            ? (tasksStore.clickedTask as Task).title
+            ? clickedTask?.title
             : (modals.columnToDelete as BoardColumn).name
         "
         :elementID="
           modals.isDeleteTaskModalShown
-            ? (tasksStore.clickedTask as Task).taskID
+            ? clickedTask?.taskID
             : (modals.columnToDelete as BoardColumn).columnID
         "
         :columnOfClickedTask="
-          tasksStore.columnOfClickedTask
-            ? boardsStore.boardColumns[tasksStore.columnOfClickedTask].columnID
-            : undefined
+          columnOfClickedTask != null ? columnOfClickedTask.columnID : undefined
         "
       />
     </transition>
@@ -133,11 +135,7 @@
         v-if="modals.isEditTaskModalShown"
         @change-var-to-false="modals.isEditTaskModalShown = false"
         action="edit"
-        :columnIndex="
-          tasksStore.columnOfClickedTask != null
-            ? tasksStore.columnOfClickedTask
-            : undefined
-        "
+        :columnIndex="indexOfColumn != null ? indexOfColumn : undefined"
       />
     </transition>
     <transition name="modal">
@@ -178,6 +176,13 @@ const boardTasks = computed(() => userStore.userData.currentBoard.boardTasks)
 const boardSubtasks = computed(
   () => userStore.userData.currentBoard.boardSubtasks
 )
+const clickedTask = computed(() => userStore.userData.currentBoard.clickedTask)
+const indexOfColumn = computed(
+  () => userStore.userData.currentBoard.columnOfClickedTask
+)
+const columnOfClickedTask = computed(
+  () => boardColumns.value[indexOfColumn.value as number]
+)
 
 const formatColumnNumber = (number: number) => converter.toWordsOrdinal(number)
 
@@ -209,30 +214,24 @@ const tasks = ref({
     modals.value.isSeeTaskModalShown = true
   },
   saveClickedTask: (columnIndex: number, taskIndex: number) => {
-    const idOfCurrentClickedTask = tasksStore.clickedTask?.taskID
-    const idOfNewClickedTask = tasksStore.tasks[columnIndex][taskIndex].taskID
+    const idOfCurrentClickedTask = clickedTask.value?.taskID
+    const idOfNewClickedTask = boardTasks.value[columnIndex][taskIndex].taskID
 
     if (idOfCurrentClickedTask === idOfNewClickedTask) return
 
-    tasksStore.columnOfClickedTask = columnIndex
-    tasksStore.clickedTask = tasksStore.tasks[columnIndex][taskIndex]
+    userStore.userData.currentBoard.columnOfClickedTask = columnIndex
+    userStore.userData.currentBoard.clickedTask =
+      boardTasks.value[columnIndex][taskIndex]
 
     tasks.value.saveSubtasksOfClickedTask(columnIndex, taskIndex)
 
     formsStore.resetFormData('task', 'edit')
   },
   saveSubtasksOfClickedTask: (columnIndex: number, taskIndex: number) => {
-    tasksStore.subtasksOfClickedTask =
-      tasksStore.subtasks[columnIndex][taskIndex]
+    userStore.userData.currentBoard.subtasksOfClickedTask =
+      boardSubtasks.value[columnIndex][taskIndex]
   }
 })
-
-const tasksConditions = computed(() =>
-  [
-    tasksStore.clickedTask != null,
-    tasksStore.columnOfClickedTask != null
-  ].every((taskCondition) => taskCondition)
-)
 
 type Element = 'tasks' | 'subtasks' | 'subtasksCompleted'
 const returnNumberOfElements = (
@@ -288,7 +287,7 @@ const setIndexesOfTasksInNewColumn = () => {
 
   const newColumnTasks =
     indexOfNewColumn.value != null
-      ? [...tasksStore.tasks[indexOfNewColumn.value]]
+      ? [...boardTasks.value[indexOfNewColumn.value]]
       : []
 
   if (newColumnTasks.length === 0) return []

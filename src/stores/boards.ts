@@ -1,9 +1,8 @@
-import type { Board, BoardColumn, Task } from '../api/boardsTypes'
+import type { Board, BoardColumn, Task, Subtask } from '../api/boardsTypes'
 import type {
   CollectionReference,
   DocumentReference,
-  DocumentData,
-  FirestoreError
+  DocumentData
 } from 'firebase/firestore'
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
@@ -29,11 +28,6 @@ export const useBoardsStore = defineStore('boards', () => {
   const userStore = useUserStore()
   const tasksStore = useTasksStore()
 
-  const boards = ref<Board[]>([])
-  const currentBoard = ref<null | Board>(null)
-  const currentBoardID = computed(() => currentBoard.value?.boardID || null)
-
-  const boardColumns = ref<BoardColumn[]>([])
   const boardsColRefGlobal = ref<null | CollectionReference<DocumentData>>(null)
 
   const getBoards = async () => {
@@ -94,7 +88,9 @@ export const useBoardsStore = defineStore('boards', () => {
     )
   }
 
-  const getColumns = async (currentBoard: Board) => {
+  const getColumns = async (otherThanCurrentBoard?: Board) => {
+    const currentBoard =
+      otherThanCurrentBoard || userStore.userData.currentBoard
     const columnsColRef = collection(
       db,
       `users/${userStore.userID}/boards/${currentBoard.boardID}/columns`
@@ -132,7 +128,7 @@ export const useBoardsStore = defineStore('boards', () => {
   const returnColumnsColRef = () => {
     const columnsColRef = collection(
       db,
-      `${boardsColRefGlobal.value?.path}/${currentBoardID.value}/columns`
+      `${boardsColRefGlobal.value?.path}/${userStore.userData.currentBoard.boardID}/columns`
     )
 
     const columnsColRefOrdered = query(
@@ -169,12 +165,15 @@ export const useBoardsStore = defineStore('boards', () => {
           boardID: newBoard.boardID,
           boardName: newBoard.name,
           boardColumns: columnsData.boardColumns,
+          columnOfClickedTask: null,
           boardTasks: tasksData.map((item) =>
             item.tasks.every((task) => typeof task !== 'string')
           )
             ? tasksData.map((item) => item.tasks)
             : ([[]] as Task[][]),
-          boardSubtasks
+          clickedTask: null,
+          boardSubtasks,
+          subtasksOfClickedTask: [] as Subtask[]
         }
         userStore.userData.fullBoards = [
           ...userStore.userData.fullBoards,
@@ -225,7 +224,7 @@ export const useBoardsStore = defineStore('boards', () => {
     })
     const nameAfter = ((await getDoc(docRef)).data() as Board).name
 
-    if (nameBefore !== nameAfter) return 'wrong response'
+    if (nameBefore !== nameAfter) return false
 
     return true
   }
@@ -236,48 +235,35 @@ export const useBoardsStore = defineStore('boards', () => {
   ) => {
     const actionHandlers = {
       add: () => {
-        tasksStore.subtasks = [...tasksStore.subtasks, []]
-        tasksStore.tasks = [...tasksStore.tasks, []]
-        boardColumns.value = [...boardColumns.value, updatedColumn]
-
-        const columnsObj = allColumns.value.find(
-          ({ boardID }) => boardID === currentBoardID.value
-        )
-
-        if (columnsObj != null) {
-          columnsObj.boardColumns = [...columnsObj.boardColumns, updatedColumn]
-          const allColumnsFiltered = allColumns.value.filter(
-            ({ boardID }) => boardID !== currentBoardID.value
-          )
-          allColumns.value = [...allColumnsFiltered, columnsObj]
-        }
+        userStore.userData.currentBoard.boardSubtasks = [
+          ...userStore.userData.currentBoard.boardSubtasks,
+          []
+        ]
+        userStore.userData.currentBoard.boardTasks = [
+          ...userStore.userData.currentBoard.boardTasks,
+          []
+        ]
+        userStore.userData.currentBoard.boardColumns = [
+          ...userStore.userData.currentBoard.boardColumns,
+          updatedColumn
+        ]
       },
       delete: () => {
-        const indexOfDeletedColumn = boardColumns.value.indexOf(updatedColumn)
+        const indexOfDeletedColumn =
+          userStore.userData.currentBoard.boardColumns.indexOf(updatedColumn)
 
-        tasksStore.subtasks = tasksStore.subtasks.filter(
-          (_, index) => index !== indexOfDeletedColumn
-        )
-        tasksStore.tasks = tasksStore.tasks.filter(
-          (_, index) => index !== indexOfDeletedColumn
-        )
-        boardColumns.value = boardColumns.value.filter(
-          ({ columnID }) => columnID !== updatedColumn.columnID
-        )
-
-        const columnsObj = allColumns.value.find(
-          ({ boardID }) => boardID === currentBoardID.value
-        )
-
-        if (columnsObj != null) {
-          columnsObj.boardColumns = columnsObj.boardColumns.filter(
+        userStore.userData.currentBoard.boardSubtasks =
+          userStore.userData.currentBoard.boardSubtasks.filter(
+            (_, index) => index !== indexOfDeletedColumn
+          )
+        userStore.userData.currentBoard.boardTasks =
+          userStore.userData.currentBoard.boardTasks.filter(
+            (_, index) => index !== indexOfDeletedColumn
+          )
+        userStore.userData.currentBoard.boardColumns =
+          userStore.userData.currentBoard.boardColumns.filter(
             ({ columnID }) => columnID !== updatedColumn.columnID
           )
-          const allColumnsFiltered = allColumns.value.filter(
-            ({ boardID }) => boardID !== currentBoardID.value
-          )
-          allColumns.value = [...allColumnsFiltered, columnsObj]
-        }
       }
     }
 
@@ -304,7 +290,7 @@ export const useBoardsStore = defineStore('boards', () => {
 
       return true
     } catch (err) {
-      return (err as FirestoreError).code
+      return false
     }
   }
 
@@ -320,12 +306,12 @@ export const useBoardsStore = defineStore('boards', () => {
 
       if (addedDocRef == null) throw new Error('custom error')
 
-      boards.value = [
+      userStore.userData.allBoards = [
         {
           name: formData.name,
           boardID: addedDocRef.id
         },
-        ...boards.value
+        ...userStore.userData.allBoards
       ]
 
       const columnsColRef = collection(db, `${addedDocRef.path}/columns`)
@@ -342,15 +328,15 @@ export const useBoardsStore = defineStore('boards', () => {
           columnID: id,
           dotColor: formData.items[index].dotColor
         }))
-        boardColumns.value = [...newColumns]
-        allColumns.value = [...allColumns.value, ...newColumns]
 
-        saveCurrentBoard(boards.value[0])
+        userStore.userData.currentBoard.boardColumns = [...newColumns]
+
+        saveCurrentBoard(userStore.userData.allBoards[0])
       }
 
       return true
     } catch (err) {
-      return (err as FirestoreError).code
+      return false
     }
   }
 
@@ -386,15 +372,15 @@ export const useBoardsStore = defineStore('boards', () => {
       try {
         const response = await updateFirestoreDoc(docToEditRef, formData.name)
 
-        if (response !== true) throw new Error()
+        if (response === false) throw new Error()
 
         if (areColumnsNamesAndDotsSame) {
           try {
-            const response = await getBoards()
+            const boards = await getBoards()
 
-            if (response !== true) throw new Error(response)
+            if (boards.length === 0) throw new Error()
           } catch (err) {
-            return (err as FirestoreError).code
+            return false
           }
 
           const newBoard =
@@ -404,7 +390,7 @@ export const useBoardsStore = defineStore('boards', () => {
           saveCurrentBoard(newBoard)
         }
       } catch (err) {
-        return (err as FirestoreError).code || 'wrong response'
+        return false
       }
     }
 
@@ -433,7 +419,7 @@ export const useBoardsStore = defineStore('boards', () => {
 
             if (response == null) throw new Error()
           } catch (err) {
-            return (err as FirestoreError).code
+            return false
           }
         }
       })
@@ -452,22 +438,22 @@ export const useBoardsStore = defineStore('boards', () => {
           const isDotColorSame = respectiveColumn?.dotColor === dotColor
 
           if (respectiveColumn != null && isColumnNameSame && isDotColorSame)
-            return
+            return true
 
           if (respectiveColumn == null) {
             try {
               await deleteDoc(columnDocRef)
             } catch (err) {
-              return (err as FirestoreError).code
+              return false
             }
-            return
+            return true
           }
 
           if (!isColumnNameSame) {
             try {
               await updateFirestoreDoc(columnDocRef, respectiveColumn.name)
             } catch (err) {
-              return (err as FirestoreError).code
+              return false
             }
           }
 
@@ -477,14 +463,13 @@ export const useBoardsStore = defineStore('boards', () => {
                 dotColor: respectiveColumn.dotColor
               })
             } catch (err) {
-              return (err as FirestoreError).code
+              return false
             }
           }
         })
       )
 
-      if (errorCodes.some((code) => code != null))
-        throw new Error('wrong response')
+      if (errorCodes.some((code) => code != null)) throw new Error()
     }
 
     const newBoard =
@@ -498,11 +483,11 @@ export const useBoardsStore = defineStore('boards', () => {
     saveCurrentBoard(newBoard)
 
     try {
-      const boardsResponse = await getBoards()
+      const boards = await getBoards()
 
-      if (boardsResponse !== true) throw new Error(boardsResponse)
+      if (boards.length === 0) throw new Error()
     } catch (err) {
-      return (err as FirestoreError).code
+      return false
     }
 
     return true
@@ -521,17 +506,16 @@ export const useBoardsStore = defineStore('boards', () => {
         try {
           const response = await deleteColumn(columnDocRef.id)
 
-          if (response !== true) throw new Error(response)
+          if (response === false) throw new Error()
 
           return true
         } catch (err) {
-          return (err as FirestoreError).code
+          return false
         }
       })
     )
 
-    if (columnResponses.some((response) => response !== true))
-      return 'wrong response'
+    if (columnResponses.some((response) => response === false)) return false
 
     try {
       await deleteDoc(boardDocRef)
@@ -549,19 +533,11 @@ export const useBoardsStore = defineStore('boards', () => {
         )
 
         saveCurrentBoard(boards.value[0])
-
-        try {
-          const columnsResponse = await getColumns()
-
-          if (columnsResponse !== true) throw new Error(columnsResponse)
-        } catch (err) {
-          return (err as FirestoreError).code
-        }
       }
 
       return true
     } catch (err) {
-      return (err as FirestoreError).code
+      return false
     }
   }
 
@@ -608,14 +584,11 @@ export const useBoardsStore = defineStore('boards', () => {
 
       return true
     } catch (err) {
-      return (err as FirestoreError).code
+      return false
     }
   }
 
   return {
-    boards,
-    currentBoard,
-    boardColumns,
     getBoards,
     getCurrentBoard,
     getColumns,
