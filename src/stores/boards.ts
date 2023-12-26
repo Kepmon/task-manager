@@ -213,6 +213,8 @@ export const useBoardsStore = defineStore('boards', () => {
 
     const formsStore = useFormsStore()
     formsStore.resetFormData('board', 'edit')
+
+    return true
   }
 
   const addDocToFirestore = async (
@@ -317,6 +319,7 @@ export const useBoardsStore = defineStore('boards', () => {
     const formData = formsStore.formData.board.add.data
 
     if (boardsColRefGlobal.value == null) return false
+
     try {
       const addedDocRef = await addDocToFirestore(
         boardsColRefGlobal.value,
@@ -335,22 +338,27 @@ export const useBoardsStore = defineStore('boards', () => {
 
       const columnsColRef = collection(db, `${addedDocRef.path}/columns`)
       const responses = await Promise.all(
-        formData.items.map(async ({ name, dotColor }) => {
-          return await addDocToFirestore(columnsColRef, name, dotColor)
-        })
+        formData.items.map(
+          async ({ name, dotColor }) =>
+            await addDocToFirestore(columnsColRef, name, dotColor)
+        )
       )
 
-      if (responses.every((response) => response != null)) {
-        const newColumns = responses.map(({ id }, index) => ({
-          name: formData.items[index].name,
-          columnID: id,
-          dotColor: formData.items[index].dotColor
-        }))
+      if (responses.some((response) => !response)) throw new Error()
 
-        userStore.userData.currentBoard.boardColumns = [...newColumns]
+      const newColumns = responses.map(({ id }, index) => ({
+        name: formData.items[index].name,
+        columnID: id,
+        dotColor: formData.items[index].dotColor
+      }))
 
-        saveCurrentBoard(userStore.userData.allBoards[0])
-      }
+      userStore.userData.currentBoard.boardColumns = [...newColumns]
+
+      const saveBoardResponse = await saveCurrentBoard(
+        userStore.userData.allBoards[0]
+      )
+
+      if (!saveBoardResponse) return false
 
       return true
     } catch (err) {
@@ -358,14 +366,15 @@ export const useBoardsStore = defineStore('boards', () => {
     }
   }
 
-  const editBoard = async () => {
+  const validateBoardChanges = () => {
     const formsStore = useFormsStore()
     const formData = formsStore.formData.board.edit.data
+    const currentBoard = userStore.userData.currentBoard
+    const boardColumns = userStore.userData.currentBoard.boardColumns
 
-    const isBoardNameSame = formData.name === currentBoard.value?.name
-    const isNumberOfColumnsSame =
-      boardColumns.value?.length === formData.items.length
-    const areColumnsNamesAndDotsSame = boardColumns.value.every(
+    const isBoardNameSame = formData.name === currentBoard.boardName
+    const isNumberOfColumnsSame = boardColumns.length === formData.items.length
+    const areColumnsNamesAndDotsSame = boardColumns.every(
       ({ columnID, name: columnName, dotColor: oldDotColor }) =>
         formData.items.find(
           ({ name, id, dotColor }) =>
@@ -377,141 +386,219 @@ export const useBoardsStore = defineStore('boards', () => {
       isBoardNameSame,
       isNumberOfColumnsSame,
       areColumnsNamesAndDotsSame
-    ].every((item) => item === true)
+    ].every((item) => item)
 
-    if (isFormNotChanged) return true
-
-    const docToEditRef = doc(
-      boardsColRefGlobal.value as CollectionReference<DocumentData>,
-      currentBoardID.value as string
-    )
-
-    if (!isBoardNameSame) {
-      try {
-        const response = await updateFirestoreDoc(docToEditRef, formData.name)
-
-        if (response === false) throw new Error()
-
-        if (areColumnsNamesAndDotsSame) {
-          try {
-            const boards = await getBoards()
-
-            if (boards.length === 0) throw new Error()
-          } catch (err) {
-            return false
-          }
-
-          const newBoard =
-            boards.value.find(
-              ({ boardID }) => boardID === currentBoardID.value
-            ) || boards.value[0]
-          saveCurrentBoard(newBoard)
-        }
-      } catch (err) {
-        return false
-      }
+    return {
+      isFormNotChanged,
+      boardColumns,
+      currentBoard,
+      formData,
+      isBoardNameSame,
+      isNumberOfColumnsSame,
+      areColumnsNamesAndDotsSame
     }
+  }
 
-    const columnsColRef = collection(db, `${docToEditRef.path}/columns`)
-    const noRespectiveColumns = formData.items.map(({ name, id, dotColor }) => {
-      if (
-        boardColumns.value != null &&
-        boardColumns.value.some(({ columnID }) => columnID === id)
-      )
-        return null
-
-      return { name, dotColor }
-    })
-    const columnsToBeAdded = noRespectiveColumns.filter(
-      (column) => column != null
-    )
-    if (columnsToBeAdded.length > 0) {
-      columnsToBeAdded.forEach(async (column) => {
-        if (column != null) {
-          try {
-            const response = await addDocToFirestore(
-              columnsColRef,
-              column.name,
-              column.dotColor
-            )
-
-            if (response == null) throw new Error()
-          } catch (err) {
-            return false
-          }
-        }
-      })
-    }
-
-    if (boardColumns.value != null) {
-      const errorCodes = await Promise.all(
-        boardColumns.value.map(async ({ columnID, name, dotColor }) => {
-          const columnDocRef = doc(columnsColRef, columnID)
-
-          const respectiveColumn = formData.items.find(
-            ({ id }) => id === columnID
-          )
-
-          const isColumnNameSame = respectiveColumn?.name === name
-          const isDotColorSame = respectiveColumn?.dotColor === dotColor
-
-          if (respectiveColumn != null && isColumnNameSame && isDotColorSame)
-            return true
-
-          if (respectiveColumn == null) {
-            try {
-              await deleteDoc(columnDocRef)
-            } catch (err) {
-              return false
-            }
-            return true
-          }
-
-          if (!isColumnNameSame) {
-            try {
-              await updateFirestoreDoc(columnDocRef, respectiveColumn.name)
-            } catch (err) {
-              return false
-            }
-          }
-
-          if (!isDotColorSame) {
-            try {
-              await updateDoc(columnDocRef, {
-                dotColor: respectiveColumn.dotColor
-              })
-            } catch (err) {
-              return false
-            }
-          }
-        })
-      )
-
-      if (errorCodes.some((code) => code != null)) throw new Error()
-    }
-
-    const newBoard =
-      boards.value.find(({ boardID }) => boardID === currentBoardID.value) ||
-      boards.value[0]
-
-    if (newBoard.name !== formData.name) {
-      newBoard.name = formData.name
-    }
-
-    saveCurrentBoard(newBoard)
-
+  const handleBoardNameChanged = async (
+    docToEditRef: DocumentReference<DocumentData>,
+    validationData: ReturnType<typeof validateBoardChanges>
+  ) => {
     try {
-      const boards = await getBoards()
+      const response = await updateFirestoreDoc(
+        docToEditRef,
+        validationData.formData.name
+      )
 
-      if (boards.length === 0) throw new Error()
+      if (response === false) throw new Error()
+
+      return true
     } catch (err) {
       return false
+    }
+  }
+
+  const handleColumnsEdit = async (
+    columnsColRef: CollectionReference<DocumentData>,
+    validationData: ReturnType<typeof validateBoardChanges>
+  ) => {
+    const responses = await Promise.all(
+      validationData.boardColumns.map(async ({ columnID, name, dotColor }) => {
+        const columnDocRef = doc(columnsColRef, columnID)
+        const respectiveColumn = validationData.formData.items.find(
+          ({ id }) => id === columnID
+        )
+
+        const isColumnNameSame = respectiveColumn?.name === name
+        const isDotColorSame = respectiveColumn?.dotColor === dotColor
+
+        if (respectiveColumn != null && isColumnNameSame && isDotColorSame)
+          return true
+
+        if (respectiveColumn == null) {
+          try {
+            await deleteDoc(columnDocRef)
+          } catch (err) {
+            return false
+          }
+        }
+
+        const indexOfRespectiveColumn = validationData.boardColumns.findIndex(
+          ({ columnID: id }) => id === columnID
+        )
+
+        if (respectiveColumn != null && !isColumnNameSame) {
+          try {
+            await updateFirestoreDoc(columnDocRef, respectiveColumn.name)
+
+            userStore.userData.currentBoard.boardColumns[
+              indexOfRespectiveColumn
+            ].name = respectiveColumn.name
+          } catch (err) {
+            return false
+          }
+        }
+
+        if (respectiveColumn != null && !isDotColorSame) {
+          try {
+            await updateDoc(columnDocRef, {
+              dotColor: respectiveColumn.dotColor
+            })
+
+            userStore.userData.currentBoard.boardColumns[
+              indexOfRespectiveColumn
+            ].dotColor = respectiveColumn.dotColor
+          } catch (err) {
+            return false
+          }
+        }
+
+        return true
+      })
+    )
+
+    if (responses.some((response) => !response)) return false
+
+    return true
+  }
+
+  const handleAddedColumns = async (
+    columnsColRef: CollectionReference<DocumentData>,
+    columnsToBeAdded: Omit<BoardColumn, 'columnID'>[]
+  ) => {
+    const responses = await Promise.all(
+      columnsToBeAdded.map(async ({ name, dotColor }) => {
+        try {
+          const response = await addDocToFirestore(
+            columnsColRef,
+            name,
+            dotColor
+          )
+
+          if (response == null) throw new Error()
+
+          return true
+        } catch (err) {
+          return false
+        }
+      })
+    )
+
+    if (responses.some((response) => !response)) return false
+
+    return true
+  }
+
+  const handleBoardUIChanges = async (
+    validationData: ReturnType<typeof validateBoardChanges>
+  ) => {
+    const newBoard = userStore.userData.allBoards.find(
+      ({ boardID }) => boardID === validationData.currentBoard.boardID
+    )
+    const indexOfNewBoard = userStore.userData.allBoards.findIndex(
+      ({ boardID }) => boardID === validationData.currentBoard.boardID
+    )
+
+    if (
+      newBoard != null &&
+      indexOfNewBoard != null &&
+      newBoard.name !== validationData.formData.name
+    ) {
+      userStore.userData.currentBoard.boardName = validationData.formData.name
+
+      userStore.userData.allBoards[indexOfNewBoard].name =
+        validationData.formData.name
+    }
+
+    if (newBoard != null) {
+      const saveBoardResponse = await saveCurrentBoard(newBoard)
+
+      if (!saveBoardResponse) return false
     }
 
     return true
   }
 
-  const removeBoardFromLocalStorage = (
+  const editBoard = async () => {
+    const validationData = validateBoardChanges()
+
+    if (validationData.isFormNotChanged) return true
+    if (boardsColRefGlobal.value == null) return false
+
+    const docToEditRef = doc(
+      boardsColRefGlobal.value,
+      validationData.currentBoard.boardID
+    )
+
+    if (!validationData.isBoardNameSame) {
+      const boardNameResponse = handleBoardNameChanged(
+        docToEditRef,
+        validationData
+      )
+
+      if (!boardNameResponse) return false
+    }
+
+    const columnsColRef = collection(db, `${docToEditRef.path}/columns`)
+    const columnsToBeAdded = validationData.formData.items.filter(
+      ({ id }) =>
+        !validationData.boardColumns.some(({ columnID }) => columnID === id)
+    )
+
+    if (
+      columnsToBeAdded.length === 0 &&
+      validationData.boardColumns.length === 0
+    )
+      return true
+
+    const addedColumnsResponse = await handleAddedColumns(
+      columnsColRef,
+      columnsToBeAdded
+    )
+
+    if (!addedColumnsResponse) return false
+
+    const columnsEditResponse = await handleColumnsEdit(
+      columnsColRef,
+      validationData
+    )
+
+    if (!columnsEditResponse) return false
+
+    userStore.userData.currentBoard.boardColumns =
+      validationData.formData.items.map(({ id, name, dotColor }, index) => ({
+        columnID: id || index.toString(),
+        name,
+        dotColor
+      }))
+
+    const UIChangesResponse = await handleBoardUIChanges(validationData)
+
+    if (!UIChangesResponse) return false
+
+    return true
+  }
+
+  const removeBoardFromLocalStorage = async (
     boardDocRef: DocumentReference<DocumentData>
   ) => {
     const allBoards = userStore.userData.allBoards
@@ -528,7 +615,13 @@ export const useBoardsStore = defineStore('boards', () => {
       ({ boardID }) => boardID !== idOfDeletedBoard
     )
 
-    saveCurrentBoard(userStore.userData.allBoards[0])
+    const saveBoardResponse = await saveCurrentBoard(
+      userStore.userData.allBoards[0]
+    )
+
+    if (!saveBoardResponse) return false
+
+    return true
   }
 
   const deleteColumn = async (columnID: BoardColumn['columnID']) => {
@@ -597,7 +690,7 @@ export const useBoardsStore = defineStore('boards', () => {
       })
     )
 
-    if (columnResponses.some((response) => response === false)) return false
+    if (columnResponses.some((response) => !response)) return false
 
     try {
       await deleteDoc(boardDocRef)
@@ -605,7 +698,11 @@ export const useBoardsStore = defineStore('boards', () => {
       return false
     }
 
-    removeBoardFromLocalStorage(boardDocRef)
+    const removeBoardResponse = await removeBoardFromLocalStorage(boardDocRef)
+
+    if (!removeBoardResponse) return false
+
+    return true
   }
 
   return {

@@ -240,7 +240,10 @@ const returnNumberOfElements = (
   element: Element
 ) => {
   const elementFns = {
-    tasks: () => boardTasks.value[columnIndex].length,
+    tasks: () =>
+      boardTasks.value[columnIndex] != null
+        ? boardTasks.value[columnIndex].length
+        : 0,
     subtasks: () => boardSubtasks.value[columnIndex][taskIndex].length,
     subtasksCompleted: () =>
       boardSubtasks.value[columnIndex][taskIndex].filter(
