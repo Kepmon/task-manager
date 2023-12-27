@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { useUserStore } from './user'
 import { handleResponse } from '../composables/responseHandler'
 import { returnCircleColor } from '../composables/circleColor'
+import { nanoid } from 'nanoid'
 
 export const useFormsStore = defineStore('forms', () => {
   const userStore = useUserStore()
@@ -15,7 +16,7 @@ export const useFormsStore = defineStore('forms', () => {
     board: {
       add: ['Todo', 'Doing'].map((item, index) => ({
         name: item,
-        id: index.toString(),
+        id: nanoid(),
         dotColor: returnCircleColor(index, undefined, true)
       })),
       edit: userStore.userData.currentBoard.boardColumns.map(
@@ -32,7 +33,7 @@ export const useFormsStore = defineStore('forms', () => {
     task: {
       add: ['', ''].map((item, index) => ({
         name: item,
-        id: index.toString(),
+        id: nanoid(),
         dotColor: returnCircleColor(index, undefined, true)
       })),
       edit: userStore.userData.currentBoard.subtasksOfClickedTask.map(
@@ -99,11 +100,9 @@ export const useFormsStore = defineStore('forms', () => {
   const isFormValid = ref(false)
 
   const addNewInput = (element: 'board' | 'task', action: 'add' | 'edit') => {
-    const index = formData.value[element][action].data.items.length + 1
-
     const newItem = {
       name: '',
-      id: index.toString(),
+      id: nanoid(),
       dotColor: element === 'board' ? 'hsl(193 75% 59%)' : undefined
     }
 
@@ -112,6 +111,7 @@ export const useFormsStore = defineStore('forms', () => {
       emptyError: false,
       tooLongError: false
     })
+
     isNewInputAdded.value = true
   }
 

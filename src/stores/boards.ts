@@ -15,6 +15,7 @@ import {
   getDoc,
   getDocs,
   addDoc,
+  setDoc,
   updateDoc,
   deleteDoc,
   serverTimestamp
@@ -23,6 +24,7 @@ import { db } from '../firebase'
 import { useUserStore } from './user'
 import { useTasksStore } from './tasks'
 import { useFormsStore } from './forms'
+import { nanoid } from 'nanoid'
 
 export const useBoardsStore = defineStore('boards', () => {
   const userStore = useUserStore()
@@ -218,20 +220,26 @@ export const useBoardsStore = defineStore('boards', () => {
   }
 
   const addDocToFirestore = async (
-    colRef: CollectionReference<DocumentData>,
-    name: string,
-    dotColor?: string
+    docRef: DocumentReference<DocumentData>,
+    doc: Board | BoardColumn
   ) => {
-    return dotColor != null
-      ? await addDoc(colRef, {
-          createdAt: serverTimestamp(),
-          name,
-          dotColor
-        })
-      : await addDoc(colRef, {
-          createdAt: serverTimestamp(),
-          name
-        })
+    const docToBeAdded = {
+      createdAt: serverTimestamp(),
+      name: doc.name
+    }
+    Object.assign(
+      docToBeAdded,
+      'boardID' in doc
+        ? { boardID: doc.boardID }
+        : { columnID: doc.columnID, dotColor: doc.dotColor }
+    )
+
+    try {
+      await setDoc(docRef, docToBeAdded)
+      return true
+    } catch (err) {
+      return false
+    }
   }
 
   const updateFirestoreDoc = async (
@@ -320,36 +328,34 @@ export const useBoardsStore = defineStore('boards', () => {
 
     if (boardsColRefGlobal.value == null) return false
 
-    try {
-      const addedDocRef = await addDocToFirestore(
-        boardsColRefGlobal.value,
-        formData.name
-      )
+    const boardDocID = nanoid()
+    const boardDocRef = doc(db, boardsColRefGlobal.value.path, boardDocID)
 
-      if (addedDocRef == null) throw new Error()
+    try {
+      const addDocResponse = await addDocToFirestore(boardDocRef, {
+        name: formData.name,
+        boardID: boardDocID
+      })
+
+      if (!addDocResponse) throw new Error()
 
       userStore.userData.allBoards = [
         {
           name: formData.name,
-          boardID: addedDocRef.id
+          boardID: boardDocID
         },
         ...userStore.userData.allBoards
       ]
 
-      const columnsColRef = collection(db, `${addedDocRef.path}/columns`)
-      const responses = await Promise.all(
-        formData.items.map(
-          async ({ name, dotColor }) =>
-            await addDocToFirestore(columnsColRef, name, dotColor)
-        )
-      )
+      const columnsColRef = collection(db, `${boardDocRef.path}/columns`)
+      const response = handleAddedColumns(columnsColRef, formData.items)
 
-      if (responses.some((response) => !response)) throw new Error()
+      if (!response) throw new Error()
 
-      const newColumns = responses.map(({ id }, index) => ({
-        name: formData.items[index].name,
+      const newColumns = formData.items.map(({ id, name, dotColor }) => ({
         columnID: id,
-        dotColor: formData.items[index].dotColor
+        name,
+        dotColor
       }))
 
       userStore.userData.currentBoard.boardColumns = [...newColumns]
@@ -483,16 +489,21 @@ export const useBoardsStore = defineStore('boards', () => {
 
   const handleAddedColumns = async (
     columnsColRef: CollectionReference<DocumentData>,
-    columnsToBeAdded: Omit<BoardColumn, 'columnID'>[]
+    columnsToBeAdded: {
+      id: string
+      name: string
+      dotColor: string | undefined
+    }[]
   ) => {
     const responses = await Promise.all(
-      columnsToBeAdded.map(async ({ name, dotColor }) => {
+      columnsToBeAdded.map(async ({ id, name, dotColor }) => {
+        const columnDocRef = doc(columnsColRef, id)
         try {
-          const response = await addDocToFirestore(
-            columnsColRef,
+          const response = await addDocToFirestore(columnDocRef, {
+            columnID: id,
             name,
             dotColor
-          )
+          })
 
           if (response == null) throw new Error()
 
@@ -585,8 +596,8 @@ export const useBoardsStore = defineStore('boards', () => {
     if (!columnsEditResponse) return false
 
     userStore.userData.currentBoard.boardColumns =
-      validationData.formData.items.map(({ id, name, dotColor }, index) => ({
-        columnID: id || index.toString(),
+      validationData.formData.items.map(({ id, name, dotColor }) => ({
+        columnID: id,
         name,
         dotColor
       }))

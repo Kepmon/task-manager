@@ -36,7 +36,7 @@ export interface Task {
 }
 
 export interface Subtask {
-  subtaskID?: string
+  subtaskID: string
   title: string
   isCompleted: boolean
   createdAt?: string

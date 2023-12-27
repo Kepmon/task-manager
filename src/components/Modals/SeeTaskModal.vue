@@ -48,22 +48,20 @@
           </p>
           <div v-if="subtasksOfClickedTask.length > 0" class="grid gap-2">
             <div
-              @click="() => toggleSubtask(index)"
-              v-for="(
-                { title, isCompleted, subtaskID }, index
-              ) in subtasksOfClickedTask"
+              @click="() => toggleSubtask(subtaskID)"
+              v-for="{ title, isCompleted, subtaskID } in subtasksOfClickedTask"
               :key="subtaskID"
               class="subtask"
             >
               <input
-                :id="`subtask-checkbox-${index}`"
+                :id="subtaskID"
                 type="checkbox"
                 :checked="isCompleted"
                 class="checkbox peer"
               />
               <label
                 @click.prevent
-                :for="`subtask-checkbox-${index}`"
+                :for="subtaskID"
                 class="text-xs peer-checked:line-through peer-checked:opacity-50"
                 >{{ title }}</label
               >
@@ -136,12 +134,16 @@ const handleMoreOptionsFn = (
   cb(e, areTaskOptionsShown, 'ellipsis')
 }
 
-const toggleSubtask = async (index: number) => {
-  const clickedSubtask = subtasksOfClickedTask.value[index]
+const toggleSubtask = async (id: string) => {
+  const clickedSubtask = subtasksOfClickedTask.value.find(
+    ({ subtaskID }) => id === subtaskID
+  )
 
-  const response = await tasksStore.toggleSubtask(clickedSubtask)
+  if (clickedSubtask != null) {
+    const response = await tasksStore.toggleSubtask(clickedSubtask)
 
-  handleResponse(response)
+    handleResponse(response)
+  }
 }
 
 const isPending = ref(false)
