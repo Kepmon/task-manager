@@ -37,7 +37,7 @@
         >
           <li v-for="board in allBoards" :key="board.boardID">
             <board-label
-              @click="() => saveCurrentBoard(board)"
+              @click="() => getCurrentBoard(board)"
               :name="board.name"
               :aria-current="
                 board.boardID === currentBoard.boardID ? 'true' : undefined
@@ -158,10 +158,21 @@ const afterLeave = () => {
   noMobileAnimation.value = false
 }
 
-const saveCurrentBoard = async (board: Board) => {
+const getCurrentBoard = async (board: Board) => {
   emits('close-boards-navbar')
-  const response = await boardsStore.saveCurrentBoard(board)
-  handleResponse(response)
+
+  const alreadyFetchedBoard = userStore.userData.fullBoards.find(
+    ({ boardID }) => boardID === board.boardID
+  )
+
+  if (alreadyFetchedBoard == null) {
+    const response = await boardsStore.fetchNewBoard(board)
+    handleResponse(response)
+  } else {
+    userStore.userData.currentBoard = alreadyFetchedBoard
+  }
+
+  boardsStore.saveCurrentBoard()
 }
 </script>
 

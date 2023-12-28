@@ -1,4 +1,10 @@
-import type { Board, BoardColumn, Task, Subtask } from '../api/boardsTypes'
+import type {
+  UserData,
+  Board,
+  BoardColumn,
+  Task,
+  Subtask
+} from '../api/boardsTypes'
 import type {
   CollectionReference,
   DocumentReference,
@@ -14,7 +20,6 @@ import {
   doc,
   getDoc,
   getDocs,
-  addDoc,
   setDoc,
   updateDoc,
   deleteDoc,
@@ -144,8 +149,8 @@ export const useBoardsStore = defineStore('boards', () => {
     }
   }
 
-  const returnColumnsColRef = () => {
-    const currentBoardID = userStore.userData.currentBoard.boardID
+  const returnColumnsColRef = (boardID?: Board['boardID']) => {
+    const currentBoardID = boardID || userStore.userData.currentBoard.boardID
     const columnsColRef = collection(
       db,
       `${boardsColRefGlobal.value?.path}/${currentBoardID}/columns`
@@ -159,55 +164,47 @@ export const useBoardsStore = defineStore('boards', () => {
     return { columnsColRef, columnsColRefOrdered }
   }
 
-  const saveCurrentBoard = async (newBoard: Board) => {
-    const alreadyFetchedBoard = userStore.userData.fullBoards.find(
-      ({ boardID }) => boardID === newBoard.boardID
-    )
+  const fetchNewBoard = async (newBoard: Board) => {
+    try {
+      const columnsData = await getColumns(newBoard)
+      const tasksData = await tasksStore.getTasks(
+        columnsData.columnsColRef,
+        columnsData.boardColumns
+      )
+      const boardSubtasks = await tasksStore.getSubtasks(
+        tasksData.map(({ tasksColRef }) => tasksColRef),
+        tasksData.map(({ tasks }) => tasks)
+      )
 
-    if (alreadyFetchedBoard == null) {
-      try {
-        const columnsData = await getColumns(newBoard)
-        const tasksData = await tasksStore.getTasks(
-          columnsData.columnsColRef,
-          columnsData.boardColumns
-        )
-        const boardSubtasks = await tasksStore.getSubtasks(
-          tasksData.map(({ tasksColRef }) => tasksColRef),
-          tasksData.map(({ tasks }) => tasks)
-        )
+      if ([columnsData, tasksData, boardSubtasks].some((item) => item == null))
+        throw new Error()
 
-        if (
-          [columnsData, tasksData, boardSubtasks].some((item) => item == null)
+      userStore.userData.currentBoard = {
+        boardID: newBoard.boardID,
+        boardName: newBoard.name,
+        boardColumns: columnsData.boardColumns,
+        columnOfClickedTask: null,
+        boardTasks: tasksData.map((item) =>
+          item.tasks.every((task) => typeof task !== 'string')
         )
-          throw new Error()
-
-        userStore.userData.currentBoard = {
-          boardID: newBoard.boardID,
-          boardName: newBoard.name,
-          boardColumns: columnsData.boardColumns,
-          columnOfClickedTask: null,
-          boardTasks: tasksData.map((item) =>
-            item.tasks.every((task) => typeof task !== 'string')
-          )
-            ? tasksData.map((item) => item.tasks)
-            : ([[]] as Task[][]),
-          clickedTask: null,
-          boardSubtasks,
-          subtasksOfClickedTask: [] as Subtask[]
-        }
-        userStore.userData.fullBoards = [
-          ...userStore.userData.fullBoards,
-          userStore.userData.currentBoard
-        ]
-      } catch (err) {
-        return false
+          ? tasksData.map((item) => item.tasks)
+          : ([[]] as Task[][]),
+        clickedTask: null,
+        boardSubtasks,
+        subtasksOfClickedTask: [] as Subtask[]
       }
-    }
+      userStore.userData.fullBoards = [
+        ...userStore.userData.fullBoards,
+        userStore.userData.currentBoard
+      ]
 
-    if (alreadyFetchedBoard != null) {
-      userStore.userData.currentBoard = alreadyFetchedBoard
+      return true
+    } catch (err) {
+      return false
     }
+  }
 
+  const saveCurrentBoard = () => {
     localStorage.setItem(
       `TM-currentBoard-${userStore.userID}`,
       JSON.stringify(userStore.userData.currentBoard)
@@ -215,8 +212,6 @@ export const useBoardsStore = defineStore('boards', () => {
 
     const formsStore = useFormsStore()
     formsStore.resetFormData('board', 'edit')
-
-    return true
   }
 
   const addDocToFirestore = async (
@@ -298,28 +293,15 @@ export const useBoardsStore = defineStore('boards', () => {
     actionHandlers[action]()
   }
 
-  const addNewColumn = async (name: string, dotColor: string) => {
-    const { columnsColRef } = returnColumnsColRef()
-
-    try {
-      const addedDocRef = await addDoc(columnsColRef, {
-        dotColor,
-        name,
-        createdAt: serverTimestamp()
-      })
-
-      if (addedDocRef == null) throw new Error()
-
-      const newColumn = {
-        ...((await getDoc(addedDocRef)).data() as BoardColumn),
-        columnID: addedDocRef.id
-      }
-      updateColumns(newColumn, 'add')
-
-      return true
-    } catch (err) {
-      return false
-    }
+  const setFirstBoardAsCurrentOne = (
+    boardID: Board['boardID'],
+    boardName: Board['name'],
+    boardColumns: BoardColumn[]
+  ) => {
+    userStore.userData.currentBoard = returnEmptyUserData().currentBoard
+    userStore.userData.currentBoard.boardID = boardID
+    userStore.userData.currentBoard.boardName = boardName
+    userStore.userData.currentBoard.boardColumns = boardColumns
   }
 
   const addNewBoard = async () => {
@@ -347,8 +329,7 @@ export const useBoardsStore = defineStore('boards', () => {
         ...userStore.userData.allBoards
       ]
 
-      const columnsColRef = collection(db, `${boardDocRef.path}/columns`)
-      const response = handleAddedColumns(columnsColRef, formData.items)
+      const response = handleAddedColumns(formData.items, boardDocID)
 
       if (!response) throw new Error()
 
@@ -358,13 +339,8 @@ export const useBoardsStore = defineStore('boards', () => {
         dotColor
       }))
 
-      userStore.userData.currentBoard.boardColumns = [...newColumns]
-
-      const saveBoardResponse = await saveCurrentBoard(
-        userStore.userData.allBoards[0]
-      )
-
-      if (!saveBoardResponse) return false
+      setFirstBoardAsCurrentOne(boardDocID, formData.name, newColumns)
+      saveCurrentBoard()
 
       return true
     } catch (err) {
@@ -488,13 +464,15 @@ export const useBoardsStore = defineStore('boards', () => {
   }
 
   const handleAddedColumns = async (
-    columnsColRef: CollectionReference<DocumentData>,
     columnsToBeAdded: {
       id: string
       name: string
       dotColor: string | undefined
-    }[]
+    }[],
+    boardID?: Board['boardID']
   ) => {
+    const columnsColRef = returnColumnsColRef(boardID).columnsColRef
+
     const responses = await Promise.all(
       columnsToBeAdded.map(async ({ id, name, dotColor }) => {
         const columnDocRef = doc(columnsColRef, id)
@@ -540,11 +518,7 @@ export const useBoardsStore = defineStore('boards', () => {
         validationData.formData.name
     }
 
-    if (newBoard != null) {
-      const saveBoardResponse = await saveCurrentBoard(newBoard)
-
-      if (!saveBoardResponse) return false
-    }
+    saveCurrentBoard()
 
     return true
   }
@@ -581,10 +555,7 @@ export const useBoardsStore = defineStore('boards', () => {
     )
       return true
 
-    const addedColumnsResponse = await handleAddedColumns(
-      columnsColRef,
-      columnsToBeAdded
-    )
+    const addedColumnsResponse = await handleAddedColumns(columnsToBeAdded)
 
     if (!addedColumnsResponse) return false
 
@@ -612,25 +583,30 @@ export const useBoardsStore = defineStore('boards', () => {
   const removeBoardFromLocalStorage = async (
     boardDocRef: DocumentReference<DocumentData>
   ) => {
-    const allBoards = userStore.userData.allBoards
-
-    if (allBoards.length === 1) {
-      userStore.userData.allBoards = [] as Board[]
-      userStore.userData.currentBoard = returnEmptyUserData().currentBoard
-      localStorage.removeItem(`TM-currentBoard-${userStore.userID}`)
-      return
-    }
-
+    const fullBoards = userStore.userData.fullBoards
     const idOfDeletedBoard = boardDocRef.id
-    userStore.userData.allBoards = allBoards.filter(
+
+    userStore.userData.allBoards = userStore.userData.allBoards.filter(
       ({ boardID }) => boardID !== idOfDeletedBoard
     )
+    const allBoards = userStore.userData.allBoards
 
-    const saveBoardResponse = await saveCurrentBoard(
-      userStore.userData.allBoards[0]
-    )
+    if (fullBoards.length === 1) {
+      userStore.userData.fullBoards = [] as UserData['fullBoards']
+      const newColumns = (await getColumns(allBoards[0])).boardColumns
 
-    if (!saveBoardResponse) return false
+      setFirstBoardAsCurrentOne(
+        allBoards[0].boardID,
+        allBoards[0].name,
+        newColumns
+      )
+    } else {
+      userStore.userData.fullBoards = fullBoards.filter(
+        ({ boardID }) => boardID !== idOfDeletedBoard
+      )
+      userStore.userData.currentBoard = userStore.userData.fullBoards[0]
+    }
+    saveCurrentBoard()
 
     return true
   }
@@ -721,8 +697,9 @@ export const useBoardsStore = defineStore('boards', () => {
     getBoards,
     getCurrentBoard,
     getColumns,
+    fetchNewBoard,
     saveCurrentBoard,
-    addNewColumn,
+    handleAddedColumns,
     addNewBoard,
     editBoard,
     deleteBoard,
