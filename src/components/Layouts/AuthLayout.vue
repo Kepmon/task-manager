@@ -132,11 +132,11 @@ const onSubmit = form.handleSubmit(async (values) => {
   buttonLoading.value = true
   const response = await submitFn(values.email, values.password)
 
-  if (response !== true) {
-    errorMessage.value = response
+  if (response.ok === false) {
+    errorMessage.value = response.errorMessage
   }
 
-  handleResponse(response, currentPath, buttonLoading)
+  handleResponse(response.ok, currentPath, buttonLoading)
 })
 </script>
 

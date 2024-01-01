@@ -1,11 +1,6 @@
-import type { BoardColumn, Task, Subtask } from '../api/boardsTypes'
-import type {
-  CollectionReference,
-  DocumentData,
-  FirestoreError
-} from 'firebase/firestore'
+import type { Board, BoardColumn, Task, Subtask } from '../api/boardsTypes'
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import {
   getDocs,
   collection,
@@ -20,6 +15,7 @@ import { db } from '../firebase'
 import { useUserStore } from './user'
 import { useBoardsStore } from './boards'
 import { useFormsStore } from './forms'
+import { returnColumnsColRef } from './helpers/boardHelpers'
 
 export const useTasksStore = defineStore('tasks', () => {
   const userStore = useUserStore()
@@ -31,22 +27,22 @@ export const useTasksStore = defineStore('tasks', () => {
   )
 
   const getTasks = async (
-    columnsColRef: null | CollectionReference<DocumentData>,
-    boardColumns: BoardColumn[]
+    boardColumns: BoardColumn[],
+    currentBoard: null | undefined | Board
   ) => {
-    if (columnsColRef == null || boardColumns.length === 0)
-      return [
-        {
-          tasksColRef: null,
-          tasks: [] as Task[]
-        }
-      ]
+    if (boardColumns.length === 0 || currentBoard == null)
+      return [[]] as Task[][]
+
+    const columnRefs = returnColumnsColRef(
+      boardsStore.boardsColRefGlobal,
+      currentBoard.boardID
+    )
 
     return await Promise.all(
       boardColumns.map(async ({ columnID }) => {
         const tasksColRef = collection(
           db,
-          `${columnsColRef.path}/${columnID}/tasks`
+          `${columnRefs.columnsColRef.path}/${columnID}/tasks`
         )
 
         try {
@@ -54,37 +50,43 @@ export const useTasksStore = defineStore('tasks', () => {
 
           if (taskDocs == null) throw new Error()
 
-          if (taskDocs.docs.length === 0)
-            return {
-              tasksColRef,
-              tasks: [] as Task[]
-            }
+          if (taskDocs.docs.length === 0) return [] as Task[]
 
           const tasks = taskDocs.docs.map((taskDoc) => ({
             ...(taskDoc.data() as Omit<Task, 'taskID'>),
             taskID: taskDoc.id
           }))
 
-          return { tasksColRef, tasks }
+          return tasks
         } catch (err) {
-          return {
-            tasksColRef,
-            tasks: [] as Task[]
-          }
+          return [] as Task[]
         }
       })
     )
   }
 
   const getSubtasks = async (
-    tasksColRefs: (null | CollectionReference<DocumentData>)[],
-    tasks: Task[][]
+    tasks: Task[][],
+    currentBoard: null | undefined | Board,
+    boardColumns: BoardColumn[]
   ) => {
+    if (currentBoard == null || boardColumns.length === 0) {
+      return [[[]]] as Subtask[][][]
+    }
+
     return await Promise.all(
       tasks.map(async (taskArr, index) => {
-        const taskColRef = tasksColRefs[index]
+        const columnRefs = returnColumnsColRef(
+          boardsStore.boardsColRefGlobal,
+          currentBoard.boardID
+        )
 
-        if (taskColRef == null) {
+        const tasksColRef = collection(
+          db,
+          `${columnRefs.columnsColRef.path}/${boardColumns[index].columnID}/tasks`
+        )
+
+        if (tasksColRef == null) {
           return [[]] as Subtask[][]
         }
 
@@ -92,7 +94,7 @@ export const useTasksStore = defineStore('tasks', () => {
           taskArr.map(async ({ taskID }) => {
             const subtasksColRef = collection(
               db,
-              `${taskColRef.path}/${taskID}/subtasks`
+              `${tasksColRef.path}/${taskID}/subtasks`
             )
 
             try {
@@ -518,7 +520,8 @@ export const useTasksStore = defineStore('tasks', () => {
           indexOfClickedTask
         ] = [
           ...boardSubtasks,
-          ...newSubtasks.map(({ name }) => ({
+          ...newSubtasks.map(({ id, name }) => ({
+            subtaskID: id,
             title: name,
             isCompleted: false
           }))

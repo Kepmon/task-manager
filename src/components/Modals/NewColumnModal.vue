@@ -107,5 +107,6 @@ const submitForm = async () => {
 
   handleResponse(response)
   closeModal()
+  usersStore.saveUserData()
 }
 </script>

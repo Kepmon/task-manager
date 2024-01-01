@@ -104,7 +104,11 @@ const formsStore = useFormsStore()
 
 const submitFns = {
   board: () => boardsStore.deleteBoard(props.elementID as ElementID),
-  column: () => boardsStore.deleteColumn(props.elementID as ElementID),
+  column: () =>
+    boardsStore.deleteColumn(
+      userStore.userData.currentBoard.boardID,
+      props.elementID as ElementID
+    ),
   task: () => tasksStore.deleteTask(),
   user: () => userStore.deleteAccount()
 }

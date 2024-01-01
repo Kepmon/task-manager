@@ -1,6 +1,5 @@
-import type { UserData, Task, Subtask } from '../api/boardsTypes'
+import type { UserData } from '../api/boardsTypes'
 import type { AuthError, User } from 'firebase/auth'
-import type { FirestoreError } from 'firebase/firestore'
 import { defineStore } from 'pinia'
 import {
   onAuthStateChanged,
@@ -11,11 +10,12 @@ import {
   reauthenticateWithCredential,
   EmailAuthProvider
 } from 'firebase/auth'
-import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore'
-import { auth, usersColRef, db } from '../firebase'
+import { doc, setDoc, deleteDoc } from 'firebase/firestore'
+import { auth, usersColRef } from '../firebase'
 import { computed, ref } from 'vue'
 import { useBoardsStore } from './boards'
-import { useTasksStore } from './tasks'
+import { useFormsStore } from './forms'
+import { returnEmptyUserData } from './helpers/userHelpers'
 
 export const useUserStore = defineStore('user', () => {
   const currentUser = ref<null | User>(null)
@@ -23,12 +23,8 @@ export const useUserStore = defineStore('user', () => {
     currentUser.value != null ? currentUser.value.uid : null
   )
   const inputedPassword = ref<null | string>(null)
-
-  const boardsStore = useBoardsStore()
-  const tasksStore = useTasksStore()
-
   const isLoading = ref(true)
-  const userData = ref<UserData>(boardsStore.returnEmptyUserData())
+  const userData = ref<UserData>(returnEmptyUserData())
 
   onAuthStateChanged(auth, async (user) => {
     if (user == null) {
@@ -40,58 +36,38 @@ export const useUserStore = defineStore('user', () => {
     currentUser.value = user
     localStorage.setItem('TM-user', JSON.stringify(user))
 
-    const response = await getUserData()
-    userData.value = response
-
-    const savedBoardJSON = localStorage.getItem(
-      `TM-currentBoard-${userID.value}`
+    const savedUserData = JSON.parse(
+      localStorage.getItem(`TM-userData-${userID.value}`) || '{}'
     )
-    if (savedBoardJSON != null) {
+    if (Object.keys(savedUserData).length > 0) {
+      userData.value = savedUserData
       isLoading.value = false
       return
     }
 
+    const boardsStore = useBoardsStore()
+    const boards = await boardsStore.getBoards()
+    userData.value.allBoards = boards
+
+    await boardsStore.fetchNewBoard(boards[0])
+    saveUserData(true)
+
     isLoading.value = false
   })
 
-  const getUserData = async () => {
-    const boards = await boardsStore.getBoards()
-    const currentBoard = await boardsStore.getCurrentBoard(boards)
-    const columnsData = await boardsStore.getColumns(currentBoard)
-    const tasksData = await tasksStore.getTasks(
-      columnsData.columnsColRef,
-      columnsData.boardColumns
-    )
-    const boardSubtasks = await tasksStore.getSubtasks(
-      tasksData.map(({ tasksColRef }) => tasksColRef),
-      tasksData.map(({ tasks }) => tasks)
+  const saveUserData = (resetEditForm?: true) => {
+    localStorage.setItem(
+      `TM-userData-${userID.value}`,
+      JSON.stringify(userData.value)
     )
 
-    const currentFullBoard = {
-      boardID: currentBoard?.boardID,
-      boardName: currentBoard?.name,
-      boardColumns: columnsData.boardColumns,
-      columnOfClickedTask: null,
-      boardTasks: tasksData.map((item) =>
-        item.tasks.every((task) => typeof task !== 'string')
-      )
-        ? tasksData.map((item) => item.tasks)
-        : ([[]] as Task[][]),
-      clickedTask: null,
-      boardSubtasks,
-      subtasksOfClickedTask: [] as Subtask[]
-    }
-
-    return {
-      allBoards: boards,
-      fullBoards: [currentFullBoard],
-      currentBoard: currentFullBoard
+    if (resetEditForm) {
+      const formsStore = useFormsStore()
+      formsStore.resetFormData('board', 'edit')
     }
   }
 
   const register = async (email: string, password: string) => {
-    type RegisterError = FirestoreError | AuthError
-
     try {
       const authResponse = await createUserWithEmailAndPassword(
         auth,
@@ -105,12 +81,21 @@ export const useUserStore = defineStore('user', () => {
         await setDoc(doc(usersColRef, authResponse.user.uid), {})
         await logout()
       } catch (err) {
-        return (err as RegisterError | FirestoreError).code
+        return {
+          ok: false,
+          errorMessage: (err as AuthError).code
+        }
       }
 
-      return true
+      return {
+        ok: true,
+        errorMessage: ''
+      }
     } catch (err) {
-      return (err as RegisterError).code
+      return {
+        ok: false,
+        errorMessage: (err as AuthError).code
+      }
     }
   }
 
@@ -124,66 +109,66 @@ export const useUserStore = defineStore('user', () => {
 
       if (!authResponse) throw new Error()
 
-      return true
+      return {
+        ok: true,
+        errorMessage: ''
+      }
     } catch (err) {
-      return (err as AuthError).code
+      return {
+        ok: false,
+        errorMessage: (err as AuthError).code
+      }
     }
   }
 
   const logout = async () => {
     try {
       await signOut(auth)
+      userData.value = returnEmptyUserData()
 
       return true
     } catch (err) {
-      return (err as AuthError).code
+      return false
     }
   }
 
   const deleteAccount = async () => {
-    const user = auth.currentUser
+    if (currentUser.value == null || userID.value == null) return
+    const accountID = userID.value
 
     const credential = EmailAuthProvider.credential(
-      (user as User).email as string,
+      currentUser.value.email as string,
       inputedPassword.value as string
     )
 
     try {
-      await reauthenticateWithCredential(user as User, credential)
+      await reauthenticateWithCredential(currentUser.value, credential)
     } catch (err) {
-      return (err as AuthError).code
+      return false
     }
 
     try {
-      const boardsColRef = collection(db, `users/${(user as User).uid}/boards`)
-      const boardsDocRefs = (await getDocs(boardsColRef)).docs
+      const allBoards = userData.value.allBoards
 
-      if (boardsDocRefs.length > 0) {
-        boardsDocRefs.forEach(async (docRef) => {
-          const boardDoc = docRef.id
+      if (allBoards.length > 0) {
+        await Promise.all(
+          allBoards.map(async ({ boardID }) => {
+            const boardsStore = useBoardsStore()
 
-          try {
-            const response = await boardsStore.deleteBoard(boardDoc)
+            const response = await boardsStore.deleteBoard(boardID, true)
 
             if (response === false) throw new Error()
-          } catch (err) {
-            return false
-          }
-        })
-      }
-      const userDocRef = doc(usersColRef, (user as User).uid)
-
-      try {
-        await deleteDoc(userDocRef)
-      } catch (err) {
-        return false
+          })
+        )
       }
 
-      try {
-        await deleteUser(user as User)
-      } catch (err) {
-        return false
-      }
+      const userDocRef = doc(usersColRef, userID.value)
+
+      await deleteDoc(userDocRef)
+      await deleteUser(currentUser.value)
+
+      userData.value = returnEmptyUserData()
+      localStorage.removeItem(`TM-userData-${accountID}`)
 
       return true
     } catch (err) {
@@ -196,7 +181,7 @@ export const useUserStore = defineStore('user', () => {
     userID,
     userData,
     inputedPassword,
-    getUserData,
+    saveUserData,
     register,
     logIn,
     logout,
