@@ -55,10 +55,7 @@ export const useBoardsStore = defineStore('boards', () => {
   }
 
   const getColumns = async (otherThanCurrentBoard?: Board) => {
-    const columnRefs = returnColumnsColRef(
-      boardsColRefGlobal.value,
-      otherThanCurrentBoard?.boardID
-    )
+    const columnRefs = returnColumnsColRef(otherThanCurrentBoard?.boardID)
 
     try {
       const columnDocs = await getDocs(columnRefs.columnsColRefOrdered)
@@ -294,10 +291,7 @@ export const useBoardsStore = defineStore('boards', () => {
     }[],
     boardID?: Board['boardID']
   ) => {
-    const columnsColRef = returnColumnsColRef(
-      boardsColRefGlobal.value,
-      boardID
-    ).columnsColRef
+    const columnsColRef = returnColumnsColRef(boardID).columnsColRef
 
     const responses = await Promise.all(
       columnsToBeAdded.map(async ({ id, name, dotColor }) => {
@@ -440,7 +434,7 @@ export const useBoardsStore = defineStore('boards', () => {
   ) => {
     if (boardsColRefGlobal.value == null) return false
 
-    const columnRefs = returnColumnsColRef(boardsColRefGlobal.value, boardID)
+    const columnRefs = returnColumnsColRef(boardID)
     const columnDocRef = doc(columnRefs.columnsColRef, columnID)
     const tasksColRef = collection(db, `${columnDocRef.path}/tasks`)
     const tasksDocRefs = (await getDocs(tasksColRef)).docs
@@ -488,7 +482,7 @@ export const useBoardsStore = defineStore('boards', () => {
     const boardToBeDeleted = userStore.userData.fullBoards.find(
       ({ boardID: id }) => id === boardID
     )
-    const columnRefs = returnColumnsColRef(boardsColRefGlobal.value, boardID)
+    const columnRefs = returnColumnsColRef(boardID)
 
     const allColumnsToDelete: BoardColumn['columnID'][] = []
 

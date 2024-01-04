@@ -39,6 +39,7 @@ export const useUserStore = defineStore('user', () => {
     const savedUserData = JSON.parse(
       localStorage.getItem(`TM-userData-${userID.value}`) || '{}'
     )
+
     if (Object.keys(savedUserData).length > 0) {
       userData.value = savedUserData
       isLoading.value = false

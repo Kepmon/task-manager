@@ -1,7 +1,9 @@
 import type { Board, BoardColumn, Task, Subtask } from '../api/boardsTypes'
 import { defineStore } from 'pinia'
-import { computed } from 'vue'
 import {
+  query,
+  where,
+  limit,
   getDocs,
   collection,
   doc,
@@ -13,18 +15,12 @@ import {
 } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useUserStore } from './user'
-import { useBoardsStore } from './boards'
 import { useFormsStore } from './forms'
 import { returnColumnsColRef } from './helpers/boardHelpers'
+import { nanoid } from 'nanoid'
 
 export const useTasksStore = defineStore('tasks', () => {
   const userStore = useUserStore()
-  const boardsStore = useBoardsStore()
-  const columnsColRefPrefix = computed(() =>
-    userStore.userData.currentBoard != null
-      ? `users/${userStore.userID}/boards/${userStore.userData.currentBoard.boardID}/columns`
-      : null
-  )
 
   const getTasks = async (
     boardColumns: BoardColumn[],
@@ -33,26 +29,23 @@ export const useTasksStore = defineStore('tasks', () => {
     if (boardColumns.length === 0 || currentBoard == null)
       return [[]] as Task[][]
 
-    const columnRefs = returnColumnsColRef(
-      boardsStore.boardsColRefGlobal,
+    const columnsColRef = returnColumnsColRef(
       currentBoard.boardID
-    )
+    ).columnsColRef
 
     return await Promise.all(
       boardColumns.map(async ({ columnID }) => {
         const tasksColRef = collection(
           db,
-          `${columnRefs.columnsColRef.path}/${columnID}/tasks`
+          `${columnsColRef.path}/${columnID}/tasks`
         )
 
         try {
-          const taskDocs = await getDocs(tasksColRef)
+          const taskDocs = (await getDocs(tasksColRef)).docs
 
-          if (taskDocs == null) throw new Error()
+          if (taskDocs.length === 0) return [] as Task[]
 
-          if (taskDocs.docs.length === 0) return [] as Task[]
-
-          const tasks = taskDocs.docs.map((taskDoc) => ({
+          const tasks = taskDocs.map((taskDoc) => ({
             ...(taskDoc.data() as Omit<Task, 'taskID'>),
             taskID: taskDoc.id
           }))
@@ -76,14 +69,13 @@ export const useTasksStore = defineStore('tasks', () => {
 
     return await Promise.all(
       tasks.map(async (taskArr, index) => {
-        const columnRefs = returnColumnsColRef(
-          boardsStore.boardsColRefGlobal,
+        const columnsColRef = returnColumnsColRef(
           currentBoard.boardID
-        )
+        ).columnsColRef
 
         const tasksColRef = collection(
           db,
-          `${columnRefs.columnsColRef.path}/${boardColumns[index].columnID}/tasks`
+          `${columnsColRef.path}/${boardColumns[index].columnID}/tasks`
         )
 
         if (tasksColRef == null) {
@@ -99,8 +91,6 @@ export const useTasksStore = defineStore('tasks', () => {
 
             try {
               const subtaskDocs = await getDocs(subtasksColRef)
-
-              if (subtaskDocs == null) throw new Error()
 
               if (subtaskDocs.docs.length === 0) return [] as Subtask[]
 
@@ -119,36 +109,62 @@ export const useTasksStore = defineStore('tasks', () => {
 
   const addNewTask = async (columnID: BoardColumn['columnID']) => {
     const formsStore = useFormsStore()
-    const formData = formsStore.formData.task.edit.data
+    const formData = formsStore.formData.task.add.data
 
+    const columnsColRef = returnColumnsColRef().columnsColRef
     const tasksColRef = collection(
       db,
-      `${columnsColRefPrefix.value}/${columnID}/tasks`
+      `${columnsColRef.path}/${columnID}/tasks`
     )
 
+    const columnIndex = userStore.userData.currentBoard.boardColumns.findIndex(
+      ({ columnID: id }) => id === columnID
+    )
+    const boardTasks = userStore.userData.currentBoard.boardTasks
+
+    const newTask = {
+      createdAt: serverTimestamp(),
+      taskID: nanoid(),
+      title: formData.name,
+      description: formData.description as string
+    }
+
     try {
-      const addedDocRef = await addDoc(tasksColRef, {
-        createdAt: serverTimestamp(),
-        title: formData.name,
-        description: formData.description
-      })
-      if (addedDocRef == null) throw new Error('wrong response')
+      const addedDocRef = await addDoc(tasksColRef, newTask)
 
       const subtasksColRef = collection(db, `${addedDocRef.path}/subtasks`)
 
-      formData.items.forEach(async ({ name }) => {
-        try {
-          const response = await addDoc(subtasksColRef, {
+      const boardSubtasks = userStore.userData.currentBoard.boardSubtasks
+      const newSubtasks = await Promise.all(
+        formData.items.map(async ({ id, name }) => {
+          const newSubtask = {
+            createdAt: serverTimestamp(),
+            subtaskID: id,
             title: name,
-            isCompleted: false,
-            createdAt: serverTimestamp()
-          })
+            isCompleted: false
+          }
+          try {
+            const response = await addDoc(subtasksColRef, newSubtask)
 
-          if (response == null) throw new Error()
-        } catch (err) {
-          return false
-        }
-      })
+            if (response == null) throw new Error()
+
+            return newSubtask
+          } catch (err) {
+            return false
+          }
+        })
+      )
+
+      if (newSubtasks.some((subtask) => !subtask)) return false
+
+      userStore.userData.currentBoard.boardTasks[columnIndex] = [
+        ...boardTasks[columnIndex],
+        newTask
+      ]
+      userStore.userData.currentBoard.boardSubtasks[columnIndex] = [
+        ...boardSubtasks[columnIndex],
+        newSubtasks as Subtask[]
+      ]
 
       return true
     } catch (err) {
@@ -171,26 +187,28 @@ export const useTasksStore = defineStore('tasks', () => {
     let subtasksAfter: Subtask[][] = []
 
     if (oldIndex > newIndex) {
-      subtasksBefore = subtasksForNewColumn.slice(0, newIndex)
+      subtasksBefore = [subtasksForNewColumn.slice(0, newIndex)]
       subtasksAfter = [
-        ...subtasksForNewColumn.slice(0, oldIndex).slice(newIndex),
-        ...subtasksForNewColumn.slice(oldIndex + 1)
+        [
+          ...subtasksForNewColumn.slice(0, oldIndex).slice(newIndex),
+          ...subtasksForNewColumn.slice(oldIndex + 1)
+        ]
       ]
     }
 
     if (oldIndex < newIndex) {
-      subtasksAfter = subtasksForNewColumn.slice(newIndex + 1)
+      subtasksAfter = [subtasksForNewColumn.slice(newIndex + 1)]
       subtasksBefore = [
-        ...subtasksForNewColumn.slice(0, oldIndex),
-        ...subtasksForNewColumn.slice(oldIndex + 1, newIndex + 1)
+        [
+          ...subtasksForNewColumn.slice(0, oldIndex),
+          ...subtasksForNewColumn.slice(oldIndex + 1, newIndex + 1)
+        ]
       ]
     }
 
-    const movedSubtasks = subtasksForNewColumn[oldIndex]
-
-    subtasks.value[indexOfNewColumn] = [
+    userStore.userData.currentBoard.boardSubtasks[indexOfNewColumn] = [
       ...subtasksBefore,
-      movedSubtasks,
+      subtasksForNewColumn,
       ...subtasksAfter
     ]
   }
@@ -201,8 +219,9 @@ export const useTasksStore = defineStore('tasks', () => {
     oldIndex: number,
     newIndex: number
   ) => {
-    const subtasksForOldColumn = [...subtasks.value[indexOfOldColumn]]
-    const subtasksForNewColumn = [...subtasks.value[indexOfNewColumn]]
+    const boardSubtasks = userStore.userData.currentBoard.boardSubtasks
+    const subtasksForOldColumn = [...boardSubtasks[indexOfOldColumn]]
+    const subtasksForNewColumn = [...boardSubtasks[indexOfNewColumn]]
 
     const oldSubtasksBefore = subtasksForOldColumn.slice(0, oldIndex)
     const oldSubtasksAfter = subtasksForOldColumn.slice(oldIndex + 1)
@@ -210,12 +229,12 @@ export const useTasksStore = defineStore('tasks', () => {
     const newSubtasksAfter = subtasksForNewColumn.slice(newIndex)
     const movedSubtasks = subtasksForOldColumn[oldIndex]
 
-    subtasks.value[indexOfOldColumn] = [
+    userStore.userData.currentBoard.boardSubtasks[indexOfOldColumn] = [
       ...oldSubtasksBefore,
       ...oldSubtasksAfter
     ]
 
-    subtasks.value[indexOfNewColumn] = [
+    userStore.userData.currentBoard.boardSubtasks[indexOfNewColumn] = [
       ...newSubtasksBefore,
       movedSubtasks,
       ...newSubtasksAfter
@@ -226,10 +245,10 @@ export const useTasksStore = defineStore('tasks', () => {
     taskIndexes: { taskID: Task['taskID']; taskIndex: number }[],
     columnID: BoardColumn['columnID']
   ) => {
-    const nextTasksColRef = collection(
-      db,
-      `${columnsColRefPrefix.value}/${columnID}/tasks`
-    )
+    const columnsColRef = returnColumnsColRef(
+      userStore.userData.currentBoard.boardID
+    ).columnsColRef
+    const nextTasksColRef = collection(db, `${columnsColRef}/${columnID}/tasks`)
 
     taskIndexes.forEach(async (task) => {
       const taskDocRef = doc(nextTasksColRef, task.taskID)
@@ -250,30 +269,35 @@ export const useTasksStore = defineStore('tasks', () => {
     const boardColumns = userStore.userData.currentBoard.boardColumns
     const columnOfClickedTask =
       userStore.userData.currentBoard.columnOfClickedTask
+    const columnTasks = userStore.userData.currentBoard.boardTasks
+    const columnSubtasks = userStore.userData.currentBoard.boardSubtasks
 
     if (columnOfClickedTask == null) return
 
     const clickedColumnID = boardColumns[columnOfClickedTask].columnID
     const prevColumnID =
       previousColumnID != null ? previousColumnID : clickedColumnID
+    const columnsColRef = returnColumnsColRef(
+      userStore.userData.currentBoard.boardID
+    ).columnsColRef
 
-    const prevColumnIndex = boardsStore.boardColumns.findIndex(
+    const prevColumnIndex = boardColumns.findIndex(
       ({ columnID }) => columnID === prevColumnID
     )
-    const nextColumnIndex = boardsStore.boardColumns.findIndex(
+    const nextColumnIndex = boardColumns.findIndex(
       ({ columnID }) => columnID === nextColumnID
     )
     const indexOfTaskColumn =
       taskToBeDragged != null ? nextColumnIndex : prevColumnIndex
     const taskIndex =
-      tasks.value[indexOfTaskColumn].findIndex(({ taskID }) =>
+      columnTasks[indexOfTaskColumn].findIndex(({ taskID }) =>
         taskToBeDragged != null
           ? taskID === taskToBeDragged.taskID
           : taskID === userStore.userData.currentBoard.clickedTask?.taskID
       ) || 0
 
-    const movedTask = tasks.value[indexOfTaskColumn][taskIndex]
-    const subtasksOfMovedTask = subtasks.value[indexOfTaskColumn][taskIndex]
+    const movedTask = columnTasks[indexOfTaskColumn][taskIndex]
+    const subtasksOfMovedTask = columnSubtasks[indexOfTaskColumn][taskIndex]
 
     if (nextColumnID === previousColumnID && taskIndexes != null) {
       addIndexesToTasks(taskIndexes, nextColumnID)
@@ -282,12 +306,12 @@ export const useTasksStore = defineStore('tasks', () => {
 
     const nextTasksColRef = collection(
       db,
-      `${columnsColRefPrefix.value}/${nextColumnID}/tasks`
+      `${columnsColRef}/${nextColumnID}/tasks`
     )
 
     const nextTaskDocRef = doc(
       nextTasksColRef,
-      tasks.value[indexOfTaskColumn][taskIndex].taskID
+      columnTasks[indexOfTaskColumn][taskIndex].taskID
     )
     const nextSubtasksColRef = collection(db, `${nextTaskDocRef.path}/subtasks`)
 
@@ -306,14 +330,15 @@ export const useTasksStore = defineStore('tasks', () => {
         taskToBeDragged != null
           ? await deleteTask(taskToBeDragged.taskID, prevColumnID)
           : await deleteTask()
-      if (deleteResponse !== true) throw new Error(deleteResponse)
+
+      if (!deleteResponse) throw new Error()
 
       if (taskToBeDragged == null) {
-        tasks.value[prevColumnIndex] = tasks.value[prevColumnIndex].filter(
+        columnTasks[prevColumnIndex] = columnTasks[prevColumnIndex].filter(
           ({ taskID }) => movedTask.taskID !== taskID
         )
-        tasks.value[nextColumnIndex] = [
-          ...tasks.value[nextColumnIndex],
+        columnTasks[nextColumnIndex] = [
+          ...columnTasks[nextColumnIndex],
           movedTask
         ]
       }
@@ -338,12 +363,12 @@ export const useTasksStore = defineStore('tasks', () => {
         }
 
         if (taskToBeDragged == null) {
-          subtasks.value[prevColumnIndex] = subtasks.value[
+          columnSubtasks[prevColumnIndex] = columnSubtasks[
             prevColumnIndex
           ].filter((_, index) => taskIndex != index)
 
-          subtasks.value[nextColumnIndex] = [
-            ...subtasks.value[nextColumnIndex],
+          columnSubtasks[nextColumnIndex] = [
+            ...columnSubtasks[nextColumnIndex],
             subtasksOfMovedTask
           ]
         }
@@ -379,7 +404,9 @@ export const useTasksStore = defineStore('tasks', () => {
         indexOfClickedTask
       ]
 
-    const columnsColRef = collection(db, columnsColRefPrefix.value as string)
+    const columnsColRef = returnColumnsColRef(
+      userStore.userData.currentBoard.boardID
+    ).columnsColRef
     const columnDocRef = doc(columnsColRef, columnOfClickedTask.columnID)
     const tasksColRef = collection(db, `${columnDocRef.path}/tasks`)
     const taskDocRef = doc(tasksColRef, clickedTask.taskID)
@@ -508,7 +535,7 @@ export const useTasksStore = defineStore('tasks', () => {
               createdAt: serverTimestamp()
             })
 
-            if (response == null) throw new Error('wrong response')
+            if (response == null) throw new Error()
           } catch (err) {
             return false
           }
@@ -522,6 +549,7 @@ export const useTasksStore = defineStore('tasks', () => {
           ...boardSubtasks,
           ...newSubtasks.map(({ id, name }) => ({
             subtaskID: id,
+            createdAt: new Date().toString(),
             title: name,
             isCompleted: false
           }))
@@ -548,6 +576,11 @@ export const useTasksStore = defineStore('tasks', () => {
     taskID?: Task['taskID'],
     columnID?: BoardColumn['columnID']
   ) => {
+    const columnsColRef = returnColumnsColRef(
+      userStore.userData.currentBoard.boardID
+    ).columnsColRef
+    const boardColumns = userStore.userData.currentBoard.boardColumns
+
     const deletedTaskID =
       taskID != null
         ? taskID
@@ -555,13 +588,13 @@ export const useTasksStore = defineStore('tasks', () => {
     const columnOfDeletedTaskID =
       columnID != null
         ? columnID
-        : boardsStore.boardColumns[
+        : boardColumns[
             userStore.userData.currentBoard.columnOfClickedTask as number
           ].columnID
 
     const tasksColRef = collection(
       db,
-      `${columnsColRefPrefix.value}/${columnOfDeletedTaskID}/tasks`
+      `${columnsColRef}/${columnOfDeletedTaskID}/tasks`
     )
     const tasksDocRef = doc(tasksColRef, deletedTaskID)
 
@@ -595,17 +628,38 @@ export const useTasksStore = defineStore('tasks', () => {
     const boardColumns = userStore.userData.currentBoard.boardColumns
     const indexOfColumn = userStore.userData.currentBoard.columnOfClickedTask
     const clickedTask = userStore.userData.currentBoard.clickedTask
+    const columnsColRef = returnColumnsColRef(
+      userStore.userData.currentBoard.boardID
+    ).columnsColRef
 
-    if (indexOfColumn == null || clickedTask == null) return
+    const columnColRef = query(
+      columnsColRef,
+      where('columnID', '==', boardColumns[indexOfColumn || 0].columnID),
+      limit(1)
+    )
+    const columnDocRef = (await getDocs(columnColRef)).docs[0]
 
+    if (indexOfColumn == null || clickedTask == null) return false
+
+    const taskColRef = query(
+      collection(db, `${columnsColRef.path}/${columnDocRef.id}/tasks`),
+      where('taskID', '==', clickedTask.taskID),
+      limit(1)
+    )
+    const taskDocRef = (await getDocs(taskColRef)).docs[0]
     const subtasksColRef = collection(
       db,
-      `${columnsColRefPrefix.value}/${boardColumns[indexOfColumn].columnID}/tasks/${clickedTask.taskID}/subtasks`
+      `${columnsColRef.path}/${columnDocRef.id}/tasks/${taskDocRef.id}/subtasks`
     )
-    const subtaskDocRef = doc(subtasksColRef, subtask.subtaskID)
+    const subtaskColRef = query(
+      collection(db, `${columnsColRef}/${columnDocRef.id}/tasks`),
+      where('taskID', '==', clickedTask.taskID),
+      limit(1)
+    )
+    const subtaskDocRef = (await getDocs(subtaskColRef)).docs[0]
 
     try {
-      await updateDoc(subtaskDocRef, {
+      await updateDoc(doc(subtasksColRef, subtaskDocRef.id), {
         isCompleted: !subtask.isCompleted
       })
     } catch (err) {

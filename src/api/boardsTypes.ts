@@ -1,3 +1,5 @@
+import type { FieldValue } from 'firebase/firestore'
+
 export interface UserData {
   allBoards: Board[]
   fullBoards: CurrentBoard[]
@@ -30,14 +32,14 @@ export interface BoardColumn {
 
 export interface Task {
   taskID: string
-  createdAt?: string
+  createdAt: string | FieldValue
   title: string
   description: string
 }
 
 export interface Subtask {
   subtaskID: string
+  createdAt: string | FieldValue
   title: string
   isCompleted: boolean
-  createdAt?: string
 }
