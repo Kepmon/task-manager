@@ -63,6 +63,7 @@ import { useUserStore } from '../../stores/user'
 import { useTasksStore } from '../../stores/tasks'
 import { useFormsStore } from '../../stores/forms'
 import { ref } from 'vue'
+import { handleResponse } from '../../composables/responseHandler'
 
 const props = defineProps<{
   action: 'add' | 'edit'
@@ -115,12 +116,13 @@ const submit = async () => {
       )
   }
 
-  await formsStore.submitForm(
+  const response = await formsStore.submitForm(
     isPending.value,
     callback[props.action as keyof typeof callback],
     () => emits('change-var-to-false')
   )
 
+  handleResponse(response)
   formsStore.resetFormData('task', props.action)
 }
 </script>

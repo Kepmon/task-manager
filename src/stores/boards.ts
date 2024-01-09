@@ -21,7 +21,10 @@ import { db } from '../firebase'
 import { useUserStore } from './user'
 import { useTasksStore } from './tasks'
 import { useFormsStore } from './forms'
-import { returnEmptyUserData } from './helpers/userHelpers'
+import {
+  returnEmptyUserData,
+  returnPartsOfUserData
+} from './helpers/userHelpers'
 import { returnColumnsColRef } from './helpers/boardHelpers'
 import { nanoid } from 'nanoid'
 
@@ -54,8 +57,8 @@ export const useBoardsStore = defineStore('boards', () => {
     }
   }
 
-  const getColumns = async (otherThanCurrentBoard?: Board) => {
-    const columnRefs = returnColumnsColRef(otherThanCurrentBoard?.boardID)
+  const getColumns = async (otherThanCurrentBoard: Board) => {
+    const columnRefs = returnColumnsColRef(otherThanCurrentBoard.boardID)
 
     try {
       const columnDocs = await getDocs(columnRefs.columnsColRefOrdered)
@@ -112,13 +115,13 @@ export const useBoardsStore = defineStore('boards', () => {
     boardName: Board['name'],
     boardColumns: BoardColumn[]
   ) => {
+    const { fullBoards } = returnPartsOfUserData()
     userStore.userData.currentBoard = returnEmptyUserData().currentBoard
     userStore.userData.currentBoard.boardID = boardID
     userStore.userData.currentBoard.boardName = boardName
     userStore.userData.currentBoard.boardColumns = boardColumns
 
-    if (userStore.userData.fullBoards.some(({ boardID: id }) => id === boardID))
-      return
+    if (fullBoards.some(({ boardID: id }) => id === boardID)) return
 
     userStore.userData.fullBoards = [
       userStore.userData.currentBoard,
@@ -319,10 +322,11 @@ export const useBoardsStore = defineStore('boards', () => {
   const handleBoardUIChanges = async (
     validationData: ReturnType<typeof validateBoardChanges>
   ) => {
-    const newBoard = userStore.userData.allBoards.find(
+    const { allBoards, currentBoard } = returnPartsOfUserData()
+    const newBoard = allBoards.find(
       ({ boardID }) => boardID === validationData.currentBoard.boardID
     )
-    const indexOfNewBoard = userStore.userData.allBoards.findIndex(
+    const indexOfNewBoard = allBoards.findIndex(
       ({ boardID }) => boardID === validationData.currentBoard.boardID
     )
 
@@ -331,10 +335,8 @@ export const useBoardsStore = defineStore('boards', () => {
       indexOfNewBoard != null &&
       newBoard.name !== validationData.formData.name
     ) {
-      userStore.userData.currentBoard.boardName = validationData.formData.name
-
-      userStore.userData.allBoards[indexOfNewBoard].name =
-        validationData.formData.name
+      currentBoard.boardName = validationData.formData.name
+      allBoards[indexOfNewBoard].name = validationData.formData.name
     }
 
     userStore.saveUserData()
@@ -402,28 +404,36 @@ export const useBoardsStore = defineStore('boards', () => {
   const removeBoardFromUserData = async (
     boardDocRef: DocumentReference<DocumentData>
   ) => {
-    const fullBoards = userStore.userData.fullBoards
+    const { allBoards, fullBoards } = returnPartsOfUserData()
     const idOfDeletedBoard = boardDocRef.id
 
-    userStore.userData.allBoards = userStore.userData.allBoards.filter(
+    userStore.userData.allBoards = allBoards.filter(
       ({ boardID }) => boardID !== idOfDeletedBoard
     )
-    const allBoards = userStore.userData.allBoards
+    userStore.userData.fullBoards = fullBoards.filter(
+      ({ boardID }) => boardID !== idOfDeletedBoard
+    )
 
-    if (fullBoards.length === 1) {
-      const newColumns = await getColumns(allBoards[0])
+    const newCurrentBoardID = userStore.userData.allBoards[0].boardID
+    const newCurrentBoardName = userStore.userData.allBoards[0].name
+    let newBoardColumns: BoardColumn[] = []
+    const newFullBoard = fullBoards.find(
+      ({ boardID }) => boardID === newCurrentBoardID
+    )
 
-      setFirstBoardAsCurrentOne(
-        allBoards[0].boardID,
-        allBoards[0].name,
-        newColumns
-      )
+    if (newFullBoard != null) {
+      newBoardColumns = newFullBoard.boardColumns
     } else {
-      userStore.userData.fullBoards = fullBoards.filter(
-        ({ boardID }) => boardID !== idOfDeletedBoard
-      )
-      userStore.userData.currentBoard = userStore.userData.fullBoards[0]
+      newBoardColumns = await getColumns(allBoards[0])
     }
+
+    setFirstBoardAsCurrentOne(
+      newCurrentBoardID,
+      newCurrentBoardName,
+      newBoardColumns
+    )
+
+    userStore.saveUserData(true)
 
     return true
   }
@@ -473,39 +483,31 @@ export const useBoardsStore = defineStore('boards', () => {
     return true
   }
 
-  const deleteBoard = async (
-    boardID: Board['boardID'],
-    isAccountDeleted?: true
-  ) => {
+  const deleteBoard = async (boardID: Board['boardID']) => {
     if (boardsColRefGlobal.value == null) return false
 
     const boardToBeDeleted = userStore.userData.fullBoards.find(
       ({ boardID: id }) => id === boardID
     )
-    const columnRefs = returnColumnsColRef(boardID)
-
-    const allColumnsToDelete: BoardColumn['columnID'][] = []
 
     if (boardToBeDeleted != null) {
-      const boardColumns = boardToBeDeleted.boardColumns
-      allColumnsToDelete.push(...boardColumns.map(({ columnID }) => columnID))
+      const allColumnsToDelete = boardToBeDeleted.boardColumns
+
+      if (allColumnsToDelete.length > 0) {
+        const columnResponses = await Promise.all(
+          allColumnsToDelete.map(async ({ columnID }) => {
+            const response = await deleteColumn(boardID, columnID)
+
+            if (!response) return false
+
+            return true
+          })
+        )
+
+        if (columnResponses.some((response) => !response)) return false
+      }
     } else {
-      const boardColumns = (await getDocs(columnRefs.columnsColRefOrdered)).docs
-      allColumnsToDelete.push(...boardColumns.map(({ id }) => id))
-    }
-
-    if (allColumnsToDelete.length > 0) {
-      const columnResponses = await Promise.all(
-        allColumnsToDelete.map(async (columnID) => {
-          const response = await deleteColumn(boardID, columnID)
-
-          if (!response) return false
-
-          return true
-        })
-      )
-
-      if (columnResponses.some((response) => !response)) return false
+      return false
     }
 
     const boardDocRef = doc(boardsColRefGlobal.value, boardID)
@@ -516,13 +518,9 @@ export const useBoardsStore = defineStore('boards', () => {
       return false
     }
 
-    if (!isAccountDeleted) {
-      const removeBoardResponse = await removeBoardFromUserData(boardDocRef)
+    const removeBoardResponse = await removeBoardFromUserData(boardDocRef)
 
-      if (!removeBoardResponse) return false
-
-      userStore.saveUserData(true)
-    }
+    if (!removeBoardResponse) return false
 
     return true
   }

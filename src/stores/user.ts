@@ -156,7 +156,7 @@ export const useUserStore = defineStore('user', () => {
           allBoards.map(async ({ boardID }) => {
             const boardsStore = useBoardsStore()
 
-            const response = await boardsStore.deleteBoard(boardID, true)
+            const response = await boardsStore.deleteBoard(boardID)
 
             if (response === false) throw new Error()
           })

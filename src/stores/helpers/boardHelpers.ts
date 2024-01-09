@@ -7,7 +7,8 @@ import { useBoardsStore } from '../boards'
 export const returnColumnsColRef = (boardID?: Board['boardID']) => {
   const userStore = useUserStore()
   const boardsStore = useBoardsStore()
-  const currentBoardID = boardID || userStore.userData.currentBoard.boardID
+  const currentBoardID =
+    boardID != null ? boardID : userStore.userData.currentBoard.boardID
 
   const columnsColRef = collection(
     db,
