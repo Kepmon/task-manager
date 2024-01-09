@@ -1,9 +1,6 @@
 import type { Board, BoardColumn, Task, Subtask } from '../api/boardsTypes'
 import { defineStore } from 'pinia'
 import {
-  query,
-  where,
-  limit,
   getDocs,
   collection,
   doc,
@@ -131,9 +128,12 @@ export const useTasksStore = defineStore('tasks', () => {
     }
 
     try {
-      const addedDocRef = await addDoc(tasksColRef, newTask)
+      await setDoc(doc(tasksColRef, newTask.taskID), newTask)
 
-      const subtasksColRef = collection(db, `${addedDocRef.path}/subtasks`)
+      const subtasksColRef = collection(
+        db,
+        `${tasksColRef.path}/${newTask.taskID}/subtasks`
+      )
 
       const newSubtasks = await Promise.all(
         formData.items.map(async ({ id, name }) => {
@@ -144,21 +144,16 @@ export const useTasksStore = defineStore('tasks', () => {
             isCompleted: false
           }
 
-          const response = await addDoc(subtasksColRef, newSubtask)
-
-          if (response == null) return false
+          await setDoc(doc(subtasksColRef, newSubtask.subtaskID), newSubtask)
 
           return newSubtask
         })
       )
 
-      if (newSubtasks.some((subtask) => !subtask)) return false
+      if (newSubtasks.some((subtask) => !subtask)) throw new Error()
 
       boardTasks[columnIndex] = [...boardTasks[columnIndex], newTask]
-      boardSubtasks[columnIndex] = [
-        ...boardSubtasks[columnIndex],
-        newSubtasks as Subtask[]
-      ]
+      boardSubtasks[columnIndex] = [...boardSubtasks[columnIndex], newSubtasks]
 
       userStore.saveUserData()
 
@@ -577,7 +572,7 @@ export const useTasksStore = defineStore('tasks', () => {
     const tasksDocRef = doc(tasksColRef, deletedTaskID)
 
     try {
-      await deleteSubtask(
+      await deleteSubtasks(
         deletedTaskID,
         columnOfDeletedTaskID,
         columnOfClickedTask
@@ -594,7 +589,7 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
-  const deleteSubtask = async (
+  const deleteSubtasks = async (
     taskID: Task['taskID'],
     columnID: BoardColumn['columnID'],
     columnOfClickedTask: number
@@ -627,7 +622,7 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
-  const toggleSubtask = async (subtask: Subtask) => {
+  const toggleSubtask = async ({ subtaskID, isCompleted }: Subtask) => {
     const {
       boardColumns,
       clickedTask,
@@ -635,36 +630,21 @@ export const useTasksStore = defineStore('tasks', () => {
       subtasksOfClickedTask
     } = returnPartsOfUserData()
 
-    const columnsColRef = returnColumnsColRef().columnsColRef
-    const columnColRef = query(
-      columnsColRef,
-      where('columnID', '==', boardColumns[columnOfClickedTask || 0].columnID),
-      limit(1)
-    )
-    const columnDocRef = (await getDocs(columnColRef)).docs[0]
-
     if (columnOfClickedTask == null || clickedTask == null) return false
 
-    const taskColRef = query(
-      collection(db, `${columnsColRef.path}/${columnDocRef.id}/tasks`),
-      where('taskID', '==', clickedTask.taskID),
-      limit(1)
+    const columnsColRef = returnColumnsColRef().columnsColRef
+    const taskColRef = collection(
+      db,
+      `${columnsColRef.path}/${boardColumns[columnOfClickedTask].columnID}/tasks`
     )
-    const taskDocRef = (await getDocs(taskColRef)).docs[0]
     const subtasksColRef = collection(
       db,
-      `${columnsColRef.path}/${columnDocRef.id}/tasks/${taskDocRef.id}/subtasks`
+      `${taskColRef.path}/${clickedTask.taskID}/subtasks`
     )
-    const subtaskColRef = query(
-      collection(db, `${columnsColRef}/${columnDocRef.id}/tasks`),
-      where('taskID', '==', clickedTask.taskID),
-      limit(1)
-    )
-    const subtaskDocRef = (await getDocs(subtaskColRef)).docs[0]
 
     try {
-      await updateDoc(doc(subtasksColRef, subtaskDocRef.id), {
-        isCompleted: !subtask.isCompleted
+      await updateDoc(doc(subtasksColRef, subtaskID), {
+        isCompleted: !isCompleted
       })
     } catch (err) {
       return false
@@ -672,12 +652,14 @@ export const useTasksStore = defineStore('tasks', () => {
 
     userStore.userData.currentBoard.subtasksOfClickedTask =
       subtasksOfClickedTask.map((subtaskOfClickedTask) => {
-        if (subtaskOfClickedTask.subtaskID !== subtask.subtaskID)
+        if (subtaskOfClickedTask.subtaskID !== subtaskID)
           return subtaskOfClickedTask
 
         subtaskOfClickedTask.isCompleted = !subtaskOfClickedTask.isCompleted
         return subtaskOfClickedTask
       })
+
+    userStore.saveUserData()
 
     return true
   }
