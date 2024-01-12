@@ -35,6 +35,7 @@ export interface Task {
   createdAt: string | FieldValue
   title: string
   description: string
+  taskIndex: number
 }
 
 export interface Subtask {

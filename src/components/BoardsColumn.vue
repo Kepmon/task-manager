@@ -46,6 +46,7 @@
           :animation="200"
           class="grid gap-[20px]"
           :data-columnID="boardColumns[columnIndex].columnID"
+          :data-columnIndex="columnIndex"
         >
           <template #item="{ element: columnTask }">
             <li>
@@ -100,7 +101,7 @@
           @close-modal="modals.isSeeTaskModalShown = false"
           @show-edit-form="modals.showEditForm"
           @show-delete-form="modals.showDeleteForm"
-          @handle-move-task="(value) => moveTask(value)"
+          @handle-move-task="() => moveTaskUsingForm()"
           :task="clickedTask"
           :columnIndex="indexOfColumn"
         />
@@ -254,108 +255,80 @@ const returnNumberOfElements = (
   return elementFns[element]()
 }
 
-const moveTask = async (value: BoardColumn['name']) => {
-  const nextColumnID = (
-    boardColumns.value.find(
-      (boardColumn) => boardColumn.name === value
-    ) as BoardColumn
-  ).columnID
-
-  const response = await tasksStore.moveTaskBetweenColumns(nextColumnID)
-  handleResponse(response)
-
-  modals.value.isSeeTaskModalShown = false
-}
-
 const oldTaskIndex = ref<null | number>(null)
 const newTaskIndex = ref<null | number>(null)
-const prevColumnID = ref('')
-const nextColumnID = ref('')
+const oldColumnID = ref('')
+const newColumnID = ref('')
 const taskToBeDragged = ref<null | Task>(null)
 const indexOfOldColumn = ref<null | number>(null)
 const indexOfNewColumn = ref<null | number>(null)
 
-const setIndexesOfTasksInNewColumn = () => {
-  const oldColumn = boardColumns.value.find(
-    (column) => column.columnID === prevColumnID.value
-  )
-  const newColumn = boardColumns.value.find(
-    (column) => column.columnID === nextColumnID.value
-  )
-
-  indexOfOldColumn.value =
-    oldColumn != null ? boardColumns.value.indexOf(oldColumn) : null
-  indexOfNewColumn.value =
-    newColumn != null ? boardColumns.value.indexOf(newColumn) : null
-
-  const newColumnTasks =
-    indexOfNewColumn.value != null
-      ? [...boardTasks.value[indexOfNewColumn.value]]
-      : []
-
-  if (newColumnTasks.length === 0) return []
-
-  return newColumnTasks.map(({ taskID }, taskIndex) => ({
-    taskID,
-    taskIndex
-  }))
-}
-
 const findElementsIDs = (e: MoveDragEvent) => {
-  prevColumnID.value = e.from.getAttribute('data-columnID') || ''
-  nextColumnID.value = e.to.getAttribute('data-columnID') || ''
+  oldColumnID.value = e.from.getAttribute('data-columnID') || ''
+  newColumnID.value = e.to.getAttribute('data-columnID') || ''
+  indexOfOldColumn.value = parseInt(
+    e.from.getAttribute('data-columnIndex') || '0'
+  )
+  indexOfNewColumn.value = parseInt(e.to.getAttribute('data-columnIndex') || '')
+
   taskToBeDragged.value = e.draggedContext.element
 }
 
 const dragTasks = async (e: DragEndEvent) => {
   const isTaskMovedWithinTheSameColumn = e.from === e.to
-  const taskIndexes = setIndexesOfTasksInNewColumn()
 
   oldTaskIndex.value = e.oldIndex
   newTaskIndex.value = e.newIndex
 
-  prevColumnID.value = e.from.getAttribute('data-columnID') || ''
-  nextColumnID.value = e.to.getAttribute('data-columnID') || ''
+  if (isTaskMovedWithinTheSameColumn && e.oldIndex !== e.newIndex) {
+    const columnIndex = parseInt(
+      e.target.getAttribute('data-columnIndex') || '0'
+    )
+    const columnID = e.target.getAttribute('data-columnID') || ''
+
+    const response = tasksStore.moveTaskWithinTheSameColumn(
+      columnID,
+      columnIndex,
+      oldTaskIndex.value,
+      newTaskIndex.value
+    )
+    handleResponse(response)
+  }
 
   if (
     !isTaskMovedWithinTheSameColumn &&
+    taskToBeDragged.value != null &&
     indexOfOldColumn.value != null &&
-    indexOfNewColumn.value != null &&
-    oldTaskIndex.value != null &&
-    newTaskIndex.value != null
+    indexOfNewColumn.value != null
   ) {
-    tasksStore.setNewIndexesForDifferentColumns(
+    const response = tasksStore.moveTaskBetweenColumns(
       indexOfOldColumn.value,
       indexOfNewColumn.value,
       oldTaskIndex.value,
-      newTaskIndex.value
+      newTaskIndex.value,
+      taskToBeDragged.value
     )
+    handleResponse(response)
   }
+}
 
+const moveTaskUsingForm = async () => {
   if (
-    isTaskMovedWithinTheSameColumn &&
+    taskToBeDragged.value != null &&
+    indexOfOldColumn.value != null &&
     indexOfNewColumn.value != null &&
-    oldTaskIndex.value != null &&
-    newTaskIndex.value != null
+    oldTaskIndex.value &&
+    newTaskIndex.value
   ) {
-    tasksStore.setNewIndexesForTheSameColumn(
+    const response = tasksStore.moveTaskBetweenColumns(
+      indexOfOldColumn.value,
       indexOfNewColumn.value,
       oldTaskIndex.value,
-      newTaskIndex.value
+      newTaskIndex.value,
+      taskToBeDragged.value
     )
-  }
-
-  if (
-    prevColumnID.value !== '' &&
-    nextColumnID.value !== '' &&
-    taskToBeDragged.value != null
-  ) {
-    await tasksStore.moveTaskBetweenColumns(
-      nextColumnID.value,
-      prevColumnID.value,
-      taskToBeDragged.value,
-      taskIndexes
-    )
+    handleResponse(response)
+    modals.value.isSeeTaskModalShown = false
   }
 }
 </script>
