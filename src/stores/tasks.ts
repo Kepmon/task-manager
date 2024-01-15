@@ -1,4 +1,5 @@
 import type { Board, BoardColumn, Task, Subtask } from '../api/boardsTypes'
+import type { FormDataProperties } from '../api/formsTypes'
 import { defineStore } from 'pinia'
 import {
   query,
@@ -6,7 +7,6 @@ import {
   getDocs,
   collection,
   doc,
-  addDoc,
   setDoc,
   updateDoc,
   deleteDoc,
@@ -15,6 +15,10 @@ import {
 import { db } from '../firebase'
 import { useUserStore } from './user'
 import { useFormsStore } from './forms'
+import {
+  checkWhetherFormDataWasChanged,
+  returnNeededVars
+} from './helpers/tasksHelpers'
 import { returnColumnsColRef } from './helpers/boardHelpers'
 import { returnPartsOfUserData } from './helpers/userHelpers'
 import { nanoid } from 'nanoid'
@@ -314,15 +318,10 @@ export const useTasksStore = defineStore('tasks', () => {
       `${columnsColRef.path}/${columnID}/tasks`
     )
 
-    taskIndexes.forEach(async (task) => {
-      const taskDocRef = doc(nextTasksColRef, task.taskID)
-      const taskIndex = taskIndexes.find(
-        (task) => task.taskID === taskDocRef.id
-      )?.taskIndex
+    taskIndexes.forEach(async ({ taskID, taskIndex }) => {
+      const taskDocRef = doc(nextTasksColRef, taskID)
 
-      if (taskIndex != null) {
-        await updateDoc(taskDocRef, { taskIndex })
-      }
+      await updateDoc(taskDocRef, { taskIndex })
     })
   }
 
@@ -356,13 +355,6 @@ export const useTasksStore = defineStore('tasks', () => {
     const { boardColumns, boardTasks, boardSubtasks } = returnPartsOfUserData()
     const columnsColRef = returnColumnsColRef().columnsColRef
 
-    const { oldColumnTasks, newColumnTasks } = setNewIndexesForDifferentColumns(
-      indexOfOldColumn,
-      indexOfNewColumn,
-      oldIndex,
-      newIndex
-    )
-
     const subtasksOfMovedTask = boardSubtasks[indexOfNewColumn][newIndex]
     const oldColumnID = boardColumns.find(
       (_, index) => index === indexOfOldColumn
@@ -379,7 +371,7 @@ export const useTasksStore = defineStore('tasks', () => {
     )
     const oldTaskDocRef = doc(
       oldTasksColRef,
-      boardTasks[indexOfNewColumn][newIndex].taskID
+      boardTasks[indexOfOldColumn][oldIndex].taskID
     )
     const oldSubtasksColRef = collection(db, `${oldTaskDocRef.path}/subtasks`)
 
@@ -389,27 +381,19 @@ export const useTasksStore = defineStore('tasks', () => {
     )
     const newTaskDocRef = doc(
       newTasksColRef,
-      boardTasks[indexOfNewColumn][newIndex].taskID
+      boardTasks[indexOfOldColumn][oldIndex].taskID
     )
     const newSubtasksColRef = collection(db, `${newTaskDocRef.path}/subtasks`)
 
     try {
-      const deleteResponse = await deleteTask(
-        taskToBeDragged.taskID,
-        oldColumnID
-      )
+      await deleteTask(taskToBeDragged.taskID, oldColumnID)
       await setDoc(newTaskDocRef, {
         taskID: newTaskDocRef.id,
-        taskIndex: newIndex,
+        taskIndex: newIndex + 1,
         createdAt: taskToBeDragged.createdAt,
         title: taskToBeDragged.title,
         description: taskToBeDragged.description
       })
-
-      if (deleteResponse === false) throw new Error()
-
-      await addIndexesToTasks(oldColumnTasks, oldColumnID)
-      await addIndexesToTasks(newColumnTasks, newColumnID)
     } catch (err) {
       return false
     }
@@ -428,6 +412,8 @@ export const useTasksStore = defineStore('tasks', () => {
               isCompleted: subtask.isCompleted,
               createdAt: subtask.createdAt
             })
+
+            return true
           } catch (err) {
             return false
           }
@@ -448,46 +434,24 @@ export const useTasksStore = defineStore('tasks', () => {
     const formsStore = useFormsStore()
     const formData = formsStore.formData.task.edit.data
 
+    const { boardColumns, boardTasks } = returnPartsOfUserData()
     const {
-      boardColumns,
-      boardTasks,
-      boardSubtasks,
-      clickedTask,
-      columnOfClickedTask
-    } = returnPartsOfUserData()
+      indexOfColumn,
+      indexOfClickedTask,
+      taskDocRef,
+      subtasksToBeEdited
+    } = returnNeededVars()
 
-    const indexOfColumn = columnOfClickedTask as number
-    const indexOfClickedTask = boardTasks[indexOfColumn].findIndex(
-      ({ taskID }) => taskID === clickedTask?.taskID
-    )
-    const columnOfEditedTask = boardColumns[columnOfClickedTask as number]
-    const subtasksToBeEdited = boardSubtasks[indexOfColumn][indexOfClickedTask]
+    if (indexOfColumn == null) return false
 
-    const columnsColRef = returnColumnsColRef().columnsColRef
-    const columnDocRef = doc(columnsColRef, columnOfEditedTask.columnID)
-    const tasksColRef = collection(db, `${columnDocRef.path}/tasks`)
-    const taskDocRef = doc(tasksColRef, clickedTask?.taskID)
-    const subtasksColRef = collection(db, `${taskDocRef.path}/subtasks`)
+    const { wasFormEvenEdited, isTaskNameSame, isDescriptionSame } =
+      checkWhetherFormDataWasChanged(
+        formData,
+        subtasksToBeEdited,
+        isStatusChanged
+      )
 
-    const isTaskNameSame = formData.name === clickedTask?.title
-    const isDescriptionSame = formData.description === clickedTask?.description
-    const isNumberOfSubtaskSame =
-      subtasksToBeEdited.length === formData.items.length
-    const areSubtasksTitlesSame = subtasksToBeEdited.every(
-      ({ subtaskID, title }) =>
-        formData.items.find(
-          ({ name, id }) => title === name && subtaskID === id
-        )
-    )
-
-    const isFormNotChanged = [
-      isTaskNameSame,
-      isDescriptionSame,
-      isNumberOfSubtaskSame,
-      areSubtasksTitlesSame
-    ].every((item) => item === true)
-
-    if (isFormNotChanged && !isStatusChanged) return true
+    if (!wasFormEvenEdited && !isStatusChanged) return true
 
     try {
       if (!isTaskNameSame) {
@@ -505,123 +469,230 @@ export const useTasksStore = defineStore('tasks', () => {
       return false
     }
 
-    if (!isTaskNameSame || !isDescriptionSame) {
+    if (
+      (!isTaskNameSame || !isDescriptionSame) &&
+      formData.description != null
+    ) {
       boardTasks[indexOfColumn][indexOfClickedTask] = {
         ...boardTasks[indexOfColumn][indexOfClickedTask],
         title: formData.name,
-        description: formData.description as string
+        description: formData.description
       }
     }
 
-    const newSubtasks = formData.items.filter(({ id }) => {
-      if (
-        subtasksToBeEdited.length > 0 &&
-        subtasksToBeEdited.some(({ subtaskID }) => subtaskID === id)
-      )
-        return false
-
-      return true
-    })
-
-    if (boardSubtasks.length > 0) {
-      await Promise.all(
-        subtasksToBeEdited.map(async ({ subtaskID, title }, index) => {
-          const subtaskDocRef = doc(subtasksColRef, subtaskID)
-
-          const respectiveSubtask = formData.items.find(
-            ({ id }) => id === subtaskID
-          )
-          const isSubtaskNameSame =
-            respectiveSubtask != null && respectiveSubtask.name === title
-
-          if (respectiveSubtask != null && isSubtaskNameSame) return
-
-          if (respectiveSubtask == null) {
-            try {
-              await deleteDoc(subtaskDocRef)
-            } catch (err) {
-              return false
-            }
-          }
-
-          if (indexOfClickedTask != null && respectiveSubtask == null) {
-            boardSubtasks[indexOfColumn][indexOfClickedTask] =
-              subtasksToBeEdited.filter(({ subtaskID }) =>
-                formData.items.find(({ id }) => subtaskID === id)
-              )
-          }
-
-          if (!isSubtaskNameSame && respectiveSubtask != null) {
-            try {
-              await updateDoc(subtaskDocRef, {
-                title: respectiveSubtask.name
-              })
-            } catch (err) {
-              return false
-            }
-          }
-
-          if (
-            indexOfClickedTask != null &&
-            respectiveSubtask != null &&
-            !isSubtaskNameSame
-          ) {
-            const indexOfSubtask = subtasksToBeEdited.findIndex(
-              ({ subtaskID }) => subtaskID === subtaskDocRef.id
-            )
-
-            boardSubtasks[indexOfColumn][indexOfClickedTask][indexOfSubtask] = {
-              ...subtasksToBeEdited[indexOfSubtask],
-              title: formData.items[index].name
-            }
-          }
-        })
-      )
-    }
-
-    if (newSubtasks.length > 0) {
-      await Promise.all(
-        newSubtasks.map(async ({ name }) => {
-          try {
-            const response = await addDoc(subtasksColRef, {
-              title: name,
-              isCompleted: false,
-              createdAt: serverTimestamp()
-            })
-
-            if (response == null) throw new Error()
-          } catch (err) {
-            return false
-          }
-        })
-      )
-
-      if (indexOfClickedTask != null) {
-        boardSubtasks[indexOfColumn][indexOfClickedTask] = [
-          ...subtasksToBeEdited,
-          ...newSubtasks.map(({ id, name }) => ({
-            subtaskID: id,
-            createdAt: new Date().toString(),
-            title: name,
-            isCompleted: false
-          }))
-        ]
-      }
-    }
+    const newSubtasks = formData.items.filter(
+      ({ id }) => !subtasksToBeEdited.some(({ subtaskID }) => subtaskID === id)
+    )
+    const subtasksToBeDeleted = subtasksToBeEdited.filter(
+      ({ subtaskID }) => !formData.items.some(({ id }) => id === subtaskID)
+    )
 
     try {
-      if (isStatusChanged) {
-        const response = await moveTaskBetweenColumns(nextColumnID)
+      const editSubtaskResponse = await editSubtask(
+        newSubtasks,
+        formData.items,
+        subtasksToBeDeleted
+      )
 
-        if (response === false) throw new Error()
+      if (!editSubtaskResponse) throw new Error()
+
+      if (isStatusChanged) {
+        const nextColumnIndex = boardColumns.findIndex(
+          ({ columnID }) => columnID === nextColumnID
+        )
+        const movedTask = boardTasks[indexOfColumn][indexOfClickedTask]
+
+        await moveTaskBetweenColumns(
+          indexOfColumn,
+          nextColumnIndex,
+          indexOfClickedTask,
+          boardTasks[nextColumnIndex].length,
+          boardTasks[indexOfColumn][indexOfClickedTask]
+        )
+
+        boardTasks[indexOfColumn] = boardTasks[indexOfColumn].filter(
+          ({ taskID }) => taskID !== movedTask.taskID
+        )
+        boardTasks[nextColumnIndex] = [
+          ...boardTasks[nextColumnIndex],
+          movedTask
+        ]
       }
     } catch (err) {
       return false
     }
 
-    userStore.userData.currentBoard.clickedTask = null
+    handleEditTaskUIChanges(newSubtasks, subtasksToBeDeleted)
 
     return true
+  }
+
+  const editSubtask = async (
+    newSubtasks: FormDataProperties['items'],
+    formDataItems: FormDataProperties['items'],
+    oldSubtasks: Subtask[]
+  ) => {
+    const editResponse = await editExistingSubtasks(formDataItems)
+    const addResponse = await addNewSubtasks(newSubtasks)
+    const deleteResponse = await deletePreviouslyExistingSubtasks(oldSubtasks)
+
+    return !editResponse || !addResponse || !deleteResponse
+  }
+
+  const addNewSubtasks = async (newSubtasks: FormDataProperties['items']) => {
+    const { indexOfClickedTask, subtasksColRef } = returnNeededVars()
+
+    if (newSubtasks.length === 0) return true
+    if (subtasksColRef == null || indexOfClickedTask == null) return false
+
+    const responses = await Promise.all(
+      newSubtasks.map(async ({ id, name }) => {
+        const subtaskDocRef = doc(subtasksColRef, id)
+
+        try {
+          await setDoc(subtaskDocRef, {
+            title: name,
+            isCompleted: false,
+            createdAt: serverTimestamp()
+          })
+
+          return true
+        } catch (err) {
+          return false
+        }
+      })
+    )
+
+    return responses.every(() => true)
+  }
+
+  const editExistingSubtasks = async (
+    formDataItems: FormDataProperties['items']
+  ) => {
+    const { boardSubtasks } = returnPartsOfUserData()
+    const {
+      indexOfColumn,
+      indexOfClickedTask,
+      subtasksToBeEdited,
+      subtasksColRef
+    } = returnNeededVars()
+
+    if (boardSubtasks.length === 0 || subtasksToBeEdited == null) return true
+
+    const responses = await Promise.all(
+      subtasksToBeEdited.map(async ({ subtaskID, title }, index) => {
+        const subtaskDocRef = doc(subtasksColRef, subtaskID)
+
+        const respectiveSubtask = formDataItems.find(
+          ({ id }) => id === subtaskID
+        )
+        const isSubtaskNameSame = respectiveSubtask?.name === title
+
+        if (
+          respectiveSubtask == null ||
+          isSubtaskNameSame ||
+          indexOfClickedTask == null
+        )
+          return false
+
+        try {
+          await deleteDoc(subtaskDocRef)
+        } catch (err) {
+          return false
+        }
+
+        boardSubtasks[indexOfColumn][indexOfClickedTask] =
+          subtasksToBeEdited.filter(({ subtaskID }) =>
+            formDataItems.find(({ id }) => subtaskID === id)
+          )
+
+        if (!isSubtaskNameSame) {
+          try {
+            await updateDoc(subtaskDocRef, {
+              title: respectiveSubtask.name
+            })
+          } catch (err) {
+            return false
+          }
+
+          const indexOfSubtask = subtasksToBeEdited.findIndex(
+            ({ subtaskID }) => subtaskID === subtaskDocRef.id
+          )
+
+          boardSubtasks[indexOfColumn][indexOfClickedTask][indexOfSubtask] = {
+            ...subtasksToBeEdited[indexOfSubtask],
+            title: formDataItems[index].name
+          }
+        }
+
+        return true
+      })
+    )
+
+    if (responses.some((response) => !response)) return false
+
+    userStore.saveUserData(true)
+    return true
+  }
+
+  const deletePreviouslyExistingSubtasks = async (oldSubtasks: Subtask[]) => {
+    const { subtasksColRef } = returnNeededVars()
+    const { clickedTask, columnOfClickedTask } = returnPartsOfUserData()
+
+    if (
+      subtasksColRef == null ||
+      columnOfClickedTask == null ||
+      clickedTask == null
+    )
+      return false
+
+    const responses = await Promise.all(
+      oldSubtasks.map(async ({ subtaskID }) => {
+        const subtaskDocRef = doc(subtasksColRef, subtaskID)
+
+        try {
+          await deleteDoc(subtaskDocRef)
+          return true
+        } catch (err) {
+          return false
+        }
+      })
+    )
+
+    return responses.every(() => true)
+  }
+
+  const handleEditTaskUIChanges = (
+    newSubtasks: FormDataProperties['items'],
+    subtasksToBeDeleted: Subtask[]
+  ) => {
+    const { boardSubtasks } = returnPartsOfUserData()
+    const { indexOfColumn, indexOfClickedTask, subtasksToBeEdited } =
+      returnNeededVars()
+
+    const addedSubtasks = newSubtasks.map(({ id, name }) => ({
+      subtaskID: id,
+      createdAt: new Date().toString(),
+      title: name,
+      isCompleted: false
+    }))
+
+    userStore.userData.currentBoard.clickedTask = null
+
+    if (subtasksToBeEdited != null) {
+      boardSubtasks[indexOfColumn as number][indexOfClickedTask as number] = [
+        ...(subtasksToBeEdited as Subtask[]).filter(
+          ({ subtaskID: editedSubtaskID }) =>
+            !subtasksToBeDeleted.some(
+              ({ subtaskID: deletedSubtaskID }) =>
+                editedSubtaskID === deletedSubtaskID
+            )
+        ),
+        ...addedSubtasks
+      ]
+    }
+
+    userStore.saveUserData()
   }
 
   const deleteTask = async (
@@ -656,7 +727,6 @@ export const useTasksStore = defineStore('tasks', () => {
       boardTasks[indexOfColumn] = boardTasks[indexOfColumn].filter(
         ({ taskID }) => taskID !== deletedTaskID
       )
-      userStore.userData.currentBoard.clickedTask = null
       userStore.saveUserData()
 
       return true
