@@ -89,7 +89,6 @@
         &#65291;New Column
       </button>
     </div>
-
     <Teleport to="body">
       <transition name="modal">
         <see-task-modal
@@ -103,7 +102,7 @@
           @show-delete-form="modals.showDeleteForm"
           @handle-move-task="() => moveTaskUsingForm()"
           :task="clickedTask"
-          :columnIndex="indexOfColumn"
+          :columnIndex="columnOfClickedTask"
         />
       </transition>
     </Teleport>
@@ -117,17 +116,19 @@
         "
         :elementToDelete="modals.isDeleteTaskModalShown ? 'task' : 'column'"
         :elementName="
-          modals.isDeleteTaskModalShown
-            ? clickedTask?.title
-            : (modals.columnToDelete as BoardColumn).name
-        "
+            modals.isDeleteTaskModalShown
+              ? clickedTask?.title
+              : (modals.columnToDelete as BoardColumn).name
+          "
         :elementID="
-          modals.isDeleteTaskModalShown
-            ? clickedTask?.taskID
-            : (modals.columnToDelete as BoardColumn).columnID
-        "
+            modals.isDeleteTaskModalShown
+              ? clickedTask?.taskID
+              : (modals.columnToDelete as BoardColumn).columnID
+          "
         :columnOfClickedTask="
-          columnOfClickedTask != null ? columnOfClickedTask.columnID : undefined
+          columnOfClickedTask != null
+            ? boardColumns[columnOfClickedTask].columnID
+            : undefined
         "
       />
     </transition>
@@ -136,7 +137,9 @@
         v-if="modals.isEditTaskModalShown"
         @change-var-to-false="modals.isEditTaskModalShown = false"
         action="edit"
-        :columnIndex="indexOfColumn != null ? indexOfColumn : undefined"
+        :columnIndex="
+          columnOfClickedTask != null ? columnOfClickedTask : undefined
+        "
       />
     </transition>
     <transition name="modal">
@@ -159,7 +162,7 @@ import NewColumnModal from './Modals/NewColumnModal.vue'
 import CloseIcon from './Svgs/CloseIcon.vue'
 import { handleResponse } from '../composables/responseHandler'
 import { returnCircleColor } from '../composables/circleColor'
-import { computed, ref } from 'vue'
+import { ref, toRefs } from 'vue'
 import { useUserStore } from '../stores/user'
 import { useTasksStore } from '../stores/tasks'
 import { useFormsStore } from '../stores/forms'
@@ -169,21 +172,14 @@ import draggable from 'vuedraggable'
 const userStore = useUserStore()
 const tasksStore = useTasksStore()
 const formsStore = useFormsStore()
-
-const boardColumns = computed(
-  () => userStore.userData.currentBoard.boardColumns
-)
-const boardTasks = computed(() => userStore.userData.currentBoard.boardTasks)
-const boardSubtasks = computed(
-  () => userStore.userData.currentBoard.boardSubtasks
-)
-const clickedTask = computed(() => userStore.userData.currentBoard.clickedTask)
-const indexOfColumn = computed(
-  () => userStore.userData.currentBoard.columnOfClickedTask
-)
-const columnOfClickedTask = computed(
-  () => boardColumns.value[indexOfColumn.value as number]
-)
+const {
+  boardColumns,
+  boardTasks,
+  boardSubtasks,
+  clickedTask,
+  columnOfClickedTask,
+  subtasksOfClickedTask
+} = toRefs(userStore.userData.currentBoard)
 
 const formatColumnNumber = (number: number) => converter.toWordsOrdinal(number)
 
@@ -220,17 +216,14 @@ const tasks = ref({
 
     if (idOfCurrentClickedTask === idOfNewClickedTask) return
 
-    userStore.userData.currentBoard.columnOfClickedTask = columnIndex
-    userStore.userData.currentBoard.clickedTask =
-      boardTasks.value[columnIndex][taskIndex]
+    columnOfClickedTask.value = columnIndex
+    clickedTask.value = boardTasks.value[columnIndex][taskIndex]
 
     tasks.value.saveSubtasksOfClickedTask(columnIndex, taskIndex)
-
     formsStore.resetFormData('task', 'edit')
   },
   saveSubtasksOfClickedTask: (columnIndex: number, taskIndex: number) => {
-    userStore.userData.currentBoard.subtasksOfClickedTask =
-      boardSubtasks.value[columnIndex][taskIndex]
+    subtasksOfClickedTask.value = boardSubtasks.value[columnIndex][taskIndex]
   }
 })
 
@@ -286,7 +279,7 @@ const dragTasks = async (e: DragEndEvent) => {
     )
     const columnID = e.target.getAttribute('data-columnID') || ''
 
-    const response = tasksStore.moveTaskWithinTheSameColumn(
+    const response = await tasksStore.moveTaskWithinTheSameColumn(
       columnID,
       columnIndex,
       oldTaskIndex.value,
@@ -301,7 +294,7 @@ const dragTasks = async (e: DragEndEvent) => {
     indexOfOldColumn.value != null &&
     indexOfNewColumn.value != null
   ) {
-    const response = tasksStore.moveTaskBetweenColumns(
+    const response = await tasksStore.moveTaskBetweenColumns(
       indexOfOldColumn.value,
       indexOfNewColumn.value,
       oldTaskIndex.value,
@@ -320,7 +313,7 @@ const moveTaskUsingForm = async () => {
     oldTaskIndex.value &&
     newTaskIndex.value
   ) {
-    const response = tasksStore.moveTaskBetweenColumns(
+    const response = await tasksStore.moveTaskBetweenColumns(
       indexOfOldColumn.value,
       indexOfNewColumn.value,
       oldTaskIndex.value,

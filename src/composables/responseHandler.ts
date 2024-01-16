@@ -6,7 +6,7 @@ export const isResponseError = ref(false)
 export const isPopupShown = ref(false)
 
 export const handleResponse = (
-  response: unknown,
+  response: boolean,
   currentPath?: string,
   loading?: Ref<boolean>
 ) => {

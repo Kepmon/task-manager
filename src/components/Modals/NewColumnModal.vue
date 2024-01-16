@@ -84,9 +84,8 @@ const submitForm = async () => {
 
   if (isColumnNameError.value) return
 
-  const columnID = nanoid()
   const newColumn = {
-    id: columnID,
+    id: nanoid(),
     name: columnName.value,
     dotColor: startColor.value
   }

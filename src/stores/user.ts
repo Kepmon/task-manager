@@ -134,7 +134,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
   const deleteAccount = async () => {
-    if (currentUser.value == null || userID.value == null) return
+    if (currentUser.value == null || userID.value == null) return false
     const accountID = userID.value
 
     const credential = EmailAuthProvider.credential(

@@ -15,7 +15,7 @@
           :startColor="
             formData.data.items[index].dotColor == null
               ? returnCircleColor(index, dotColor, action === 'add')
-              : formData.data.items[index].dotColor as unknown as string
+              : formData.data.items[index].dotColor as string
           "
           :noTranslate="true"
         />
@@ -88,8 +88,7 @@ const formatItemNumber = (number: number) => converter.toWordsOrdinal(number)
 
 const setNewColumn = (color: ColorChangeEvent, index: number) => {
   if (props.element !== 'board') return
-  ;(formData.value.data.items[index].dotColor as unknown as string) =
-    color.cssColor
+  ;(formData.value.data.items[index].dotColor as string) = color.cssColor
 
   emits('set-new-color', color, index)
 }
