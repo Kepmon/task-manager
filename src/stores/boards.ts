@@ -402,10 +402,9 @@ export const useBoardsStore = defineStore('boards', () => {
   }
 
   const removeBoardFromUserData = async (
-    boardDocRef: DocumentReference<DocumentData>
+    idOfDeletedBoard: Board['boardID']
   ) => {
     const { allBoards, fullBoards } = returnPartsOfUserData()
-    const idOfDeletedBoard = boardDocRef.id
 
     userStore.userData.allBoards = allBoards.filter(
       ({ boardID }) => boardID !== idOfDeletedBoard
@@ -413,29 +412,15 @@ export const useBoardsStore = defineStore('boards', () => {
     userStore.userData.fullBoards = fullBoards.filter(
       ({ boardID }) => boardID !== idOfDeletedBoard
     )
-
-    const newCurrentBoardID = userStore.userData.allBoards[0].boardID
-    const newCurrentBoardName = userStore.userData.allBoards[0].name
-    let newBoardColumns: BoardColumn[] = []
-    const newFullBoard = fullBoards.find(
-      ({ boardID }) => boardID === newCurrentBoardID
+    const newBoard = userStore.userData.fullBoards.find(
+      ({ boardID: id }) => id === userStore.userData.allBoards[0].boardID
     )
 
-    if (newFullBoard != null) {
-      newBoardColumns = newFullBoard.boardColumns
+    if (newBoard != null) {
+      userStore.userData.currentBoard = newBoard
     } else {
-      newBoardColumns = await getColumns(allBoards[0])
+      await fetchNewBoard(userStore.userData.allBoards[0])
     }
-
-    setFirstBoardAsCurrentOne(
-      newCurrentBoardID,
-      newCurrentBoardName,
-      newBoardColumns
-    )
-
-    userStore.saveUserData(true)
-
-    return true
   }
 
   const deleteColumn = async (
@@ -484,43 +469,39 @@ export const useBoardsStore = defineStore('boards', () => {
   }
 
   const deleteBoard = async (boardID: Board['boardID']) => {
-    if (boardsColRefGlobal.value == null) return false
-
     const boardToBeDeleted = userStore.userData.fullBoards.find(
       ({ boardID: id }) => id === boardID
     )
 
-    if (boardToBeDeleted != null) {
-      const allColumnsToDelete = boardToBeDeleted.boardColumns
-
-      if (allColumnsToDelete.length > 0) {
-        const columnResponses = await Promise.all(
-          allColumnsToDelete.map(async ({ columnID }) => {
-            const response = await deleteColumn(boardID, columnID)
-
-            if (!response) return false
-
-            return true
-          })
-        )
-
-        if (columnResponses.some((response) => !response)) return false
-      }
-    } else {
+    if (boardsColRefGlobal.value == null || boardToBeDeleted == null)
       return false
+
+    const allColumnsToDelete = boardToBeDeleted.boardColumns
+
+    if (allColumnsToDelete.length > 0) {
+      const columnResponses = await Promise.all(
+        allColumnsToDelete.map(async ({ columnID }) => {
+          const response = await deleteColumn(boardID, columnID)
+
+          if (!response) return false
+
+          return true
+        })
+      )
+
+      if (columnResponses.some((response) => !response)) return false
     }
 
     const boardDocRef = doc(boardsColRefGlobal.value, boardID)
 
     try {
       await deleteDoc(boardDocRef)
+      await removeBoardFromUserData(boardID)
     } catch (err) {
       return false
     }
 
-    const removeBoardResponse = await removeBoardFromUserData(boardDocRef)
-
-    if (!removeBoardResponse) return false
+    userStore.saveUserData()
 
     return true
   }
