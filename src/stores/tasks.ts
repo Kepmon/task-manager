@@ -700,19 +700,29 @@ export const useTasksStore = defineStore('tasks', () => {
     columnID?: BoardColumn['columnID']
   ) => {
     const columnsColRef = returnColumnsColRef().columnsColRef
-    const { boardColumns, boardTasks, clickedTask, columnOfClickedTask } =
-      returnPartsOfUserData()
+    const {
+      boardColumns,
+      boardTasks,
+      clickedTask,
+      columnOfClickedTask,
+      boardSubtasks
+    } = returnPartsOfUserData()
 
     const indexOfColumn =
       columnID != null
         ? boardColumns.findIndex(({ columnID: id }) => id === columnID)
         : columnOfClickedTask
-    const deletedTaskID = taskID != null ? taskID : clickedTask?.taskID
+    const deletedTaskID = taskID || clickedTask?.taskID
 
-    if (deletedTaskID == null || indexOfColumn == null) return false
+    if (
+      deletedTaskID == null ||
+      columnOfClickedTask == null ||
+      indexOfColumn == null
+    )
+      return false
 
     const columnOfDeletedTaskID =
-      columnID != null ? columnID : boardColumns[indexOfColumn].columnID
+      columnID || boardColumns[indexOfColumn].columnID
 
     const tasksColRef = collection(
       db,
@@ -723,16 +733,23 @@ export const useTasksStore = defineStore('tasks', () => {
     try {
       await deleteSubtasks(deletedTaskID, columnOfDeletedTaskID, indexOfColumn)
       await deleteDoc(tasksDocRef)
-
-      boardTasks[indexOfColumn] = boardTasks[indexOfColumn].filter(
-        ({ taskID }) => taskID !== deletedTaskID
-      )
-      userStore.saveUserData()
-
-      return true
     } catch (err) {
       return false
     }
+
+    const indexOfDeletedTask = boardTasks[columnOfClickedTask].findIndex(
+      ({ taskID: id }) => id === taskID
+    )
+
+    boardSubtasks[columnOfClickedTask] = boardSubtasks[
+      columnOfClickedTask
+    ].filter((_, index) => index !== indexOfDeletedTask)
+    boardTasks[indexOfColumn] = boardTasks[indexOfColumn].filter(
+      ({ taskID }) => taskID !== deletedTaskID
+    )
+    userStore.saveUserData()
+
+    return true
   }
 
   const deleteSubtasks = async (
@@ -741,9 +758,9 @@ export const useTasksStore = defineStore('tasks', () => {
     columnOfClickedTask: number
   ) => {
     const columnsColRef = returnColumnsColRef().columnsColRef
-    const { boardTasks, boardSubtasks } = returnPartsOfUserData()
+    const { boardSubtasks } = returnPartsOfUserData()
 
-    if (boardSubtasks.length === 0) return
+    if (boardSubtasks[columnOfClickedTask].length === 0) return true
 
     const subtasksColRef = collection(
       db,
@@ -751,18 +768,12 @@ export const useTasksStore = defineStore('tasks', () => {
     )
 
     try {
-      const subtasksDocRefs = await getDocs(subtasksColRef)
+      const subtasksDocRefs = (await getDocs(subtasksColRef)).docs
       subtasksDocRefs.forEach(async (subtasksDocRef) => {
         await deleteDoc(subtasksDocRef.ref)
       })
 
-      const indexOfDeletedTask = boardTasks[columnOfClickedTask].findIndex(
-        ({ taskID: id }) => id === taskID
-      )
-
-      boardSubtasks[columnOfClickedTask] = boardSubtasks[
-        columnOfClickedTask
-      ].filter((_, index) => index !== indexOfDeletedTask)
+      return true
     } catch (err) {
       return false
     }
