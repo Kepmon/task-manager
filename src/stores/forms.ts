@@ -12,7 +12,7 @@ export const useFormsStore = defineStore('forms', () => {
     board: userStore.userData.currentBoard.boardName,
     task: userStore.userData.currentBoard.clickedTask?.title || ''
   }))
-  const subsetItems = computed(() => ({
+  const returnSubsetItems = () => ({
     board: {
       add: ['Todo', 'Doing'].map((item, index) => ({
         name: item,
@@ -44,7 +44,7 @@ export const useFormsStore = defineStore('forms', () => {
         })
       )
     }
-  }))
+  })
 
   const returnFormDataObj = (
     element: 'board' | 'task',
@@ -59,7 +59,7 @@ export const useFormsStore = defineStore('forms', () => {
             : action === 'add'
             ? ''
             : userStore.userData.currentBoard.clickedTask?.description || '',
-        items: [...subsetItems.value[element][action]],
+        items: [...returnSubsetItems()[element][action]],
         placeholderItems:
           element === 'board'
             ? undefined
@@ -70,7 +70,7 @@ export const useFormsStore = defineStore('forms', () => {
           emptyError: false,
           tooLongError: false
         },
-        itemsErrors: subsetItems.value[element][action].map(() => ({
+        itemsErrors: returnSubsetItems()[element][action].map(() => ({
           emptyError: false,
           tooLongError: false
         }))
@@ -91,7 +91,7 @@ export const useFormsStore = defineStore('forms', () => {
         ...returnFormDataObj('task', 'add')
       },
       edit: {
-        ...returnFormDataObj('board', 'edit')
+        ...returnFormDataObj('task', 'edit')
       }
     }
   })

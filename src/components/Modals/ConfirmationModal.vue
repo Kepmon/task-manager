@@ -113,7 +113,6 @@ const submitFns = {
   user: () => userStore.deleteAccount()
 }
 
-const errorMessage = ref('')
 const isPending = ref(false)
 const submit = async () => {
   isPending.value = true
@@ -121,11 +120,7 @@ const submit = async () => {
   const response = await submitFns[props.elementToDelete]()
   handleResponse(response, route.path, isPending)
 
-  if (props.elementToDelete === 'user' && typeof response === 'string') {
-    errorMessage.value = response
-  }
-
-  if (props.elementToDelete === 'column') {
+  if (props.elementToDelete === 'column' && response) {
     formsStore.resetFormData('board', 'edit')
   }
 

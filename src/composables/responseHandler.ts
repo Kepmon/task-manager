@@ -11,10 +11,10 @@ export const handleResponse = (
   loading?: Ref<boolean>
 ) => {
   const duration = 3000
-  isResponseError.value = response === false
+  isResponseError.value = !response
   isPopupShown.value = true
 
-  if (response === true && currentPath != null) {
+  if (response && currentPath != null) {
     const pathToGo = {
       '/sign-up': '/',
       '/': '/dashboard',
@@ -22,7 +22,6 @@ export const handleResponse = (
     }
 
     setTimeout(() => {
-      isPopupShown.value = false
       router.push(pathToGo[currentPath as keyof typeof pathToGo])
     }, 0)
   }

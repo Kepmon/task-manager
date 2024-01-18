@@ -23,6 +23,7 @@ export const useUserStore = defineStore('user', () => {
     currentUser.value != null ? currentUser.value.uid : null
   )
   const inputedPassword = ref<null | string>(null)
+  const deleteAccountError = ref<null | string>(null)
   const isLoading = ref(true)
   const userData = ref<UserData>(returnEmptyUserData())
 
@@ -134,17 +135,25 @@ export const useUserStore = defineStore('user', () => {
   }
 
   const deleteAccount = async () => {
-    if (currentUser.value == null || userID.value == null) return false
+    if (
+      currentUser.value == null ||
+      currentUser.value.email == null ||
+      inputedPassword.value == null ||
+      userID.value == null
+    )
+      return false
     const accountID = userID.value
 
     const credential = EmailAuthProvider.credential(
-      currentUser.value.email as string,
-      inputedPassword.value as string
+      currentUser.value.email,
+      inputedPassword.value
     )
 
     try {
       await reauthenticateWithCredential(currentUser.value, credential)
+      deleteAccountError.value = null
     } catch (err) {
+      deleteAccountError.value = err instanceof Error ? err.message : null
       return false
     }
 
@@ -182,6 +191,7 @@ export const useUserStore = defineStore('user', () => {
     userID,
     userData,
     inputedPassword,
+    deleteAccountError,
     saveUserData,
     register,
     logIn,
