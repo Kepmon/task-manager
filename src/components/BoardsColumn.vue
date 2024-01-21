@@ -25,9 +25,7 @@
           <p class="text-xs text-gray-400 uppercase">
             <span class="sr-only">
               {{ formatColumnNumber(columnIndex + 1) }} column - title:</span
-            >{{ column.name }} ({{
-              returnNumberOfElements(columnIndex, 0, 'tasks')
-            }})
+            >{{ column.name }} ({{ boardTasks[columnIndex].length }})
             <span class="sr-only">tasks inside</span>
           </p>
           <close-icon
@@ -61,18 +59,12 @@
                 :key="columnTask.taskID"
                 :taskID="columnTask.taskID"
                 :howManyCompleted="
-                  returnNumberOfElements(
-                    columnIndex,
-                    boardTasks[columnIndex].indexOf(columnTask),
-                    'subtasksCompleted'
-                  )
+                  returnSubtasksOfGivenTask(columnTask.taskID)?.filter(
+                    ({ isCompleted }) => isCompleted
+                  ).length || 0
                 "
                 :howManySubtasks="
-                  returnNumberOfElements(
-                    columnIndex,
-                    boardTasks[columnIndex].indexOf(columnTask),
-                    'subtasks'
-                  )
+                  returnSubtasksOfGivenTask(columnTask.taskID)?.length || 0
                 "
                 :title="columnTask.title"
               />
@@ -224,34 +216,21 @@ const tasks = ref({
     userStore.userData.currentBoard.clickedTask =
       boardTasks.value[columnIndex][taskIndex]
 
-    tasks.value.saveSubtasksOfClickedTask(columnIndex, taskIndex)
+    tasks.value.saveSubtasksOfClickedTask(idOfNewClickedTask)
     formsStore.resetFormData('task', 'edit')
   },
-  saveSubtasksOfClickedTask: (columnIndex: number, taskIndex: number) => {
+  saveSubtasksOfClickedTask: (taskID: string) => {
     userStore.userData.currentBoard.subtasksOfClickedTask =
-      boardSubtasks.value[columnIndex][taskIndex]
+      boardSubtasks.value.find((subtasksArr) =>
+        subtasksArr.every(({ taskID: id }) => id === taskID)
+      ) || []
   }
 })
 
-type Element = 'tasks' | 'subtasks' | 'subtasksCompleted'
-const returnNumberOfElements = (
-  columnIndex: number,
-  taskIndex: number,
-  element: Element
-) => {
-  const elementFns = {
-    tasks: () =>
-      boardTasks.value[columnIndex] != null
-        ? boardTasks.value[columnIndex].length
-        : 0,
-    subtasks: () => boardSubtasks.value[columnIndex][taskIndex].length,
-    subtasksCompleted: () =>
-      boardSubtasks.value[columnIndex][taskIndex].filter(
-        (subtask) => subtask.isCompleted
-      ).length
-  }
-
-  return elementFns[element]()
+const returnSubtasksOfGivenTask = (taskID: string) => {
+  return boardSubtasks.value.find((subtasksArr) =>
+    subtasksArr.every(({ taskID: id }) => id === taskID)
+  )
 }
 
 const oldTaskIndex = ref<null | number>(null)
@@ -300,10 +279,11 @@ const dragTasks = async (e: DragEndEvent) => {
     indexOfOldColumn.value != null &&
     indexOfNewColumn.value != null
   ) {
+    userStore.userData.currentBoard.columnOfClickedTask = indexOfOldColumn.value
+
     const response = await tasksStore.moveTaskBetweenColumns(
       indexOfOldColumn.value,
       indexOfNewColumn.value,
-      oldTaskIndex.value,
       newTaskIndex.value,
       taskToBeDragged.value
     )
@@ -322,7 +302,6 @@ const moveTaskUsingForm = async () => {
     const response = await tasksStore.moveTaskBetweenColumns(
       indexOfOldColumn.value,
       indexOfNewColumn.value,
-      oldTaskIndex.value,
       newTaskIndex.value,
       taskToBeDragged.value
     )

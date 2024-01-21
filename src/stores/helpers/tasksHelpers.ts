@@ -20,7 +20,10 @@ export const returnNeededVars = () => {
   const indexOfClickedTask = boardTasks[indexOfColumn].findIndex(
     ({ taskID }) => taskID === clickedTask?.taskID
   )
-  const subtasksToBeEdited = boardSubtasks[indexOfColumn][indexOfClickedTask]
+  const subtasksToBeEdited =
+    boardSubtasks.find((subtasksArr) =>
+      subtasksArr.every(({ taskID: id }) => id === clickedTask?.taskID)
+    ) || []
 
   const columnsColRef = returnColumnsColRef().columnsColRef
   const columnDocRef = doc(columnsColRef, columnOfEditedTask.columnID)

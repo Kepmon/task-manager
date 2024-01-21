@@ -13,7 +13,7 @@ interface CurrentBoard {
   columnOfClickedTask: null | number
   boardTasks: Task[][]
   clickedTask: null | Task
-  boardSubtasks: Subtask[][][]
+  boardSubtasks: Subtask[][]
   subtasksOfClickedTask: Subtask[]
 }
 
@@ -40,6 +40,7 @@ export interface Task {
 
 export interface Subtask {
   subtaskID: string
+  taskID: string
   createdAt: string | FieldValue
   title: string
   isCompleted: boolean

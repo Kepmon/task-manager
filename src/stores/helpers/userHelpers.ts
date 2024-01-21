@@ -11,7 +11,7 @@ export const returnEmptyUserData = () => ({
     columnOfClickedTask: null,
     boardTasks: [[]] as Task[][],
     clickedTask: null,
-    boardSubtasks: [[[]]] as Subtask[][][],
+    boardSubtasks: [[]] as Subtask[][],
     subtasksOfClickedTask: [] as Subtask[]
   }
 })

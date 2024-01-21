@@ -501,7 +501,7 @@ export const useBoardsStore = defineStore('boards', () => {
       return false
     }
 
-    userStore.saveUserData()
+    userStore.saveUserData(true)
 
     return true
   }
