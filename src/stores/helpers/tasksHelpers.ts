@@ -2,6 +2,7 @@ import type { Subtask } from '../../api/boardsTypes'
 import type { FormDataProperties } from '../../api/formsTypes'
 import { collection, doc } from 'firebase/firestore'
 import { db } from '../../firebase'
+import { returnSubtasksOfGivenTask } from '../../composables/subtasksOfGivenTask'
 import { returnColumnsColRef } from './boardHelpers'
 import { returnPartsOfUserData } from './userHelpers'
 
@@ -9,7 +10,6 @@ export const returnNeededVars = () => {
   const {
     boardColumns,
     boardTasks,
-    boardSubtasks,
     clickedTask,
     columnOfClickedTask: indexOfColumn
   } = returnPartsOfUserData()
@@ -20,10 +20,6 @@ export const returnNeededVars = () => {
   const indexOfClickedTask = boardTasks[indexOfColumn].findIndex(
     ({ taskID }) => taskID === clickedTask?.taskID
   )
-  const subtasksToBeEdited =
-    boardSubtasks.find((subtasksArr) =>
-      subtasksArr.every(({ taskID: id }) => id === clickedTask?.taskID)
-    ) || []
 
   const columnsColRef = returnColumnsColRef().columnsColRef
   const columnDocRef = doc(columnsColRef, columnOfEditedTask.columnID)
@@ -35,7 +31,7 @@ export const returnNeededVars = () => {
     indexOfColumn,
     indexOfClickedTask,
     taskDocRef,
-    subtasksToBeEdited,
+    subtasksToBeEdited: returnSubtasksOfGivenTask(clickedTask?.taskID),
     subtasksColRef
   }
 }

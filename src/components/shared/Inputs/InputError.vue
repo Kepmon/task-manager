@@ -11,6 +11,6 @@ defineProps<{
 <style lang="postcss">
 .error-message {
   @apply absolute top-1 right-2 p-2 text-sm text-red-400;
-  @apply bg-white dark:bg-gray-700 z-10;
+  @apply bg-white dark:bg-gray-700;
 }
 </style>

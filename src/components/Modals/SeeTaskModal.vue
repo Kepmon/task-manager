@@ -75,9 +75,9 @@
           </p>
           <v-select
             @update:model-value="(newColumnName: BoardColumn['name']) => handleChangeColumn(newColumnName)"
-            :options="taskStatuses"
+            :options="taskStatusesNames"
             :searchable="false"
-            :placeholder="taskStatuses[columnIndex || 0]"
+            :placeholder="taskStatusesNames[columnIndex || 0]"
           ></v-select>
           <p v-if="isPending" class="mt-4 text-purple-400 text-center">
             Loading...
@@ -100,7 +100,7 @@ import { useUserStore } from '../../stores/user'
 import { useTasksStore } from '../../stores/tasks'
 import { ref, computed, onUnmounted } from 'vue'
 
-defineProps<{
+const props = defineProps<{
   columnIndex: null | number
   task: Task
 }>()
@@ -117,7 +117,8 @@ const tasksStore = useTasksStore()
 const subtasksOfClickedTask = computed(
   () => userStore.userData.currentBoard.subtasksOfClickedTask
 )
-const taskStatuses = computed(() =>
+
+const taskStatusesNames = computed(() =>
   userStore.userData.currentBoard.boardColumns.map((column) => column.name)
 )
 const areTaskOptionsShown = ref(false)
@@ -147,9 +148,32 @@ const toggleSubtask = async (id: string) => {
 }
 
 const isPending = ref(false)
-const handleChangeColumn = (newColumnName: BoardColumn['name']) => {
+const handleChangeColumn = async (newColumnName: BoardColumn['name']) => {
   isPending.value = true
-  emits('handle-move-task', newColumnName)
+
+  const newColumnIndex = userStore.userData.currentBoard.boardColumns.findIndex(
+    ({ name }) => name === newColumnName
+  )
+  const boardTasks = userStore.userData.currentBoard.boardTasks
+  const clickedTask = userStore.userData.currentBoard.clickedTask
+
+  if (
+    clickedTask != null &&
+    props.columnIndex != null &&
+    newColumnIndex != null &&
+    clickedTask != null
+  ) {
+    const response = await tasksStore.moveTaskBetweenColumns(
+      props.columnIndex,
+      newColumnIndex,
+      clickedTask,
+      boardTasks[props.columnIndex].length,
+      clickedTask.taskIndex - 1
+    )
+    handleResponse(response)
+
+    emits('handle-move-task')
+  }
 }
 
 onUnmounted(() => {

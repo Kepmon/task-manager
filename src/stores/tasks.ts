@@ -16,6 +16,10 @@ import { db } from '../firebase'
 import { useUserStore } from './user'
 import { useFormsStore } from './forms'
 import {
+  returnSubtasksOfGivenTask,
+  returnRespectiveSubtaskIndex
+} from '../composables/subtasksOfGivenTask'
+import {
   checkWhetherFormDataWasChanged,
   returnNeededVars
 } from './helpers/tasksHelpers'
@@ -243,6 +247,43 @@ export const useTasksStore = defineStore('tasks', () => {
     }))
   }
 
+  const setNewIndexesForDifferentColumns = async (
+    indexOfNewColumn: number,
+    indexOfOldColumn: number,
+    newColumnID: BoardColumn['columnID'],
+    newIndex: number,
+    oldIndex: number
+  ) => {
+    const { boardTasks } = returnPartsOfUserData()
+    const columnsColRef = returnColumnsColRef().columnsColRef
+
+    const newTasksColRef = collection(
+      db,
+      `${columnsColRef.path}/${newColumnID}/tasks`
+    )
+    const tasksForOldColumn = [...boardTasks[indexOfOldColumn]]
+    const tasksForNewColumn = [...boardTasks[indexOfNewColumn]]
+
+    const newTasksBefore = [...boardTasks[indexOfNewColumn]].slice(0, newIndex)
+    const newTasksAfter = [...boardTasks[indexOfNewColumn]].slice(newIndex + 1)
+    const movedTask =
+      tasksForOldColumn[oldIndex] ||
+      tasksForNewColumn[newIndex] ||
+      tasksForOldColumn[newIndex]
+
+    await Promise.all(
+      [...newTasksBefore, movedTask, ...newTasksAfter].map(
+        async ({ taskID }, index) => {
+          const taskDocRef = doc(newTasksColRef, taskID)
+
+          await updateDoc(taskDocRef, {
+            taskIndex: index + 1
+          })
+        }
+      )
+    )
+  }
+
   const addIndexesToTasks = async (
     taskIndexes: { taskID: Task['taskID']; taskIndex: number }[],
     columnID: BoardColumn['columnID']
@@ -283,16 +324,15 @@ export const useTasksStore = defineStore('tasks', () => {
   const moveTaskBetweenColumns = async (
     indexOfOldColumn: number,
     indexOfNewColumn: number,
+    taskToBeDragged: Task,
     newIndex: number,
-    taskToBeDragged: Task
+    oldIndex: number
   ) => {
-    const { boardColumns, boardSubtasks } = returnPartsOfUserData()
+    const { boardColumns, boardTasks } = returnPartsOfUserData()
     const columnsColRef = returnColumnsColRef().columnsColRef
 
     const subtasksOfMovedTask =
-      boardSubtasks.find((subtasksArr) =>
-        subtasksArr.every(({ taskID: id }) => id === taskToBeDragged.taskID)
-      ) || []
+      returnSubtasksOfGivenTask(taskToBeDragged.taskID) || []
     const oldColumnID = boardColumns.find(
       (_, index) => index === indexOfOldColumn
     )?.columnID
@@ -325,9 +365,24 @@ export const useTasksStore = defineStore('tasks', () => {
         title: taskToBeDragged.title,
         description: taskToBeDragged.description
       })
+      await setNewIndexesForDifferentColumns(
+        indexOfNewColumn,
+        indexOfOldColumn,
+        newColumnID,
+        newIndex,
+        oldIndex
+      )
     } catch (err) {
       return false
     }
+
+    boardTasks[indexOfOldColumn] = boardTasks[indexOfOldColumn].filter(
+      ({ taskID }) => taskID !== taskToBeDragged.taskID
+    )
+    boardTasks[indexOfNewColumn] = [
+      ...boardTasks[indexOfNewColumn],
+      taskToBeDragged
+    ]
 
     if (subtasksOfMovedTask.length > 0) {
       const responses = await Promise.all(
@@ -374,7 +429,7 @@ export const useTasksStore = defineStore('tasks', () => {
       subtasksToBeEdited
     } = returnNeededVars()
 
-    if (indexOfColumn == null) return false
+    if (indexOfColumn == null || subtasksToBeEdited == null) return false
 
     const { wasFormEvenEdited, isTaskNameSame, isDescriptionSame } =
       checkWhetherFormDataWasChanged(
@@ -434,7 +489,7 @@ export const useTasksStore = defineStore('tasks', () => {
 
       if (!editSubtaskResponse) throw new Error()
 
-      if (isStatusChanged) {
+      if (isStatusChanged && movedTask != null) {
         const nextColumnIndex = boardColumns.findIndex(
           ({ columnID }) => columnID === nextColumnID
         )
@@ -442,17 +497,10 @@ export const useTasksStore = defineStore('tasks', () => {
         await moveTaskBetweenColumns(
           indexOfColumn,
           nextColumnIndex,
+          movedTask,
           boardTasks[nextColumnIndex].length,
-          boardTasks[indexOfColumn][indexOfClickedTask]
+          movedTask.taskIndex - 1
         )
-
-        boardTasks[indexOfColumn] = boardTasks[indexOfColumn].filter(
-          ({ taskID }) => taskID !== movedTask.taskID
-        )
-        boardTasks[nextColumnIndex] = [
-          ...boardTasks[nextColumnIndex],
-          movedTask
-        ]
       }
     } catch (err) {
       return false
@@ -539,9 +587,8 @@ export const useTasksStore = defineStore('tasks', () => {
             return false
           }
 
-          const respectiveSubtasksIndex = boardSubtasks.findIndex(
-            (subtaskArr) =>
-              subtaskArr.every(({ taskID }) => taskID === taskDocRef.id)
+          const respectiveSubtasksIndex = returnRespectiveSubtaskIndex(
+            taskDocRef.id
           )
 
           userStore.userData.currentBoard.boardSubtasks[
@@ -596,9 +643,7 @@ export const useTasksStore = defineStore('tasks', () => {
     if (indexOfColumn == null || indexOfClickedTask == null) return
 
     userStore.userData.currentBoard.clickedTask = null
-    const respectiveSubtasksIndex = boardSubtasks.findIndex((subtaskArr) =>
-      subtaskArr.every(({ taskID }) => taskID === taskDocRef.id)
-    )
+    const respectiveSubtasksIndex = returnRespectiveSubtaskIndex(taskDocRef.id)
 
     if (subtasksToBeDeleted.length > 0) {
       userStore.userData.currentBoard.boardSubtasks[respectiveSubtasksIndex] =
@@ -660,7 +705,7 @@ export const useTasksStore = defineStore('tasks', () => {
     const tasksDocRef = doc(tasksColRef, deletedTaskID)
 
     try {
-      await deleteSubtasks(deletedTaskID, columnOfDeletedTaskID, indexOfColumn)
+      await deleteSubtasks(deletedTaskID, columnOfDeletedTaskID)
       await deleteDoc(tasksDocRef)
     } catch (err) {
       return false
@@ -685,13 +730,9 @@ export const useTasksStore = defineStore('tasks', () => {
 
   const deleteSubtasks = async (
     taskID: Task['taskID'],
-    columnID: BoardColumn['columnID'],
-    columnOfClickedTask: number
+    columnID: BoardColumn['columnID']
   ) => {
     const columnsColRef = returnColumnsColRef().columnsColRef
-    const { boardSubtasks } = returnPartsOfUserData()
-
-    if (boardSubtasks[columnOfClickedTask].length === 0) return true
 
     const subtasksColRef = collection(
       db,

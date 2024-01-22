@@ -92,7 +92,7 @@
           @close-modal="modals.isSeeTaskModalShown = false"
           @show-edit-form="modals.showEditForm"
           @show-delete-form="modals.showDeleteForm"
-          @handle-move-task="() => moveTaskUsingForm()"
+          @handle-move-task="() => moveTaskUsingSeeTaskForm()"
           :task="clickedTask"
           :columnIndex="columnOfClickedTask"
         />
@@ -154,6 +154,7 @@ import NewColumnModal from './Modals/NewColumnModal.vue'
 import CloseIcon from './Svgs/CloseIcon.vue'
 import { handleResponse } from '../composables/responseHandler'
 import { returnCircleColor } from '../composables/circleColor'
+import { returnSubtasksOfGivenTask } from '../composables/subtasksOfGivenTask'
 import { ref, computed } from 'vue'
 import { useUserStore } from '../stores/user'
 import { useTasksStore } from '../stores/tasks'
@@ -227,12 +228,6 @@ const tasks = ref({
   }
 })
 
-const returnSubtasksOfGivenTask = (taskID: string) => {
-  return boardSubtasks.value.find((subtasksArr) =>
-    subtasksArr.every(({ taskID: id }) => id === taskID)
-  )
-}
-
 const oldTaskIndex = ref<null | number>(null)
 const newTaskIndex = ref<null | number>(null)
 const oldColumnID = ref('')
@@ -284,30 +279,16 @@ const dragTasks = async (e: DragEndEvent) => {
     const response = await tasksStore.moveTaskBetweenColumns(
       indexOfOldColumn.value,
       indexOfNewColumn.value,
+      taskToBeDragged.value,
       newTaskIndex.value,
-      taskToBeDragged.value
+      oldTaskIndex.value
     )
     handleResponse(response)
   }
 }
 
-const moveTaskUsingForm = async () => {
-  if (
-    taskToBeDragged.value != null &&
-    indexOfOldColumn.value != null &&
-    indexOfNewColumn.value != null &&
-    oldTaskIndex.value &&
-    newTaskIndex.value
-  ) {
-    const response = await tasksStore.moveTaskBetweenColumns(
-      indexOfOldColumn.value,
-      indexOfNewColumn.value,
-      newTaskIndex.value,
-      taskToBeDragged.value
-    )
-    handleResponse(response)
-    modals.value.isSeeTaskModalShown = false
-  }
+const moveTaskUsingSeeTaskForm = async () => {
+  modals.value.isSeeTaskModalShown = false
 }
 </script>
 
