@@ -3,11 +3,11 @@
     <div
       class="flex gap-6 py-4 sm:py-6 col-start-2 col-span-1"
       :class="{
-        'place-content-center h-full': boardsStore.boardColumns.length === 0
+        'place-content-center h-full': boardColumns.length === 0
       }"
     >
       <div
-        v-for="(column, columnIndex) in boardsStore.boardColumns"
+        v-for="(column, columnIndex) in boardColumns"
         :key="column.columnID"
         class="w-[280px] shrink-0"
       >
@@ -25,9 +25,7 @@
           <p class="text-xs text-gray-400 uppercase">
             <span class="sr-only">
               {{ formatColumnNumber(columnIndex + 1) }} column - title:</span
-            >{{ column.name }} ({{
-              returnNumberOfElements(columnIndex, 0, 'tasks')
-            }})
+            >{{ column.name }} ({{ boardTasks[columnIndex]?.length || 0 }})
             <span class="sr-only">tasks inside</span>
           </p>
           <close-icon
@@ -38,14 +36,15 @@
         </div>
         <draggable
           @end="dragTasks"
-          v-model="tasksStore.tasks[columnIndex]"
+          v-model="boardTasks[columnIndex]"
           :move="findElementsIDs"
           itemKey="taskID"
           tag="ul"
           group="tasksCards"
           :animation="200"
           class="grid gap-[20px]"
-          :data-columnID="boardsStore.boardColumns[columnIndex].columnID"
+          :data-columnID="boardColumns[columnIndex].columnID"
+          :data-columnIndex="columnIndex"
         >
           <template #item="{ element: columnTask }">
             <li>
@@ -54,24 +53,18 @@
                   () =>
                     tasks.handleTaskCardClick(
                       columnIndex,
-                      tasksStore.tasks[columnIndex].indexOf(columnTask)
+                      boardTasks[columnIndex].indexOf(columnTask)
                     )
                 "
                 :key="columnTask.taskID"
                 :taskID="columnTask.taskID"
                 :howManyCompleted="
-                  returnNumberOfElements(
-                    columnIndex,
-                    tasksStore.tasks[columnIndex].indexOf(columnTask),
-                    'subtasksCompleted'
-                  )
+                  returnSubtasksOfGivenTask(columnTask.taskID)?.filter(
+                    ({ isCompleted }) => isCompleted
+                  ).length || 0
                 "
                 :howManySubtasks="
-                  returnNumberOfElements(
-                    columnIndex,
-                    tasksStore.tasks[columnIndex].indexOf(columnTask),
-                    'subtasks'
-                  )
+                  returnSubtasksOfGivenTask(columnTask.taskID)?.length || 0
                 "
                 :title="columnTask.title"
               />
@@ -80,7 +73,7 @@
         </draggable>
       </div>
       <button
-        v-if="boardsStore.boardColumns.length > 0"
+        v-if="boardColumns.length > 0"
         @click="modals.isNewColumnModalShown = true"
         aria-label="click here to add a new column"
         class="new-column group"
@@ -88,17 +81,20 @@
         &#65291;New Column
       </button>
     </div>
-
     <Teleport to="body">
       <transition name="modal">
         <see-task-modal
-          v-if="modals.isSeeTaskModalShown && tasksConditions"
+          v-if="
+            modals.isSeeTaskModalShown &&
+            clickedTask != null &&
+            columnOfClickedTask != null
+          "
           @close-modal="modals.isSeeTaskModalShown = false"
           @show-edit-form="modals.showEditForm"
           @show-delete-form="modals.showDeleteForm"
-          @handle-move-task="(value) => moveTask(value)"
-          :task="(tasksStore.clickedTask as Task)"
-          :columnIndex="(tasksStore.columnOfClickedTask as number)"
+          @handle-move-task="() => moveTaskUsingSeeTaskForm()"
+          :task="clickedTask"
+          :columnIndex="columnOfClickedTask"
         />
       </transition>
     </Teleport>
@@ -112,18 +108,18 @@
         "
         :elementToDelete="modals.isDeleteTaskModalShown ? 'task' : 'column'"
         :elementName="
-          modals.isDeleteTaskModalShown
-            ? (tasksStore.clickedTask as Task).title
-            : (modals.columnToDelete as BoardColumn).name
-        "
+            modals.isDeleteTaskModalShown
+              ? clickedTask?.title
+              : (modals.columnToDelete as BoardColumn).name
+          "
         :elementID="
-          modals.isDeleteTaskModalShown
-            ? (tasksStore.clickedTask as Task).taskID
-            : (modals.columnToDelete as BoardColumn).columnID
-        "
+            modals.isDeleteTaskModalShown
+              ? clickedTask?.taskID
+              : (modals.columnToDelete as BoardColumn).columnID
+          "
         :columnOfClickedTask="
-          tasksStore.columnOfClickedTask
-            ? boardsStore.boardColumns[tasksStore.columnOfClickedTask].columnID
+          columnOfClickedTask != null
+            ? boardColumns[columnOfClickedTask].columnID
             : undefined
         "
       />
@@ -134,9 +130,7 @@
         @change-var-to-false="modals.isEditTaskModalShown = false"
         action="edit"
         :columnIndex="
-          tasksStore.columnOfClickedTask != null
-            ? tasksStore.columnOfClickedTask
-            : undefined
+          columnOfClickedTask != null ? columnOfClickedTask : undefined
         "
       />
     </transition>
@@ -160,16 +154,29 @@ import NewColumnModal from './Modals/NewColumnModal.vue'
 import CloseIcon from './Svgs/CloseIcon.vue'
 import { handleResponse } from '../composables/responseHandler'
 import { returnCircleColor } from '../composables/circleColor'
-import { computed, ref } from 'vue'
-import { useBoardsStore } from '../stores/boards'
+import { returnSubtasksOfGivenTask } from '../composables/subtasksOfGivenTask'
+import { ref, computed } from 'vue'
+import { useUserStore } from '../stores/user'
 import { useTasksStore } from '../stores/tasks'
 import { useFormsStore } from '../stores/forms'
 import converter from 'number-to-words'
 import draggable from 'vuedraggable'
 
-const boardsStore = useBoardsStore()
+const userStore = useUserStore()
 const tasksStore = useTasksStore()
 const formsStore = useFormsStore()
+
+const boardColumns = computed(
+  () => userStore.userData.currentBoard.boardColumns
+)
+const boardTasks = computed(() => userStore.userData.currentBoard.boardTasks)
+const boardSubtasks = computed(
+  () => userStore.userData.currentBoard.boardSubtasks
+)
+const clickedTask = computed(() => userStore.userData.currentBoard.clickedTask)
+const columnOfClickedTask = computed(
+  () => userStore.userData.currentBoard.columnOfClickedTask
+)
 
 const formatColumnNumber = (number: number) => converter.toWordsOrdinal(number)
 
@@ -201,158 +208,87 @@ const tasks = ref({
     modals.value.isSeeTaskModalShown = true
   },
   saveClickedTask: (columnIndex: number, taskIndex: number) => {
-    const idOfCurrentClickedTask = tasksStore.clickedTask?.taskID
-    const idOfNewClickedTask = tasksStore.tasks[columnIndex][taskIndex].taskID
+    const idOfCurrentClickedTask = clickedTask.value?.taskID
+    const idOfNewClickedTask = boardTasks.value[columnIndex][taskIndex].taskID
 
     if (idOfCurrentClickedTask === idOfNewClickedTask) return
 
-    tasksStore.columnOfClickedTask = columnIndex
-    tasksStore.clickedTask = tasksStore.tasks[columnIndex][taskIndex]
+    userStore.userData.currentBoard.columnOfClickedTask = columnIndex
+    userStore.userData.currentBoard.clickedTask =
+      boardTasks.value[columnIndex][taskIndex]
 
-    tasks.value.saveSubtasksOfClickedTask(columnIndex, taskIndex)
-
+    tasks.value.saveSubtasksOfClickedTask(idOfNewClickedTask)
     formsStore.resetFormData('task', 'edit')
   },
-  saveSubtasksOfClickedTask: (columnIndex: number, taskIndex: number) => {
-    tasksStore.subtasksOfClickedTask =
-      tasksStore.subtasks[columnIndex][taskIndex]
+  saveSubtasksOfClickedTask: (taskID: string) => {
+    userStore.userData.currentBoard.subtasksOfClickedTask =
+      boardSubtasks.value.find((subtasksArr) =>
+        subtasksArr.every(({ taskID: id }) => id === taskID)
+      ) || []
   }
 })
 
-const tasksConditions = computed(() =>
-  [
-    tasksStore.clickedTask != null,
-    tasksStore.columnOfClickedTask != null
-  ].every((taskCondition) => taskCondition)
-)
-
-type Element = 'tasks' | 'subtasks' | 'subtasksCompleted'
-const returnNumberOfElements = (
-  columnIndex: number,
-  taskIndex: number,
-  element: Element
-) => {
-  if (
-    tasksStore.subtasks[columnIndex] == null ||
-    tasksStore.subtasks[columnIndex][taskIndex] == null
-  )
-    return 0
-
-  const elementFns = {
-    tasks: () => tasksStore.tasks[columnIndex].length,
-    subtasks: () => tasksStore.subtasks[columnIndex][taskIndex].length,
-    subtasksCompleted: () =>
-      tasksStore.subtasks[columnIndex][taskIndex].filter(
-        (subtask) => subtask.isCompleted
-      ).length
-  }
-
-  return elementFns[element]()
-}
-
-const moveTask = async (value: BoardColumn['name']) => {
-  const nextColumnID = (
-    boardsStore.boardColumns.find(
-      (boardColumn) => boardColumn.name === value
-    ) as BoardColumn
-  ).columnID
-
-  const response = await tasksStore.moveTaskBetweenColumns(nextColumnID)
-  handleResponse(response)
-
-  modals.value.isSeeTaskModalShown = false
-}
-
 const oldTaskIndex = ref<null | number>(null)
 const newTaskIndex = ref<null | number>(null)
-const prevColumnID = ref('')
-const nextColumnID = ref('')
+const oldColumnID = ref('')
+const newColumnID = ref('')
 const taskToBeDragged = ref<null | Task>(null)
 const indexOfOldColumn = ref<null | number>(null)
 const indexOfNewColumn = ref<null | number>(null)
 
-const setIndexesOfTasksInNewColumn = () => {
-  const oldColumn = boardsStore.boardColumns.find(
-    (column) => column.columnID === prevColumnID.value
-  )
-  const newColumn = boardsStore.boardColumns.find(
-    (column) => column.columnID === nextColumnID.value
-  )
-
-  indexOfOldColumn.value =
-    oldColumn != null ? boardsStore.boardColumns.indexOf(oldColumn) : null
-  indexOfNewColumn.value =
-    newColumn != null ? boardsStore.boardColumns.indexOf(newColumn) : null
-
-  const newColumnTasks =
-    indexOfNewColumn.value != null
-      ? [...tasksStore.tasks[indexOfNewColumn.value]]
-      : []
-
-  if (newColumnTasks.length === 0) return []
-
-  return newColumnTasks.map(({ taskID }, taskIndex) => ({
-    taskID,
-    taskIndex
-  }))
-}
-
 const findElementsIDs = (e: MoveDragEvent) => {
-  prevColumnID.value = e.from.getAttribute('data-columnID') || ''
-  nextColumnID.value = e.to.getAttribute('data-columnID') || ''
+  oldColumnID.value = e.from.getAttribute('data-columnID') || ''
+  newColumnID.value = e.to.getAttribute('data-columnID') || ''
+  indexOfOldColumn.value = parseInt(
+    e.from.getAttribute('data-columnIndex') || '0'
+  )
+  indexOfNewColumn.value = parseInt(e.to.getAttribute('data-columnIndex') || '')
+
   taskToBeDragged.value = e.draggedContext.element
 }
 
 const dragTasks = async (e: DragEndEvent) => {
   const isTaskMovedWithinTheSameColumn = e.from === e.to
-  const taskIndexes = setIndexesOfTasksInNewColumn()
 
   oldTaskIndex.value = e.oldIndex
   newTaskIndex.value = e.newIndex
 
-  prevColumnID.value = e.from.getAttribute('data-columnID') || ''
-  nextColumnID.value = e.to.getAttribute('data-columnID') || ''
+  if (isTaskMovedWithinTheSameColumn && e.oldIndex !== e.newIndex) {
+    const columnIndex = parseInt(
+      e.target.getAttribute('data-columnIndex') || '0'
+    )
+    const columnID = e.target.getAttribute('data-columnID') || ''
+
+    const response = await tasksStore.moveTaskWithinTheSameColumn(
+      columnID,
+      columnIndex,
+      oldTaskIndex.value,
+      newTaskIndex.value
+    )
+    handleResponse(response)
+  }
 
   if (
     !isTaskMovedWithinTheSameColumn &&
+    taskToBeDragged.value != null &&
     indexOfOldColumn.value != null &&
-    indexOfNewColumn.value != null &&
-    oldTaskIndex.value != null &&
-    newTaskIndex.value != null
+    indexOfNewColumn.value != null
   ) {
-    tasksStore.setNewIndexesForDifferentColumns(
+    userStore.userData.currentBoard.columnOfClickedTask = indexOfOldColumn.value
+
+    const response = await tasksStore.moveTaskBetweenColumns(
       indexOfOldColumn.value,
       indexOfNewColumn.value,
-      oldTaskIndex.value,
-      newTaskIndex.value
-    )
-  }
-
-  if (
-    isTaskMovedWithinTheSameColumn &&
-    indexOfNewColumn.value != null &&
-    oldTaskIndex.value != null &&
-    newTaskIndex.value != null
-  ) {
-    tasksStore.setNewIndexesForTheSameColumn(
-      indexOfNewColumn.value,
-      oldTaskIndex.value,
-      newTaskIndex.value
-    )
-  }
-
-  if (
-    prevColumnID.value !== '' &&
-    nextColumnID.value !== '' &&
-    taskToBeDragged.value != null
-  ) {
-    await tasksStore.moveTaskBetweenColumns(
-      nextColumnID.value,
-      prevColumnID.value,
       taskToBeDragged.value,
-      taskIndexes
+      newTaskIndex.value,
+      oldTaskIndex.value
     )
+    handleResponse(response)
   }
+}
+
+const moveTaskUsingSeeTaskForm = async () => {
+  modals.value.isSeeTaskModalShown = false
 }
 </script>
 

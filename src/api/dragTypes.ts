@@ -13,6 +13,7 @@ export interface DragEndEvent extends DragEvent {
   to: HTMLElement
   oldIndex: number
   newIndex: number
+  target: HTMLElement
 }
 
 export interface DragTaskEvent {

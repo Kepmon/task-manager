@@ -30,23 +30,23 @@
       class="boards"
     >
       <div class="board-labels-container">
-        <p class="all-boards">all boards ({{ boards.length }})</p>
+        <p class="all-boards">all boards ({{ allBoards.length }})</p>
         <ul
-          v-if="boards.length !== 0"
+          v-if="allBoards.length > 0"
           class="overflow-auto scrollbar-invisible hover:scrollbar-visibleLight dark:hover:scrollbar-visibleDark"
         >
-          <li v-for="board in boards" :key="board.boardID">
+          <li v-for="board in allBoards" :key="board.boardID">
             <board-label
-              @click="() => saveCurrentBoard(board)"
+              @click="() => getNewCurrentBoard(board)"
               :name="board.name"
               :aria-current="
-                board.boardID === boardsStore.currentBoard?.boardID
-                  ? 'true'
-                  : undefined
+                board.boardID === currentBoard.boardID ? 'true' : undefined
               "
               :class="{
-                'bg-purple-400 fill-white text-white': board.name === boardName,
-                'text-gray-400 fill-gray-400': board.name !== boardName
+                'bg-purple-400 fill-white text-white':
+                  board.boardID === currentBoard.boardID,
+                'text-gray-400 fill-gray-400':
+                  board.boardID !== currentBoard.boardID
               }"
             />
           </li>
@@ -91,11 +91,9 @@ import LogoIcon from '../../components/Svgs/LogoIcon.vue'
 import { handleResponse } from '../../composables/responseHandler'
 import { useUserStore } from '../../stores/user'
 import { useBoardsStore } from '../../stores/boards'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps<{
-  boards: Board[]
-  boardName: Board['name']
   width: number
   isSidebarShown: boolean
   isNavOpen: boolean
@@ -106,6 +104,9 @@ const emits = defineEmits(['toggle-sidebar', 'close-boards-navbar'])
 const isAddBoardModalShown = ref(false)
 const userStore = useUserStore()
 const boardsStore = useBoardsStore()
+
+const allBoards = computed(() => userStore.userData.allBoards)
+const currentBoard = computed(() => userStore.userData.currentBoard)
 
 const noDesktopAnimation = ref(true)
 const noMobileAnimation = ref(false)
@@ -157,11 +158,21 @@ const afterLeave = () => {
   noMobileAnimation.value = false
 }
 
-const saveCurrentBoard = async (board: Board) => {
+const getNewCurrentBoard = async (board: Board) => {
   emits('close-boards-navbar')
 
-  const response = await boardsStore.saveCurrentBoard(board)
-  handleResponse(response)
+  const alreadyFetchedBoard = userStore.userData.fullBoards.find(
+    ({ boardID }) => boardID === board.boardID
+  )
+
+  if (alreadyFetchedBoard == null) {
+    const response = await boardsStore.fetchNewBoard(board)
+    handleResponse(response)
+  } else {
+    userStore.userData.currentBoard = alreadyFetchedBoard
+  }
+
+  userStore.saveUserData(true)
 }
 </script>
 

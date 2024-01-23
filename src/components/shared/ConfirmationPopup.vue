@@ -19,6 +19,9 @@ const props = defineProps<{
   errorMessage?: string
 }>()
 
+const route = useRoute()
+const userStore = useUserStore()
+
 const confirmationPopup = ref<null | HTMLElement>(null)
 onMounted(() => {
   confirmationPopup.value?.focus()
@@ -31,17 +34,19 @@ onUnmounted(() => {
 const message = computed(() => {
   if (props.isResponseError) {
     const isCustomMessage =
+      userStore.deleteAccountError?.includes('auth/wrong-password') ||
       props.errorMessage === 'auth/wrong-password' ||
       props.errorMessage === 'auth/email-already-in-use' ||
       props.errorMessage === 'auth/user-not-found'
+
+    if (route.path === '/dashboard' && isCustomMessage)
+      return 'The password is incorrect'
 
     return isCustomMessage
       ? 'The user name or password are incorrect'
       : 'Ooops, something went wrong. Try again later.'
   }
 
-  const route = useRoute()
-  const userStore = useUserStore()
   const successMessages = {
     '/': 'You logged in successfully',
     '/sign-up': 'You signed up successfully',

@@ -1,19 +1,12 @@
-import type { BoardColumn, Task, Subtask } from '../api/boardsTypes'
-import type {
-  CollectionReference,
-  QueryDocumentSnapshot,
-  DocumentData,
-  FirestoreError
-} from 'firebase/firestore'
+import type { Board, BoardColumn, Task, Subtask } from '../api/boardsTypes'
+import type { FormDataProperties } from '../api/formsTypes'
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
 import {
   query,
   orderBy,
   getDocs,
   collection,
   doc,
-  addDoc,
   setDoc,
   updateDoc,
   deleteDoc,
@@ -21,435 +14,447 @@ import {
 } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useUserStore } from './user'
-import { useBoardsStore } from './boards'
 import { useFormsStore } from './forms'
+import {
+  returnSubtasksOfGivenTask,
+  returnRespectiveSubtaskIndex
+} from '../composables/subtasksOfGivenTask'
+import {
+  checkWhetherFormDataWasChanged,
+  returnNeededVars
+} from './helpers/tasksHelpers'
+import { returnColumnsColRef } from './helpers/boardHelpers'
+import { returnPartsOfUserData } from './helpers/userHelpers'
+import { nanoid } from 'nanoid'
 
 export const useTasksStore = defineStore('tasks', () => {
   const userStore = useUserStore()
-  const boardsStore = useBoardsStore()
-
-  const columnsColRefPrefix = computed(() =>
-    boardsStore.currentBoard != null
-      ? `users/${userStore.userID}/boards/${boardsStore.currentBoard?.boardID}/columns`
-      : null
-  )
-
-  const tasks = ref<Task[][]>([])
-  const subtasks = ref<Subtask[][][]>([])
-
-  const columnOfClickedTask = ref<null | number>(null)
-  const clickedTask = ref<null | Task>(null)
-  const subtasksOfClickedTask = ref<Subtask[]>([])
-
-  const getColumnsAgain = async () => {
-    try {
-      const response = await boardsStore.getColumns()
-
-      if (response !== true) throw new Error(response)
-    } catch (err) {
-      return (err as FirestoreError).code
-    }
-  }
 
   const getTasks = async (
-    columnsColRef: CollectionReference<DocumentData>,
-    columns: BoardColumn[]
+    boardColumns: BoardColumn[],
+    currentBoard: null | undefined | Board
   ) => {
-    const returnedData =
-      columns.length !== 0
-        ? await Promise.all(
-            columns.map(async (column) => {
-              const tasksColRef = collection(
-                db,
-                `${columnsColRef.path}/${column.columnID}/tasks`
-              )
-              const tasksColRefOrderedByIndex = query(
-                tasksColRef,
-                orderBy('taskIndex', 'asc')
-              )
-              const tasksColRefOrderedByDate = query(
-                tasksColRef,
-                orderBy('createdAt', 'asc')
-              )
+    if (boardColumns.length === 0 || currentBoard == null)
+      return [[]] as Task[][]
 
-              try {
-                const tasksDocRefs = (await getDocs(tasksColRefOrderedByIndex))
-                  .docs
+    const columnsColRef = returnColumnsColRef(
+      currentBoard.boardID
+    ).columnsColRef
 
-                const tasksOrderedByDate = (
-                  await getDocs(tasksColRefOrderedByDate)
-                ).docs
-
-                tasksOrderedByDate.forEach((dateTask) => {
-                  const isTaskDocAlreadyInArr = tasksDocRefs.some(
-                    (taskDocRef) => taskDocRef.id === dateTask.id
-                  )
-
-                  if (!isTaskDocAlreadyInArr) {
-                    tasksDocRefs.push(dateTask)
-                  }
-                })
-
-                if (tasksDocRefs == null) throw new Error('wrong response')
-
-                return {
-                  tasks: tasksDocRefs.map((tasksDocRef) => ({
-                    ...(tasksDocRef.data() as Omit<Task, 'taskID'>),
-                    taskID: tasksDocRef.id
-                  })),
-                  tasksDocRefs
-                }
-              } catch (err) {
-                return (err as FirestoreError).code
-              }
-            })
-          )
-        : null
-
-    const isReturnedDataOk = returnedData?.every(
-      (item) => typeof item !== 'string'
-    )
-    if (returnedData != null && isReturnedDataOk) {
-      interface ReturnedData {
-        tasks: Task[]
-        tasksDocRefs: QueryDocumentSnapshot<DocumentData>[]
-      }
-      tasks.value = (returnedData as ReturnedData[]).map((item) => item.tasks)
-
-      const tasksDocRefsArr = (returnedData as ReturnedData[]).map(
-        (item) => item.tasksDocRefs
-      )
-
-      const response = await Promise.all(
-        tasksDocRefsArr.map(
-          async (tasksDocRefsArr) => await getSubtasks(tasksDocRefsArr)
+    return await Promise.all(
+      boardColumns.map(async ({ columnID }) => {
+        const tasksColRef = collection(
+          db,
+          `${columnsColRef.path}/${columnID}/tasks`
         )
-      )
+        const tasksColRefOrdered = query(
+          tasksColRef,
+          orderBy('taskIndex', 'asc')
+        )
 
-      if (typeof response !== 'string') {
-        subtasks.value = response as Subtask[][][]
-      }
+        try {
+          const taskDocs = (await getDocs(tasksColRefOrdered)).docs
 
-      return true
-    }
+          if (taskDocs.length === 0) return [] as Task[]
+
+          const tasks = taskDocs.map((taskDoc) => ({
+            ...(taskDoc.data() as Omit<Task, 'taskID'>),
+            taskID: taskDoc.id
+          }))
+
+          return tasks
+        } catch (err) {
+          return [] as Task[]
+        }
+      })
+    )
   }
 
   const getSubtasks = async (
-    tasksDocRefs: QueryDocumentSnapshot<DocumentData>[]
+    tasks: Task[][],
+    currentBoard: null | undefined | Board,
+    boardColumns: BoardColumn[]
   ) => {
-    return await Promise.all(
-      tasksDocRefs.map(async (tasksDocRef) => {
-        const subtasksColRef = collection(
+    if (currentBoard == null || boardColumns.length === 0) {
+      return [[]] as Subtask[][]
+    }
+
+    const subtasks = await Promise.all(
+      tasks.map(async (taskArr, index) => {
+        const columnsColRef = returnColumnsColRef(
+          currentBoard.boardID
+        ).columnsColRef
+
+        const tasksColRef = collection(
           db,
-          `${tasksDocRef.ref.path}/subtasks`
-        )
-        const subtasksColRefOrdered = query(
-          subtasksColRef,
-          orderBy('createdAt', 'asc')
+          `${columnsColRef.path}/${boardColumns[index].columnID}/tasks`
         )
 
-        try {
-          const subtasksDocRefs = (await getDocs(subtasksColRefOrdered)).docs
-
-          if (subtasksDocRefs.length === 0) return []
-
-          return subtasksDocRefs.map((subtasksDocRef) => ({
-            ...(subtasksDocRef.data() as Omit<Subtask, 'subtaskID'>),
-            subtaskID: subtasksDocRef.id
-          }))
-        } catch (err) {
-          return (err as FirestoreError).code
+        if (tasksColRef == null) {
+          return [[]] as Subtask[][]
         }
+
+        return await Promise.all(
+          taskArr.map(async ({ taskID }) => {
+            const subtasksColRef = collection(
+              db,
+              `${tasksColRef.path}/${taskID}/subtasks`
+            )
+            const subtasksColRefOrdered = query(
+              subtasksColRef,
+              orderBy('createdAt', 'asc')
+            )
+
+            try {
+              const subtaskDocs = await getDocs(subtasksColRefOrdered)
+
+              if (subtaskDocs.docs.length === 0) return [] as Subtask[]
+
+              return subtaskDocs.docs.map((subtaskDoc) => ({
+                ...(subtaskDoc.data() as Omit<Subtask, 'subtaskID'>),
+                subtaskID: subtaskDoc.id,
+                taskID
+              }))
+            } catch (err) {
+              return [] as Subtask[]
+            }
+          })
+        )
       })
     )
+
+    return subtasks.flat()
   }
 
-  const addNewTask = async (
-    columnID: BoardColumn['columnID'],
-    action: 'add' | 'edit'
-  ) => {
+  const addNewTask = async (columnID: BoardColumn['columnID']) => {
     const formsStore = useFormsStore()
-    const formData = formsStore.formData.task[action].data
+    const formData = formsStore.formData.task.add.data
+    const {
+      fullBoards,
+      currentBoard,
+      boardColumns,
+      boardTasks,
+      boardSubtasks
+    } = returnPartsOfUserData()
 
+    const columnsColRef = returnColumnsColRef().columnsColRef
     const tasksColRef = collection(
       db,
-      `${columnsColRefPrefix.value}/${columnID}/tasks`
+      `${columnsColRef.path}/${columnID}/tasks`
     )
 
+    const columnIndex = boardColumns.findIndex(
+      ({ columnID: id }) => id === columnID
+    )
+
+    const newTask = {
+      createdAt: serverTimestamp(),
+      taskID: nanoid(),
+      taskIndex: boardTasks[columnIndex]?.length + 1 || 0,
+      title: formData.name,
+      description: formData.description as string
+    }
+
     try {
-      const addedDocRef = await addDoc(tasksColRef, {
-        createdAt: serverTimestamp(),
-        title: formData.name,
-        description: formData.description
-      })
-      if (addedDocRef == null) throw new Error('wrong response')
+      await setDoc(doc(tasksColRef, newTask.taskID), newTask)
 
-      const subtasksColRef = collection(db, `${addedDocRef.path}/subtasks`)
+      const subtasksColRef = collection(
+        db,
+        `${tasksColRef.path}/${newTask.taskID}/subtasks`
+      )
 
-      if (formData.items.length === 0) {
-        await getColumnsAgain()
-        return true
+      const newSubtasks = await Promise.all(
+        formData.items.map(async ({ id, name }) => {
+          const newSubtask = {
+            createdAt: serverTimestamp(),
+            subtaskID: id,
+            taskID: newTask.taskID,
+            title: name,
+            isCompleted: false
+          }
+
+          await setDoc(doc(subtasksColRef, newSubtask.subtaskID), newSubtask)
+
+          return newSubtask
+        })
+      )
+
+      if (newSubtasks.some((subtask) => !subtask)) throw new Error()
+
+      boardTasks[columnIndex] =
+        boardTasks[columnIndex] == null
+          ? [newTask]
+          : [...boardTasks[columnIndex], newTask]
+      userStore.userData.currentBoard.boardSubtasks = [
+        ...boardSubtasks,
+        newSubtasks
+      ]
+
+      const indexOfRespectiveFullBoard = fullBoards.findIndex(
+        ({ boardID }) => boardID === currentBoard.boardID
+      )
+
+      if (indexOfRespectiveFullBoard != null) {
+        userStore.userData.fullBoards[
+          indexOfRespectiveFullBoard
+        ].boardSubtasks = [...boardSubtasks, newSubtasks]
       }
 
-      formData.items.forEach(async ({ name }) => {
-        try {
-          const response = await addDoc(subtasksColRef, {
-            title: name,
-            isCompleted: false,
-            createdAt: serverTimestamp()
-          })
-
-          if (response == null) throw new Error(response)
-        } catch (err) {
-          return (err as FirestoreError).code
-        }
-      })
-
-      await getColumnsAgain()
+      userStore.saveUserData()
 
       return true
     } catch (err) {
-      return (err as FirestoreError).code
+      return false
     }
   }
 
   const setNewIndexesForTheSameColumn = (
-    indexOfNewColumn: number,
+    indexOfColumn: number,
     oldIndex: number,
     newIndex: number
   ) => {
-    if (oldIndex === newIndex) return
+    const { boardTasks } = returnPartsOfUserData()
+    const columnTasks = [...boardTasks[indexOfColumn]].toSorted(
+      (task1, task2) => task1.taskIndex - task2.taskIndex
+    )
 
-    const subtasksForNewColumn = subtasks.value[indexOfNewColumn]
-
-    let subtasksBefore: Subtask[][] = []
-    let subtasksAfter: Subtask[][] = []
-
-    if (oldIndex > newIndex) {
-      subtasksBefore = subtasksForNewColumn.slice(0, newIndex)
-      subtasksAfter = [
-        ...subtasksForNewColumn.slice(0, oldIndex).slice(newIndex),
-        ...subtasksForNewColumn.slice(oldIndex + 1)
-      ]
+    const taskModifications = {
+      before: {
+        true: columnTasks.slice(0, newIndex),
+        false: [
+          ...columnTasks.slice(0, oldIndex),
+          ...columnTasks.slice(oldIndex + 1, newIndex + 1)
+        ]
+      },
+      after: {
+        true: [
+          ...columnTasks.slice(0, oldIndex).slice(newIndex),
+          ...columnTasks.slice(oldIndex + 1)
+        ],
+        false: columnTasks.slice(newIndex + 1)
+      }
     }
 
-    if (oldIndex < newIndex) {
-      subtasksAfter = subtasksForNewColumn.slice(newIndex + 1)
-      subtasksBefore = [
-        ...subtasksForNewColumn.slice(0, oldIndex),
-        ...subtasksForNewColumn.slice(oldIndex + 1, newIndex + 1)
-      ]
+    const tasksBefore = taskModifications.before[`${oldIndex > newIndex}`].map(
+      (task, index) => ({
+        ...task,
+        taskIndex: index
+      })
+    )
+    const draggedTask = {
+      ...columnTasks[oldIndex],
+      taskIndex: newIndex
     }
+    const tasksAfter = taskModifications.after[`${oldIndex > newIndex}`].map(
+      (task, index) => ({
+        ...task,
+        taskIndex:
+          taskModifications.before[`${oldIndex > newIndex}`].length + 1 + index
+      })
+    )
 
-    const movedSubtasks = subtasksForNewColumn[oldIndex]
+    boardTasks[indexOfColumn] = [...tasksBefore, draggedTask, ...tasksAfter]
 
-    subtasks.value[indexOfNewColumn] = [
-      ...subtasksBefore,
-      movedSubtasks,
-      ...subtasksAfter
-    ]
+    userStore.saveUserData()
+
+    return boardTasks[indexOfColumn].map(({ taskID, taskIndex }) => ({
+      taskID,
+      taskIndex
+    }))
   }
 
-  const setNewIndexesForDifferentColumns = (
-    indexOfOldColumn: number,
+  const setNewIndexesForDifferentColumns = async (
     indexOfNewColumn: number,
-    oldIndex: number,
-    newIndex: number
+    indexOfOldColumn: number,
+    newColumnID: BoardColumn['columnID'],
+    newIndex: number,
+    oldIndex: number
   ) => {
-    const subtasksForOldColumn = [...subtasks.value[indexOfOldColumn]]
-    const subtasksForNewColumn = [...subtasks.value[indexOfNewColumn]]
+    const { boardTasks } = returnPartsOfUserData()
+    const columnsColRef = returnColumnsColRef().columnsColRef
 
-    const oldSubtasksBefore = subtasksForOldColumn.slice(0, oldIndex)
-    const oldSubtasksAfter = subtasksForOldColumn.slice(oldIndex + 1)
-    const newSubtasksBefore = subtasksForNewColumn.slice(0, newIndex)
-    const newSubtasksAfter = subtasksForNewColumn.slice(newIndex)
-    const movedSubtasks = subtasksForOldColumn[oldIndex]
+    const newTasksColRef = collection(
+      db,
+      `${columnsColRef.path}/${newColumnID}/tasks`
+    )
+    const tasksForOldColumn = [...boardTasks[indexOfOldColumn]]
+    const tasksForNewColumn = [...boardTasks[indexOfNewColumn]]
 
-    subtasks.value[indexOfOldColumn] = [
-      ...oldSubtasksBefore,
-      ...oldSubtasksAfter
-    ]
+    const newTasksBefore = [...boardTasks[indexOfNewColumn]].slice(0, newIndex)
+    const newTasksAfter = [...boardTasks[indexOfNewColumn]].slice(newIndex + 1)
+    const movedTask =
+      tasksForOldColumn[oldIndex] ||
+      tasksForNewColumn[newIndex] ||
+      tasksForOldColumn[newIndex]
 
-    subtasks.value[indexOfNewColumn] = [
-      ...newSubtasksBefore,
-      movedSubtasks,
-      ...newSubtasksAfter
-    ]
+    await Promise.all(
+      [...newTasksBefore, movedTask, ...newTasksAfter].map(
+        async ({ taskID }, index) => {
+          const taskDocRef = doc(newTasksColRef, taskID)
+
+          await updateDoc(taskDocRef, {
+            taskIndex: index + 1
+          })
+        }
+      )
+    )
   }
 
   const addIndexesToTasks = async (
     taskIndexes: { taskID: Task['taskID']; taskIndex: number }[],
     columnID: BoardColumn['columnID']
   ) => {
+    const columnsColRef = returnColumnsColRef().columnsColRef
     const nextTasksColRef = collection(
       db,
-      `${columnsColRefPrefix.value}/${columnID}/tasks`
+      `${columnsColRef.path}/${columnID}/tasks`
     )
 
-    taskIndexes.forEach(async (task) => {
-      const taskDocRef = doc(nextTasksColRef, task.taskID)
-      const taskIndex = taskIndexes.find(
-        (task) => task.taskID === taskDocRef.id
-      )?.taskIndex
+    taskIndexes.forEach(async ({ taskID, taskIndex }) => {
+      const taskDocRef = doc(nextTasksColRef, taskID)
 
       await updateDoc(taskDocRef, { taskIndex })
     })
   }
 
-  const moveTaskBetweenColumns = async (
-    nextColumnID: BoardColumn['columnID'],
-    previousColumnID?: BoardColumn['columnID'],
-    taskToBeDragged?: Task,
-    taskIndexes?: { taskID: Task['taskID']; taskIndex: number }[]
+  const moveTaskWithinTheSameColumn = async (
+    columnID: string,
+    indexOfColumn: number,
+    oldIndex: number,
+    newIndex: number
   ) => {
-    const prevColumnID =
-      previousColumnID != null
-        ? previousColumnID
-        : boardsStore.boardColumns[columnOfClickedTask.value as number].columnID
+    try {
+      const taskIndexes = setNewIndexesForTheSameColumn(
+        indexOfColumn,
+        oldIndex,
+        newIndex
+      )
+      await addIndexesToTasks(taskIndexes, columnID)
 
-    const prevColumnIndex = boardsStore.boardColumns.findIndex(
-      ({ columnID }) => columnID === prevColumnID
-    )
-    const nextColumnIndex = boardsStore.boardColumns.findIndex(
-      ({ columnID }) => columnID === nextColumnID
-    )
-    const indexOfTaskColumn =
-      taskToBeDragged != null ? nextColumnIndex : prevColumnIndex
-    const taskIndex = tasks.value[indexOfTaskColumn].findIndex(({ taskID }) =>
-      taskToBeDragged != null
-        ? taskID === taskToBeDragged.taskID
-        : taskID === clickedTask.value?.taskID || 0
-    )
-
-    const movedTask = tasks.value[indexOfTaskColumn][taskIndex]
-    const subtasksOfMovedTask = subtasks.value[indexOfTaskColumn][taskIndex]
-
-    if (nextColumnID === previousColumnID && taskIndexes != null) {
-      addIndexesToTasks(taskIndexes, nextColumnID)
-      return
+      return true
+    } catch (err) {
+      return false
     }
+  }
 
-    const nextTasksColRef = collection(
+  const moveTaskBetweenColumns = async (
+    indexOfOldColumn: number,
+    indexOfNewColumn: number,
+    taskToBeDragged: Task,
+    newIndex: number,
+    oldIndex: number
+  ) => {
+    const { boardColumns, boardTasks } = returnPartsOfUserData()
+    const columnsColRef = returnColumnsColRef().columnsColRef
+
+    const subtasksOfMovedTask =
+      returnSubtasksOfGivenTask(taskToBeDragged.taskID) || []
+    const oldColumnID = boardColumns.find(
+      (_, index) => index === indexOfOldColumn
+    )?.columnID
+    const newColumnID = boardColumns.find(
+      (_, index) => index === indexOfNewColumn
+    )?.columnID
+
+    if (oldColumnID == null || newColumnID == null) return false
+
+    const oldTasksColRef = collection(
       db,
-      `${columnsColRefPrefix.value}/${nextColumnID}/tasks`
+      `${columnsColRef.path}/${oldColumnID}/tasks`
     )
+    const oldTaskDocRef = doc(oldTasksColRef, taskToBeDragged.taskID)
+    const oldSubtasksColRef = collection(db, `${oldTaskDocRef.path}/subtasks`)
 
-    const nextTaskDocRef = doc(
-      nextTasksColRef,
-      tasks.value[indexOfTaskColumn][taskIndex].taskID
+    const newTasksColRef = collection(
+      db,
+      `${columnsColRef.path}/${newColumnID}/tasks`
     )
-    const nextSubtasksColRef = collection(db, `${nextTaskDocRef.path}/subtasks`)
+    const newTaskDocRef = doc(newTasksColRef, taskToBeDragged.taskID)
+    const newSubtasksColRef = collection(db, `${newTaskDocRef.path}/subtasks`)
 
     try {
-      await setDoc(nextTaskDocRef, {
-        createdAt: movedTask.createdAt,
-        title: movedTask.title,
-        description: movedTask.description
+      await deleteTask(taskToBeDragged.taskID, oldColumnID, true)
+      await setDoc(newTaskDocRef, {
+        taskID: newTaskDocRef.id,
+        taskIndex: newIndex + 1,
+        createdAt: taskToBeDragged.createdAt,
+        title: taskToBeDragged.title,
+        description: taskToBeDragged.description
       })
-
-      if (taskIndexes != null && taskIndexes.length > 0) {
-        addIndexesToTasks(taskIndexes, nextColumnID)
-      }
-
-      const deleteResponse =
-        taskToBeDragged != null
-          ? await deleteTask(taskToBeDragged.taskID, prevColumnID)
-          : await deleteTask()
-      if (deleteResponse !== true) throw new Error(deleteResponse)
-
-      if (taskToBeDragged == null) {
-        tasks.value[prevColumnIndex] = tasks.value[prevColumnIndex].filter(
-          ({ taskID }) => movedTask.taskID !== taskID
-        )
-        tasks.value[nextColumnIndex] = [
-          ...tasks.value[nextColumnIndex],
-          movedTask
-        ]
-      }
+      await setNewIndexesForDifferentColumns(
+        indexOfNewColumn,
+        indexOfOldColumn,
+        newColumnID,
+        newIndex,
+        oldIndex
+      )
     } catch (err) {
-      return (err as FirestoreError).code
+      return false
     }
+
+    boardTasks[indexOfOldColumn] = boardTasks[indexOfOldColumn].filter(
+      ({ taskID }) => taskID !== taskToBeDragged.taskID
+    )
+    boardTasks[indexOfNewColumn] = [
+      ...boardTasks[indexOfNewColumn],
+      taskToBeDragged
+    ]
 
     if (subtasksOfMovedTask.length > 0) {
-      subtasksOfMovedTask.forEach(async (subtask) => {
-        const subtaskDocRef = doc(nextSubtasksColRef, subtask.subtaskID)
+      const responses = await Promise.all(
+        subtasksOfMovedTask.map(async (subtask) => {
+          const oldSubtaskDocRef = doc(oldSubtasksColRef, subtask.subtaskID)
+          const newSubtaskDocRef = doc(newSubtasksColRef, subtask.subtaskID)
 
-        try {
-          await deleteDoc(subtaskDocRef)
+          try {
+            await deleteDoc(oldSubtaskDocRef)
 
-          await setDoc(subtaskDocRef, {
-            title: subtask.title,
-            isCompleted: subtask.isCompleted,
-            createdAt: subtask.createdAt
-          })
-        } catch (err) {
-          return (err as FirestoreError).code
-        }
+            await setDoc(newSubtaskDocRef, {
+              title: subtask.title,
+              isCompleted: subtask.isCompleted,
+              createdAt: subtask.createdAt
+            })
 
-        if (taskToBeDragged == null) {
-          subtasks.value[prevColumnIndex] = subtasks.value[
-            prevColumnIndex
-          ].filter((_, index) => taskIndex != index)
+            return true
+          } catch (err) {
+            return false
+          }
+        })
+      )
 
-          subtasks.value[nextColumnIndex] = [
-            ...subtasks.value[nextColumnIndex],
-            subtasksOfMovedTask
-          ]
-        }
-      })
+      if (responses.some((response) => !response)) return false
     }
 
-    columnOfClickedTask.value = nextColumnIndex
+    userStore.saveUserData()
+
     return true
   }
 
   const editTask = async (
-    action: 'add' | 'edit',
     nextColumnID: BoardColumn['columnID'],
     isStatusChanged: boolean
   ) => {
     const formsStore = useFormsStore()
-    const formData = formsStore.formData.task[action].data
+    const formData = formsStore.formData.task.edit.data
 
-    const columnsColRef = collection(db, columnsColRefPrefix.value as string)
+    const { boardColumns, boardTasks } = returnPartsOfUserData()
+    const {
+      indexOfColumn,
+      indexOfClickedTask,
+      taskDocRef,
+      subtasksToBeEdited
+    } = returnNeededVars()
 
-    const clickedColumnID =
-      boardsStore.boardColumns[columnOfClickedTask.value as number].columnID
+    if (indexOfColumn == null || subtasksToBeEdited == null) return false
 
-    const columnDocRef = doc(columnsColRef, clickedColumnID)
-
-    const tasksColRef = collection(db, `${columnDocRef.path}/tasks`)
-    const taskDocRef = doc(tasksColRef, (clickedTask.value as Task).taskID)
-    const subtasksColRef = collection(db, `${taskDocRef.path}/subtasks`)
-
-    const isTaskNameSame = formData.name === (clickedTask.value as Task).title
-    const isDescriptionSame =
-      formData.description === (clickedTask.value as Task).description
-    const isNumberOfSubtaskSame =
-      subtasksOfClickedTask.value.length === formData.items.length
-    const areSubtasksTitlesSame = subtasksOfClickedTask.value.every(
-      ({ subtaskID, title }) =>
-        formData.items.find(
-          ({ name, id }) => title === name && subtaskID === id
-        )
-    )
-
-    const isFormNotChanged = [
-      isTaskNameSame,
-      isDescriptionSame,
-      isNumberOfSubtaskSame,
-      areSubtasksTitlesSame
-    ].every((item) => item === true)
-
-    if (isFormNotChanged && !isStatusChanged) return true
-
-    let indexOfClickedTask: null | number = null
-
-    if (columnOfClickedTask.value != null) {
-      indexOfClickedTask = tasks.value[columnOfClickedTask.value].findIndex(
-        ({ taskID }) => taskID === clickedTask.value?.taskID
+    const { wasFormEvenEdited, isTaskNameSame, isDescriptionSame } =
+      checkWhetherFormDataWasChanged(
+        formData,
+        subtasksToBeEdited,
+        isStatusChanged
       )
-    }
+
+    if (!wasFormEvenEdited && !isStatusChanged) return true
 
     try {
       if (!isTaskNameSame) {
@@ -464,224 +469,352 @@ export const useTasksStore = defineStore('tasks', () => {
         })
       }
     } catch (err) {
-      return (err as FirestoreError).code
+      return false
     }
 
     if (
-      columnOfClickedTask.value != null &&
-      indexOfClickedTask != null &&
-      (!isTaskNameSame || !isDescriptionSame)
+      (!isTaskNameSame || !isDescriptionSame) &&
+      formData.description != null
     ) {
-      tasks.value[columnOfClickedTask.value][indexOfClickedTask] = {
-        ...tasks.value[columnOfClickedTask.value][indexOfClickedTask],
+      boardTasks[indexOfColumn][indexOfClickedTask] = {
+        ...boardTasks[indexOfColumn][indexOfClickedTask],
         title: formData.name,
-        description: formData.description as string
+        description: formData.description
       }
     }
 
-    const newSubtasks = formData.items.filter(({ id }) => {
-      if (
-        subtasksOfClickedTask.value.length > 0 &&
-        subtasksOfClickedTask.value.some(({ subtaskID }) => subtaskID === id)
-      )
-        return false
-
-      return true
-    })
-
-    if (subtasksOfClickedTask.value.length > 0) {
-      await Promise.all(
-        subtasksOfClickedTask.value.map(async ({ subtaskID, title }, index) => {
-          const subtaskDocRef = doc(subtasksColRef, subtaskID)
-
-          const respectiveSubtask = formData.items.find(
-            ({ id }) => id === subtaskID
-          )
-          const isSubtaskNameSame =
-            respectiveSubtask != null && respectiveSubtask.name === title
-
-          if (respectiveSubtask != null && isSubtaskNameSame) return
-
-          if (respectiveSubtask == null) {
-            try {
-              await deleteDoc(subtaskDocRef)
-            } catch (err) {
-              return (err as FirestoreError).code
-            }
-          }
-
-          if (
-            columnOfClickedTask.value != null &&
-            indexOfClickedTask != null &&
-            respectiveSubtask == null
-          ) {
-            subtasks.value[columnOfClickedTask.value][indexOfClickedTask] =
-              subtasks.value[columnOfClickedTask.value][
-                indexOfClickedTask
-              ].filter(({ subtaskID }) =>
-                formData.items.find(({ id }) => subtaskID === id)
-              )
-          }
-
-          if (!isSubtaskNameSame && respectiveSubtask != null) {
-            try {
-              await updateDoc(subtaskDocRef, {
-                title: respectiveSubtask.name
-              })
-            } catch (err) {
-              return (err as FirestoreError).code
-            }
-          }
-
-          if (
-            columnOfClickedTask.value != null &&
-            indexOfClickedTask != null &&
-            respectiveSubtask != null &&
-            !isSubtaskNameSame
-          ) {
-            const indexOfSubtask = subtasks.value[columnOfClickedTask.value][
-              indexOfClickedTask
-            ].findIndex(({ subtaskID }) => subtaskID === subtaskDocRef.id)
-
-            subtasks.value[columnOfClickedTask.value][indexOfClickedTask][
-              indexOfSubtask
-            ] = {
-              ...subtasks.value[columnOfClickedTask.value][indexOfClickedTask][
-                indexOfSubtask
-              ],
-              title: formData.items[index].name
-            }
-          }
-        })
-      )
-    }
-
-    if (newSubtasks.length > 0) {
-      await Promise.all(
-        newSubtasks.map(async ({ name }) => {
-          try {
-            const response = await addDoc(subtasksColRef, {
-              title: name,
-              isCompleted: false,
-              createdAt: serverTimestamp()
-            })
-
-            if (response == null) throw new Error('wrong response')
-          } catch (err) {
-            return (err as FirestoreError).code
-          }
-        })
-      )
-
-      if (columnOfClickedTask.value != null && indexOfClickedTask != null) {
-        subtasks.value[columnOfClickedTask.value][indexOfClickedTask] = [
-          ...subtasks.value[columnOfClickedTask.value][indexOfClickedTask],
-          ...newSubtasks.map(({ name }) => ({
-            title: name,
-            isCompleted: false
-          }))
-        ]
-      }
-    }
+    const newSubtasksBaseData = formData.items.filter(
+      ({ id }) => !subtasksToBeEdited.some(({ subtaskID }) => subtaskID === id)
+    )
+    const newSubtasks = newSubtasksBaseData.map(({ id, name }) => ({
+      subtaskID: id,
+      taskID: taskDocRef.id,
+      title: name
+    }))
+    const subtasksToBeDeleted = subtasksToBeEdited.filter(
+      ({ subtaskID }) => !formData.items.some(({ id }) => id === subtaskID)
+    )
+    const movedTask = boardTasks[indexOfColumn][indexOfClickedTask]
 
     try {
-      if (isStatusChanged) {
-        const response = await moveTaskBetweenColumns(nextColumnID)
+      const editSubtaskResponse = await editSubtask(
+        newSubtasks,
+        formData.items,
+        subtasksToBeDeleted
+      )
 
-        if (response !== true) throw new Error(response)
+      if (!editSubtaskResponse) throw new Error()
+
+      if (isStatusChanged && movedTask != null) {
+        const nextColumnIndex = boardColumns.findIndex(
+          ({ columnID }) => columnID === nextColumnID
+        )
+
+        await moveTaskBetweenColumns(
+          indexOfColumn,
+          nextColumnIndex,
+          movedTask,
+          boardTasks[nextColumnIndex].length,
+          movedTask.taskIndex - 1
+        )
       }
     } catch (err) {
-      return (err as FirestoreError).code
+      return false
     }
 
-    clickedTask.value = null
+    handleEditTaskUIChanges(newSubtasks, subtasksToBeDeleted)
 
     return true
   }
 
+  const editSubtask = async (
+    newSubtasks: Omit<Subtask, 'createdAt' | 'isCompleted'>[],
+    formDataItems: FormDataProperties['items'],
+    oldSubtasks: Subtask[]
+  ) => {
+    const editResponse = await editExistingSubtasks(formDataItems)
+    const addResponse = await addNewSubtasks(newSubtasks)
+    const deleteResponse = await deletePreviouslyExistingSubtasks(oldSubtasks)
+
+    return editResponse && addResponse && deleteResponse
+  }
+
+  const addNewSubtasks = async (
+    newSubtasks: Omit<Subtask, 'createdAt' | 'isCompleted'>[]
+  ) => {
+    const { indexOfClickedTask, subtasksColRef } = returnNeededVars()
+
+    if (newSubtasks.length === 0) return true
+    if (subtasksColRef == null || indexOfClickedTask == null) return false
+
+    const responses = await Promise.all(
+      newSubtasks.map(async ({ subtaskID, taskID, title }) => {
+        const subtaskDocRef = doc(subtasksColRef, subtaskID)
+
+        try {
+          await setDoc(subtaskDocRef, {
+            taskID,
+            title,
+            isCompleted: false,
+            createdAt: serverTimestamp()
+          })
+
+          return true
+        } catch (err) {
+          return false
+        }
+      })
+    )
+
+    return responses.every(() => true)
+  }
+
+  const editExistingSubtasks = async (
+    formDataItems: FormDataProperties['items']
+  ) => {
+    const { boardSubtasks } = returnPartsOfUserData()
+    const {
+      taskDocRef,
+      indexOfClickedTask,
+      subtasksToBeEdited,
+      subtasksColRef
+    } = returnNeededVars()
+
+    if (boardSubtasks.length === 0 || subtasksToBeEdited == null) return true
+
+    const responses = await Promise.all(
+      subtasksToBeEdited.map(async ({ subtaskID, title }, subtaskIndex) => {
+        const subtaskDocRef = doc(subtasksColRef, subtaskID)
+
+        const respectiveSubtask = formDataItems.find(
+          ({ id }) => id === subtaskID
+        )
+        const isSubtaskNameSame = respectiveSubtask?.name === title
+
+        if (indexOfClickedTask == null) return false
+        if (respectiveSubtask == null || isSubtaskNameSame) return true
+
+        if (!isSubtaskNameSame) {
+          try {
+            await updateDoc(subtaskDocRef, {
+              title: respectiveSubtask.name
+            })
+          } catch (err) {
+            return false
+          }
+
+          const respectiveSubtasksIndex = returnRespectiveSubtaskIndex(
+            taskDocRef.id
+          )
+
+          userStore.userData.currentBoard.boardSubtasks[
+            respectiveSubtasksIndex
+          ][subtaskIndex].title = respectiveSubtask.name
+        }
+
+        return true
+      })
+    )
+
+    if (responses.some((response) => !response)) return false
+
+    userStore.saveUserData(true)
+    return true
+  }
+
+  const deletePreviouslyExistingSubtasks = async (oldSubtasks: Subtask[]) => {
+    const { subtasksColRef } = returnNeededVars()
+    const { clickedTask, columnOfClickedTask } = returnPartsOfUserData()
+
+    if (
+      subtasksColRef == null ||
+      columnOfClickedTask == null ||
+      clickedTask == null
+    )
+      return false
+
+    const responses = await Promise.all(
+      oldSubtasks.map(async ({ subtaskID }) => {
+        const subtaskDocRef = doc(subtasksColRef, subtaskID)
+
+        try {
+          await deleteDoc(subtaskDocRef)
+          return true
+        } catch (err) {
+          return false
+        }
+      })
+    )
+
+    return responses.every(() => true)
+  }
+
+  const handleEditTaskUIChanges = (
+    newSubtasks: Omit<Subtask, 'createdAt' | 'isCompleted'>[],
+    subtasksToBeDeleted: Subtask[]
+  ) => {
+    const { boardSubtasks } = returnPartsOfUserData()
+    const { indexOfColumn, indexOfClickedTask, taskDocRef } = returnNeededVars()
+
+    if (indexOfColumn == null || indexOfClickedTask == null) return
+
+    userStore.userData.currentBoard.clickedTask = null
+    const respectiveSubtasksIndex = returnRespectiveSubtaskIndex(taskDocRef.id)
+
+    if (subtasksToBeDeleted.length > 0) {
+      userStore.userData.currentBoard.boardSubtasks[respectiveSubtasksIndex] =
+        boardSubtasks[respectiveSubtasksIndex].filter(
+          ({ subtaskID: id }) =>
+            !subtasksToBeDeleted.some(({ subtaskID }) => id === subtaskID)
+        )
+    }
+
+    if (newSubtasks.length > 0) {
+      const addedSubtasks = newSubtasks.map(({ subtaskID, taskID, title }) => ({
+        subtaskID,
+        taskID,
+        createdAt: new Date().toString(),
+        title,
+        isCompleted: false
+      }))
+
+      userStore.userData.currentBoard.boardSubtasks[respectiveSubtasksIndex] = [
+        ...userStore.userData.currentBoard.boardSubtasks[
+          respectiveSubtasksIndex
+        ],
+        ...addedSubtasks
+      ]
+    }
+
+    userStore.saveUserData()
+  }
+
   const deleteTask = async (
     taskID?: Task['taskID'],
-    columnID?: BoardColumn['columnID']
+    columnID?: BoardColumn['columnID'],
+    isTaskMoved?: true
   ) => {
-    const deletedTaskID = taskID != null ? taskID : clickedTask.value?.taskID
-    const columnOfDeletedTaskID =
+    const columnsColRef = returnColumnsColRef().columnsColRef
+    const {
+      boardColumns,
+      boardTasks,
+      clickedTask,
+      columnOfClickedTask,
+      boardSubtasks
+    } = returnPartsOfUserData()
+
+    const indexOfColumn =
       columnID != null
-        ? columnID
-        : boardsStore.boardColumns[columnOfClickedTask.value as number].columnID
+        ? boardColumns.findIndex(({ columnID: id }) => id === columnID)
+        : columnOfClickedTask
+    const deletedTaskID = taskID || clickedTask?.taskID
+
+    if (deletedTaskID == null || indexOfColumn == null) return false
+
+    const columnOfDeletedTaskID =
+      columnID || boardColumns[indexOfColumn].columnID
 
     const tasksColRef = collection(
       db,
-      `${columnsColRefPrefix.value}/${columnOfDeletedTaskID}/tasks`
+      `${columnsColRef.path}/${columnOfDeletedTaskID}/tasks`
     )
     const tasksDocRef = doc(tasksColRef, deletedTaskID)
 
-    const subtasksColRef = collection(db, `${tasksDocRef.path}/subtasks`)
+    try {
+      await deleteSubtasks(deletedTaskID, columnOfDeletedTaskID)
+      await deleteDoc(tasksDocRef)
+    } catch (err) {
+      return false
+    }
+
+    if (isTaskMoved == null) {
+      const indexOfDeletedTask = boardTasks[indexOfColumn].findIndex(
+        ({ taskID: id }) => id === deletedTaskID
+      )
+
+      boardSubtasks[indexOfColumn] = boardSubtasks[indexOfColumn].filter(
+        (_, index) => index !== indexOfDeletedTask
+      )
+      boardTasks[indexOfColumn] = boardTasks[indexOfColumn].filter(
+        ({ taskID }) => taskID !== deletedTaskID
+      )
+      userStore.saveUserData()
+    }
+
+    return true
+  }
+
+  const deleteSubtasks = async (
+    taskID: Task['taskID'],
+    columnID: BoardColumn['columnID']
+  ) => {
+    const columnsColRef = returnColumnsColRef().columnsColRef
+
+    const subtasksColRef = collection(
+      db,
+      `${columnsColRef.path}/${columnID}/tasks/${taskID}/subtasks`
+    )
 
     try {
-      const subtasksDocRefs = await getDocs(subtasksColRef)
-      if (subtasksDocRefs.docs.length !== 0) {
-        subtasksDocRefs.forEach(async (subtasksDocRef) => {
-          try {
-            await deleteDoc(subtasksDocRef.ref)
-            return true
-          } catch (err) {
-            return (err as FirestoreError).code
-          }
-        })
-      }
+      const subtasksDocRefs = (await getDocs(subtasksColRef)).docs
+      subtasksDocRefs.forEach(async (subtasksDocRef) => {
+        await deleteDoc(subtasksDocRef.ref)
+      })
 
-      try {
-        await deleteDoc(tasksDocRef)
-        return true
-      } catch (err) {
-        return (err as FirestoreError).code
-      }
+      return true
     } catch (err) {
-      return (err as FirestoreError).code
+      return false
     }
   }
 
-  const toggleSubtask = async (subtask: Subtask) => {
+  const toggleSubtask = async ({ subtaskID, isCompleted }: Subtask) => {
+    const {
+      boardColumns,
+      clickedTask,
+      columnOfClickedTask,
+      subtasksOfClickedTask
+    } = returnPartsOfUserData()
+
+    if (columnOfClickedTask == null || clickedTask == null) return false
+
+    const columnsColRef = returnColumnsColRef().columnsColRef
+    const taskColRef = collection(
+      db,
+      `${columnsColRef.path}/${boardColumns[columnOfClickedTask].columnID}/tasks`
+    )
     const subtasksColRef = collection(
       db,
-      `${columnsColRefPrefix.value}/${
-        boardsStore.boardColumns[columnOfClickedTask.value as number].columnID
-      }/tasks/${(clickedTask.value as Task).taskID}/subtasks`
+      `${taskColRef.path}/${clickedTask.taskID}/subtasks`
     )
-    const subtaskDocRef = doc(subtasksColRef, subtask.subtaskID)
 
     try {
-      await updateDoc(subtaskDocRef, {
-        isCompleted: !subtask.isCompleted
+      await updateDoc(doc(subtasksColRef, subtaskID), {
+        isCompleted: !isCompleted
       })
     } catch (err) {
-      return (err as FirestoreError).code
+      return false
     }
 
-    subtasksOfClickedTask.value = subtasksOfClickedTask.value.map(
-      (subtaskOfClickedTask) => {
-        if (subtaskOfClickedTask.subtaskID !== subtask.subtaskID)
+    userStore.userData.currentBoard.subtasksOfClickedTask =
+      subtasksOfClickedTask.map((subtaskOfClickedTask) => {
+        if (subtaskOfClickedTask.subtaskID !== subtaskID)
           return subtaskOfClickedTask
 
         subtaskOfClickedTask.isCompleted = !subtaskOfClickedTask.isCompleted
         return subtaskOfClickedTask
-      }
-    )
+      })
+
+    userStore.saveUserData()
 
     return true
   }
 
   return {
-    tasks,
-    subtasks,
-    clickedTask,
-    columnOfClickedTask,
-    subtasksOfClickedTask,
     getTasks,
+    getSubtasks,
     addNewTask,
     setNewIndexesForTheSameColumn,
-    setNewIndexesForDifferentColumns,
-    addIndexesToTasks,
+    moveTaskWithinTheSameColumn,
     moveTaskBetweenColumns,
     editTask,
     deleteTask,

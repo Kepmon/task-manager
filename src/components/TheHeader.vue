@@ -19,7 +19,7 @@
     >
       <h1 class="inline font-bold text-lgFluid">
         <span class="sr-only">Currently active board: </span>
-        {{ boardsStore.currentBoard?.name }}
+        {{ currentBoard.boardName }}
       </h1>
       <svg
         width="10"
@@ -68,7 +68,7 @@
         </transition>
       </div>
     </div>
-    <user-options :isDashboardEmpty="boardsStore.currentBoard == null" />
+    <user-options :isDashboardEmpty="currentBoard == null" />
     <transition name="modal">
       <task-modal
         v-if="isAddTaskModalShown"
@@ -81,8 +81,8 @@
         v-if="isDeleteBoardModalShown"
         @close-modal="isDeleteBoardModalShown = false"
         elementToDelete="board"
-        :elementName="(boardsStore.currentBoard as Board).name"
-        :elementID="(boardsStore.currentBoard as Board).boardID"
+        :elementName="currentBoard.boardName"
+        :elementID="currentBoard.boardID"
       />
     </transition>
     <transition name="modal">
@@ -96,7 +96,6 @@
 </template>
 
 <script setup lang="ts">
-import type { Board } from '../api/boardsTypes'
 import MoreOptions from './shared/MoreOptions.vue'
 import MoreOptionsIcon from './Svgs/MoreOptionsIcon.vue'
 import TaskModal from './Modals/TaskModal.vue'
@@ -104,9 +103,9 @@ import ConfirmationModal from './Modals/ConfirmationModal.vue'
 import BoardModal from './Modals/BoardModal.vue'
 import UserOptions from './UserOptions.vue'
 import toggleMoreOptions from '../composables/toggleMoreOptions'
-import { useBoardsStore } from '../stores/boards'
+import { useUserStore } from '../stores/user'
 import type { Ref } from 'vue'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps<{
   isBoardEmpty: boolean
@@ -115,14 +114,15 @@ const props = defineProps<{
 }>()
 defineEmits(['toggle-boards-nav'])
 
+const userStore = useUserStore()
+const currentBoard = computed(() => userStore.userData.currentBoard)
+
 const isMobileMode = props.width < 640
 const areBoardOptionsShown = ref(false)
 
 const isAddTaskModalShown = ref(false)
 const isDeleteBoardModalShown = ref(false)
 const isEditBoardModalShown = ref(false)
-
-const boardsStore = useBoardsStore()
 
 const { toggleOptions, closeOptions } = toggleMoreOptions
 const handleMoreOptionsFn = (

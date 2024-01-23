@@ -17,8 +17,7 @@
 
     <header
       v-if="!isDashboardEmpty && !userStore.isLoading"
-      class="bg-white dark:bg-gray-700"
-      :class="{ 'col-span-2 grid grid-cols-[auto_1fr]': !isDashboardEmpty }"
+      class="grid grid-cols-[auto_1fr] col-span-2 bg-white dark:bg-gray-700"
     >
       <logo-icon
         v-if="
@@ -39,8 +38,6 @@
     <boards-navbar
       @toggle-sidebar="toggleSidebar"
       @close-boards-navbar="isNavOpen = false"
-      :boards="boardsStore.boards"
-      :boardName="boardsStore.currentBoard?.name || ''"
       :width="windowWidth"
       :isSidebarShown="isSidebarShown"
       :isNavOpen="isNavOpen"
@@ -90,19 +87,17 @@ import Spinner from '../components/Spinner.vue'
 import SkipToContent from '../components/SkipToContent.vue'
 import ConfirmationPopup from '../components/shared/ConfirmationPopup.vue'
 import { useUserStore } from '../stores/user'
-import { useBoardsStore } from '../stores/boards'
 import { isPopupShown, isResponseError } from '../composables/responseHandler'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useWindowSize } from '@vueuse/core'
 
 const userStore = useUserStore()
-const boardsStore = useBoardsStore()
 
-const isDashboardEmpty = computed(() =>
-  boardsStore.boards.length === 0 ? true : false
+const isDashboardEmpty = computed(
+  () => userStore.userData.currentBoard.boardName === ''
 )
-const isBoardEmpty = computed(() =>
-  boardsStore.boardColumns.length === 0 ? true : false
+const isBoardEmpty = computed(
+  () => userStore.userData.currentBoard.boardColumns.length === 0
 )
 
 const isSidebarShown = ref(true)

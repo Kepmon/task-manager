@@ -44,12 +44,15 @@ import ModalsTemplate from './ModalsTemplate.vue'
 import TextInput from '../shared/Inputs/TextInput.vue'
 import ColorPicker from '../shared/ColorPicker.vue'
 import { ref } from 'vue'
+import { useUserStore } from '../../stores/user'
 import { useBoardsStore } from '../../stores/boards'
 import { useFormsStore } from '../../stores/forms'
 import { handleResponse } from '../../composables/responseHandler'
+import { nanoid } from 'nanoid'
 
 const emits = defineEmits(['close-modal'])
 
+const usersStore = useUserStore()
 const boardsStore = useBoardsStore()
 const formsStore = useFormsStore()
 
@@ -81,15 +84,28 @@ const submitForm = async () => {
 
   if (isColumnNameError.value) return
 
-  const response = await boardsStore.addNewColumn(
-    columnName.value,
-    startColor.value
-  )
+  const newColumn = {
+    id: nanoid(),
+    name: columnName.value,
+    dotColor: startColor.value
+  }
+  const response = await boardsStore.handleAddedColumns([newColumn])
+
+  const boardColumns = usersStore.userData.currentBoard.boardColumns
+  usersStore.userData.currentBoard.boardColumns = [
+    ...boardColumns,
+    {
+      columnID: newColumn.id,
+      name: newColumn.name,
+      dotColor: newColumn.dotColor
+    }
+  ]
 
   formsStore.resetFormData('board', 'edit')
   shouldModalBeClosed.value = true
 
   handleResponse(response)
   closeModal()
+  usersStore.saveUserData()
 }
 </script>

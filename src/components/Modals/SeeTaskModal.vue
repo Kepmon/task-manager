@@ -32,42 +32,36 @@
         <div>
           <p class="mb-4 text-xs text-gray-400 dark:text-white">
             Subtasks
-            <span v-if="tasksStore.subtasksOfClickedTask.length > 0">
+            <span v-if="subtasksOfClickedTask.length > 0">
               ({{
-                tasksStore.subtasksOfClickedTask.filter(
-                  (subtask) => subtask.isCompleted
-                ).length
+                subtasksOfClickedTask.filter((subtask) => subtask.isCompleted)
+                  .length
               }}
-              of {{ tasksStore.subtasksOfClickedTask.length }})
+              of {{ subtasksOfClickedTask.length }})
             </span>
           </p>
           <p
-            v-if="tasksStore.subtasksOfClickedTask.length === 0"
+            v-if="subtasksOfClickedTask.length === 0"
             class="text-xs text-gray-400"
           >
             There are no subtasks to display
           </p>
-          <div
-            v-if="tasksStore.subtasksOfClickedTask.length > 0"
-            class="grid gap-2"
-          >
+          <div v-if="subtasksOfClickedTask.length > 0" class="grid gap-2">
             <div
-              @click="() => toggleSubtask(index)"
-              v-for="(
-                { title, isCompleted, subtaskID }, index
-              ) in tasksStore.subtasksOfClickedTask"
+              @click="() => toggleSubtask(subtaskID)"
+              v-for="{ title, isCompleted, subtaskID } in subtasksOfClickedTask"
               :key="subtaskID"
               class="subtask"
             >
               <input
-                :id="`subtask-checkbox-${index}`"
+                :id="subtaskID"
                 type="checkbox"
                 :checked="isCompleted"
                 class="checkbox peer"
               />
               <label
                 @click.prevent
-                :for="`subtask-checkbox-${index}`"
+                :for="subtaskID"
                 class="text-xs peer-checked:line-through peer-checked:opacity-50"
                 >{{ title }}</label
               >
@@ -81,9 +75,9 @@
           </p>
           <v-select
             @update:model-value="(newColumnName: BoardColumn['name']) => handleChangeColumn(newColumnName)"
-            :options="taskStatuses"
+            :options="taskStatusesNames"
             :searchable="false"
-            :placeholder="taskStatuses[columnIndex]"
+            :placeholder="taskStatusesNames[columnIndex || 0]"
           ></v-select>
           <p v-if="isPending" class="mt-4 text-purple-400 text-center">
             Loading...
@@ -102,12 +96,12 @@ import MoreOptions from '../shared/MoreOptions.vue'
 import MoreOptionsIcon from '../Svgs/MoreOptionsIcon.vue'
 import toggleMoreOptions from '../../composables/toggleMoreOptions'
 import { handleResponse } from '../../composables/responseHandler'
+import { useUserStore } from '../../stores/user'
 import { useTasksStore } from '../../stores/tasks'
-import { useBoardsStore } from '../../stores/boards'
-import { ref, onUnmounted } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 
-defineProps<{
-  columnIndex: number
+const props = defineProps<{
+  columnIndex: null | number
   task: Task
 }>()
 const emits = defineEmits([
@@ -117,10 +111,16 @@ const emits = defineEmits([
   'handle-move-task'
 ])
 
+const userStore = useUserStore()
 const tasksStore = useTasksStore()
-const boardsStore = useBoardsStore()
 
-const taskStatuses = ref(boardsStore.boardColumns.map((column) => column.name))
+const subtasksOfClickedTask = computed(
+  () => userStore.userData.currentBoard.subtasksOfClickedTask
+)
+
+const taskStatusesNames = computed(() =>
+  userStore.userData.currentBoard.boardColumns.map((column) => column.name)
+)
 const areTaskOptionsShown = ref(false)
 
 const { toggleOptions, closeOptions } = toggleMoreOptions
@@ -135,18 +135,45 @@ const handleMoreOptionsFn = (
   cb(e, areTaskOptionsShown, 'ellipsis')
 }
 
-const toggleSubtask = async (index: number) => {
-  const clickedSubtask = tasksStore.subtasksOfClickedTask[index]
+const toggleSubtask = async (id: string) => {
+  const clickedSubtask = subtasksOfClickedTask.value.find(
+    ({ subtaskID }) => id === subtaskID
+  )
 
-  const response = await tasksStore.toggleSubtask(clickedSubtask)
+  if (clickedSubtask != null) {
+    const response = await tasksStore.toggleSubtask(clickedSubtask)
 
-  handleResponse(response)
+    handleResponse(response)
+  }
 }
 
 const isPending = ref(false)
-const handleChangeColumn = (newColumnName: BoardColumn['name']) => {
+const handleChangeColumn = async (newColumnName: BoardColumn['name']) => {
   isPending.value = true
-  emits('handle-move-task', newColumnName)
+
+  const newColumnIndex = userStore.userData.currentBoard.boardColumns.findIndex(
+    ({ name }) => name === newColumnName
+  )
+  const boardTasks = userStore.userData.currentBoard.boardTasks
+  const clickedTask = userStore.userData.currentBoard.clickedTask
+
+  if (
+    clickedTask != null &&
+    props.columnIndex != null &&
+    newColumnIndex != null &&
+    clickedTask != null
+  ) {
+    const response = await tasksStore.moveTaskBetweenColumns(
+      props.columnIndex,
+      newColumnIndex,
+      clickedTask,
+      boardTasks[props.columnIndex].length,
+      clickedTask.taskIndex - 1
+    )
+    handleResponse(response)
+
+    emits('handle-move-task')
+  }
 }
 
 onUnmounted(() => {

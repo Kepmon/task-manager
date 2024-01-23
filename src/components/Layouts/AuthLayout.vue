@@ -127,16 +127,16 @@ const form = useForm({
 const errorMessage = ref('')
 const buttonLoading = ref(false)
 const onSubmit = form.handleSubmit(async (values) => {
-  const method = currentPath === '/' ? userStore.logIn : userStore.register
+  const submitFn = currentPath === '/' ? userStore.logIn : userStore.register
 
   buttonLoading.value = true
-  const response = await method(values.email, values.password)
+  const response = await submitFn(values.email, values.password)
 
-  if (response !== true) {
-    errorMessage.value = response
+  if (response.ok === false) {
+    errorMessage.value = response.errorMessage
   }
 
-  handleResponse(response, currentPath, buttonLoading)
+  handleResponse(response.ok, currentPath, buttonLoading)
 })
 </script>
 
