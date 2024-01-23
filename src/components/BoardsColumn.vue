@@ -25,7 +25,7 @@
           <p class="text-xs text-gray-400 uppercase">
             <span class="sr-only">
               {{ formatColumnNumber(columnIndex + 1) }} column - title:</span
-            >{{ column.name }} ({{ boardTasks[columnIndex].length }})
+            >{{ column.name }} ({{ boardTasks[columnIndex]?.length || 0 }})
             <span class="sr-only">tasks inside</span>
           </p>
           <close-icon

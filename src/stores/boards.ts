@@ -405,6 +405,7 @@ export const useBoardsStore = defineStore('boards', () => {
     idOfDeletedBoard: Board['boardID']
   ) => {
     const { allBoards, fullBoards } = returnPartsOfUserData()
+    const { currentBoard } = returnEmptyUserData()
 
     userStore.userData.allBoards = allBoards.filter(
       ({ boardID }) => boardID !== idOfDeletedBoard
@@ -416,10 +417,18 @@ export const useBoardsStore = defineStore('boards', () => {
       ({ boardID: id }) => id === userStore.userData.allBoards[0].boardID
     )
 
+    if (newBoard == null && userStore.userData.allBoards.length === 0) {
+      userStore.userData.currentBoard = currentBoard
+      return
+    }
+
+    if (newBoard == null && userStore.userData.allBoards.length > 0) {
+      await fetchNewBoard(userStore.userData.allBoards[0])
+      return
+    }
+
     if (newBoard != null) {
       userStore.userData.currentBoard = newBoard
-    } else {
-      await fetchNewBoard(userStore.userData.allBoards[0])
     }
   }
 

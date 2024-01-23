@@ -17,8 +17,7 @@
 
     <header
       v-if="!isDashboardEmpty && !userStore.isLoading"
-      class="bg-white dark:bg-gray-700"
-      :class="{ 'col-span-2 grid grid-cols-[auto_1fr]': !isDashboardEmpty }"
+      class="grid grid-cols-[auto_1fr] col-span-2 bg-white dark:bg-gray-700"
     >
       <logo-icon
         v-if="

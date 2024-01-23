@@ -129,7 +129,13 @@ export const useTasksStore = defineStore('tasks', () => {
   const addNewTask = async (columnID: BoardColumn['columnID']) => {
     const formsStore = useFormsStore()
     const formData = formsStore.formData.task.add.data
-    const { boardColumns, boardTasks, boardSubtasks } = returnPartsOfUserData()
+    const {
+      fullBoards,
+      currentBoard,
+      boardColumns,
+      boardTasks,
+      boardSubtasks
+    } = returnPartsOfUserData()
 
     const columnsColRef = returnColumnsColRef().columnsColRef
     const tasksColRef = collection(
@@ -183,6 +189,16 @@ export const useTasksStore = defineStore('tasks', () => {
         ...boardSubtasks,
         newSubtasks
       ]
+
+      const indexOfRespectiveFullBoard = fullBoards.findIndex(
+        ({ boardID }) => boardID === currentBoard.boardID
+      )
+
+      if (indexOfRespectiveFullBoard != null) {
+        userStore.userData.fullBoards[
+          indexOfRespectiveFullBoard
+        ].boardSubtasks = [...boardSubtasks, newSubtasks]
+      }
 
       userStore.saveUserData()
 

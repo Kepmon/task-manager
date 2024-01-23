@@ -1,5 +1,4 @@
 import type { Task } from '../api/boardsTypes'
-import { computed } from 'vue'
 import { useUserStore } from '../stores/user'
 
 export const returnSubtasksOfGivenTask = (
@@ -8,11 +7,8 @@ export const returnSubtasksOfGivenTask = (
   if (taskID == null) return []
 
   const userStore = useUserStore()
-  const boardSubtasks = computed(
-    () => userStore.userData.currentBoard.boardSubtasks
-  )
-
-  return boardSubtasks.value.find((subtasksArr) =>
+  const boardSubtasks = userStore.userData.currentBoard.boardSubtasks
+  return boardSubtasks.find((subtasksArr) =>
     subtasksArr.every(({ taskID: id }) => id === taskID)
   )
 }
