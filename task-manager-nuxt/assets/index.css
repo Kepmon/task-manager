@@ -1,0 +1,85 @@
+html {
+  @apply bg-gray-200 text-black;
+}
+
+html.dark {
+  @apply bg-gray-800 text-white;
+}
+
+ody {
+  @apply text-baseFluid font-[500];
+  @apply scrollbar-visibleLight dark:scrollbar-visibleDark;
+}
+
+button {
+  @apply border-none;
+}
+
+button,
+[tabindex='0'] {
+  @apply outline outline-transparent focus-visible:outline-purple-600 outline-[3px];
+}
+
+[disabled] {
+  @apply cursor-not-allowed opacity-[.35];
+}
+
+::selection {
+  @apply bg-purple-400 text-white;
+}
+
+.regular-button {
+  @apply flex items-center grow justify-center gap-2 py-[10px] px-4;
+  @apply rounded-3xl text-sm font-bold;
+}
+
+.input {
+  /* @apply py-3 px-4 w-full bg-transparent rounded-[4px] text-sm font-normal; */
+  @apply py-3 px-4 bg-transparent rounded-[4px] text-sm font-normal;
+  @apply outline outline-transparent border;
+  @apply focus-visible:outline focus-visible:outline-transparent;
+}
+
+.sr-only {
+  @apply top-0 left-0;
+}
+
+.purple-class {
+  @apply bg-purple-400 [&:not([disabled])]:hover:bg-purple-600 focus-visible:bg-purple-600;
+  @apply text-white outline outline-transparent transition-colors duration-300;
+  @apply focus-visible:outline-white;
+}
+
+.white-button {
+  @apply text-purple-400 bg-purple-310 dark:bg-white;
+  @apply hover:bg-purple-200 focus-visible:bg-purple-200;
+  @apply transition-colors duration-300 outline outline-transparent;
+}
+
+.auth-main {
+  @apply grid place-items-center content-center gap-5;
+}
+
+.options-container {
+  @apply absolute grid w-max bg-white dark:bg-gray-800 rounded-lg shadow-xs z-10;
+}
+
+.option {
+  @apply py-[7px] px-3 text-start text-sm text-gray-400;
+  @apply hover:bg-gray-200 dark:hover:bg-gray-500 focus-visible:bg-gray-200 dark:focus-visible:bg-gray-500;
+  @apply outline-transparent transition-colors duration-300;
+}
+
+.option--delete {
+  @apply rounded-b-lg text-red-400;
+}
+
+.options-enter-from,
+.options-leave-to {
+  @apply opacity-0 scale-0 origin-top-right sm:origin-top;
+}
+
+.options-enter-active,
+.options-leave-active {
+  @apply transition-all duration-500;
+}
