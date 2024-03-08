@@ -80,13 +80,13 @@ const isPrivacyPolicyShown = ref(false)
 const availablePaths = {
   '/': {
     action: 'Log in',
-    goTo: { name: 'sign-up' },
+    goTo: 'sign-up' ,
     question: "Don't have an account?",
     linkText: 'Create one'
   },
   '/sign-up': {
     action: 'Sign up',
-    goTo: { name: 'login' },
+    goTo: '/',
     question: 'Already have an account?',
     linkText: 'Log in'
   }
@@ -131,7 +131,7 @@ const onSubmit = form.handleSubmit(async (values) => {
     errorMessage.value = response.errorMessage
   }
 
-  handleResponse(response.ok, currentPath, buttonLoading)
+  handleResponse(response.ok, '/dashboard', buttonLoading)
 })
 </script>
 
